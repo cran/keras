@@ -1,0 +1,452 @@
+---
+title: "Frequently Asked Questions"
+output: 
+  rmarkdown::html_vignette: default
+  blogdown::html_page: 
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Guide to the Sequential Model} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
+type: docs
+repo: https://github.com/rstudio/keras
+menu:
+  main:
+    name: "Frequently Asked Questions"
+    identifier: "keras-faq"
+    parent: "keras-using-keras"
+    weight: 60
+---
+
+```{r setup, include=FALSE}
+library(keras)
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+## How should I cite Keras?
+
+Please cite Keras in your publications if it helps your research. Here is an example BibTeX entry:
+
+```
+@misc{chollet2015keras,
+  title={Keras},
+  author={Chollet, Fran\c{c}ois and others},
+  year={2015},
+  publisher={GitHub},
+  howpublished={\url{https://github.com/fchollet/keras}},
+}
+```
+
+
+## What does "sample", "batch", "epoch" mean?
+
+Below are some common definitions that are necessary to know and understand to correctly utilize Keras:
+
+- **Sample**: one element of a dataset.
+  - *Example:* one image is a **sample** in a convolutional network
+  - *Example:* one audio file is a **sample** for a speech recognition model
+- **Batch**: a set of *N* samples. The samples in a **batch** are processed independently, in parallel. If training, a batch results in only one update to the model.
+  - A **batch** generally approximates the distribution of the input data better than a single input. The larger the batch, the better the approximation; however, it is also true that the batch will take longer to processes and will still result in only one update. For inference (evaluate/predict), it is recommended to pick a batch size that is as large as you can afford without going out of memory (since larger batches will usually result in faster evaluating/prediction).
+- **Epoch**: an arbitrary cutoff, generally defined as "one pass over the entire dataset", used to separate training into distinct phases, which is useful for logging and periodic evaluation.
+  - When using `evaluation_data` or `evaluation_split` with the `fit` method of Keras models, evaluation will be run at the end of every **epoch**.
+  - Within Keras, there is the ability to add [callbacks](training_callbacks.html) specifically designed to be run at the end of an **epoch**. Examples of these are learning rate changes and model checkpointing (saving).
+
+## Why are Keras objects modified in place?
+
+Unlike most R objects, Keras objects are "mutable". That means that when you modify an object you're modifying it "in place", and you don't need to assign the updated object back to the original name. For example, to add layers to a Keras model you might use this code:
+
+```{r}
+model %>% 
+  layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dense(units = 10, activation = 'softmax')
+```
+
+Rather than this code:
+
+```{r}
+model <- model %>% 
+  layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dense(units = 10, activation = 'softmax')
+```
+
+You need to be aware of this because it makes the Keras API a little different than most other pipelines you may have used, but it's necessary to match the data structures and behavior of the underlying Keras library.
+
+## How can I save a Keras model?
+
+You can use `save_model_hdf5()` to save a Keras model into a single HDF5 file which will contain:
+
+- the architecture of the model, allowing to re-create the model
+- the weights of the model
+- the training configuration (loss, optimizer)
+- the state of the optimizer, allowing to resume training exactly where you left off.
+
+You can then use `load_model_hdf5()` to reinstantiate your model.
+`load_model_hdf5()` will also take care of compiling the model using the saved training configuration
+(unless the model was never compiled in the first place).
+
+Example:
+
+```{r}
+save_model_hdf5(model, 'my_model.h5')
+model <- load_model_hdf5('my_model.h5')
+```
+
+If you only need to save the **architecture of a model**, and not its weights or its training configuration, you can do:
+
+```{r}
+json_string <- model_to_json(model)
+yaml_string <- model_to_yaml(model)
+```
+
+The generated JSON / YAML files are human-readable and can be manually edited if needed.
+
+You can then build a fresh model from this data:
+
+```{r}
+model <- model_from_json(json_string)
+model <- model_from_yaml(yaml_string)
+```
+
+If you need to save the **weights of a model**, you can do so in HDF5 with the code below.
+
+```{r}
+save_model_weights_hdf5('my_model_weights.h5')
+```
+
+Assuming you have code for instantiating your model, you can then load the weights you saved into a model with the *same* architecture:
+
+```{r}
+model %>% load_model_weights_hdf5('my_model_weights.h5')
+```
+
+If you need to load weights into a *different* architecture (with some layers in common), for instance for fine-tuning or transfer-learning, you can load weights by *layer name*:
+
+```{r}
+model %>% load_model_weights_hdf5('my_model_weights.h5', by_name = TRUE)
+```
+
+For example:
+
+```{r}
+# assuming the original model looks like this:
+#   model <- keras_model_sequential()
+#   model %>% 
+#     layer_dense(units = 2, input_dim = 3, name = "dense 1") %>% 
+#     layer_dense(units = 3, name = "dense_3") %>% 
+#     ...
+#   save_model_weights(model, fname)
+
+# new model
+model <- keras_model_sequential()
+model %>% 
+  layer_dense(units = 2, input_dim = 3, name = "dense 1") %>%  # will be loaded
+  layer_dense(units = 3, name = "dense_3")                     # will not be loaded
+
+# load weights from first model; will only affect the first layer, dense_1.
+load_model_weights(fname, by_name = TRUE)
+```
+
+## Why is the training loss much higher than the testing loss?
+
+A Keras model has two modes: training and testing. Regularization mechanisms, such as Dropout and L1/L2 weight regularization, are turned off at testing time.
+
+Besides, the training loss is the average of the losses over each batch of training data. Because your model is changing over time, the loss over the first batches of an epoch is generally higher than over the last batches. On the other hand, the testing loss for an epoch is computed using the model as it is at the end of the epoch, resulting in a lower loss.
+
+## How can I obtain the output of an intermediate layer?
+
+One simple way is to create a new `Model` that will output the layers that you are interested in:
+
+```{r}
+model <- ...  # create the original model
+
+layer_name <- 'my_layer'
+intermediate_layer_model <- keras_model(inputs = model$input,
+                                        outputs = get_layer(layer_name)$output)
+intermediate_output <- predict(intermediate_layer_model, data)
+```
+
+
+## How can I use Keras with datasets that don't fit in memory?
+
+### Generator Functions
+
+To provide training or evaluation data incrementally you can write an R generator function that yields batches of training data then pass the function to the `fit_generator()` function (or related functions `evaluate_generator()` and `predict_generator()`.
+
+The output of generator functions must be a list of one of these forms:
+
+   - (inputs, targets)
+   - (inputs, targets, sample_weights)
+     
+All arrays should contain the same number of samples. The generator is expected to loop over its data indefinitely. For example, here's simple generator function that yields randomly sampled batches of data:
+
+```{r}
+sampling_generator <- function(X_data, Y_data, batch_size) {
+  function() {
+    rows <- sample(1:nrow(X_data), batch_size, replace = TRUE)
+    list(X_data[rows,], Y_data[rows,])
+  }
+}
+
+model %>% 
+  fit_generator(sampling_generator(X_train, Y_train, batch_size = 128), 
+                steps_per_epoch = nrow(X_train) / 128, epochs = 10)
+  
+```
+
+
+The `steps_per_epoch` parameter indicates the number of steps (batches of samples) to yield from generator before declaring one epoch finished and starting the next epoch. It should typically be equal to the number of unique samples if your dataset divided by the batch size.
+
+### External Data Generators
+
+The above example doesn't however address the use case of datasets that don't fit in memory. Typically to do that you'll write a generator that reads from another source (e.g. a sparse matrix or file(s) on disk) and maintains an offset into that data as it's called repeatedly. For example, imagine you have a set of text files in a directory you want to read from:
+
+```{r}
+data_files_generator <- function(dir) {
+  
+  files < list.files(dir)
+  next_file <- 0
+  
+  function() {
+    
+    # move to the next file (note the <<- assignment operator)
+    next_file <<- next_file + 1
+    
+    # determine the file name
+    file <- files[[next_file]]
+    
+    # process and return the data in the file
+    file_to_training_data(file)
+  }
+}
+```
+
+The above function is an example of a stateful generator---the function maintains information across calls to keep track of which data to provide next. This is accomplished by defining shared state outside the generator function body and using the `<<-` operator to assign to it from within the generator.
+
+### Image Generators
+
+You can also use the `flow_images_from_directory()` and `flow_images_from_data()` functions along with `fit_generator()` for training on sets of images stored on disk (with optional image augmentation/normalization via `image_data_generator()`).
+
+You can see batch image training in action in our [CIFAR10 example](https://rstudio.github.io/keras/articles/examples/cifar10_cnn.html).
+
+### Batch Functions
+
+You can also do batch training using the `train_on_batch()` and `test_on_batch()` functions. These functions enable you to write a training loop that reads into memory only the data required for each batch.
+
+
+## How can I interrupt training when the validation loss isn't decreasing anymore?
+
+You can use an early stopping callback:
+
+```{r}
+early_stopping <- callback_early_stopping(monitor = 'val_loss', patience = 2)
+model %>% fit(X, y, validation_split = 0.2, callbacks = c(early_stopping))
+```
+
+Find out more in the [callbacks documentation](training_callbacks.html).
+
+## How is the validation split computed?
+
+If you set the `validation_split` argument in `fit` to e.g. 0.1, then the validation data used will be the *last 10%* of the data. If you set it to 0.25, it will be the last 25% of the data, etc. Note that the data isn't shuffled before extracting the validation split, so the validation is literally just the *last* x% of samples in the input you passed.
+
+The same validation set is used for all epochs (within a same call to `fit`).
+
+## Is the data shuffled during training?
+
+Yes, if the `shuffle` argument in `fit` is set to `TRUE` (which is the default), the training data will be randomly shuffled at each epoch.
+
+Validation data is never shuffled.
+
+## How can I record the training / validation loss / accuracy at each epoch?
+
+The `model.fit` method returns an `History` callback, which has a `history` attribute containing the lists of successive losses and other metrics.
+
+```{r}
+hist <- model %>% fit(X, y, validation_split=0.2)
+hist$history
+```
+
+## How can I "freeze" Keras layers?
+
+To "freeze" a layer means to exclude it from training, i.e. its weights will never be updated. This is useful in the context of fine-tuning a model, or using fixed embeddings for a text input.
+
+You can pass a `trainable` argument (boolean) to a layer constructor to set a layer to be non-trainable:
+
+```{r}
+frozen_layer <- layer_dense(units = 32, trainable = FALSE)
+```
+
+Additionally, you can set the `trainable` property of a layer to `TRUE` or `FALSE` after instantiation. For this to take effect, you will need to call `compile()` on your model after modifying the `trainable` property. Here's an example:
+
+```{r}
+x <- layer_input(shape = c(32))
+layer <- layer_dense(units = 32)
+layer$trainable <- FALSE
+y <- x %>% layer
+
+frozen_model <- keras_model(x, y)
+# in the model below, the weights of `layer` will not be updated during training
+frozen_model %>% compile(optimizer = 'rmsprop', loss = 'mse')
+
+layer$trainable <- TRUE
+trainable_model <- keras_model(x, y)
+# with this model the weights of the layer will be updated during training
+# (which will also affect the above model since it uses the same layer instance)
+trainable_model %>% compile(optimizer = 'rmsprop', loss = 'mse')
+
+frozen_model %>% fit(data, labels)  # this does NOT update the weights of `layer`
+trainable_model %>% fit(data, labels)  # this updates the weights of `layer`
+```
+
+
+## How can I use stateful RNNs?
+
+Making a RNN stateful means that the states for the samples of each batch will be reused as initial states for the samples in the next batch.
+
+When using stateful RNNs, it is therefore assumed that:
+
+- all batches have the same number of samples
+- If `X1` and `X2` are successive batches of samples, then `X2[[i]]` is the follow-up sequence to `X1[[i]`, for every `i`.
+
+To use statefulness in RNNs, you need to:
+
+- explicitly specify the batch size you are using, by passing a `batch_size` argument to the first layer in your model. E.g. `batch_size=32` for a 32-samples batch of sequences of 10 timesteps with 16 features per timestep.
+- set `stateful=TRUE` in your RNN layer(s).
+- specify `shuffle=FALSE` when calling fit().
+
+To reset the states accumulated in either a singel layer or an entire model use the `reset_states()` function.
+
+Notes that the methods `predict()`, `fit()`, `train_on_batch()`, `predict_classes()`, etc. will *all* update the states of the stateful layers in a model. This allows you to do not only stateful training, but also stateful prediction.
+
+## How can I remove a layer from a Sequential model?
+
+You can remove the last added layer in a Sequential model by calling `pop_layer()`:
+
+```{r}
+model <- keras_model_sequential()
+model %>% 
+  layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dense(units = 32, activation = 'relu') %>% 
+  layer_dense(units = 32, activation = 'relu')
+
+length(model$layers)     # "3"
+model %>% pop_layer()
+length(model$layers)     # "2"
+```
+
+## How can I use pre-trained models in Keras?
+
+Code and pre-trained weights are available for the following image classification models:
+
+- [Xception](../reference/application_xception.html)
+- [VGG16](../reference/application_vgg.html)
+- [VGG19](../reference/application_vgg.html)
+- [ResNet50](../reference/application_resnet50.html)
+- [InceptionV3](../ reference/application_inception_v3.html)
+
+For example:
+
+```{r}
+model <- application_vgg16(weights = 'imagenet', include_top = TRUE)
+```
+
+For a few simple usage examples, see [the documentation for the Applications module](applications.html).
+
+The VGG16 model is also the basis for the [Deep dream](https://rstudio.github.io/keras/articles/examples/deep_dream.html) Keras example script.
+
+## How can I use other Keras backends?
+
+By default the Keras Python and R packages use the TensorFlow backend. Other available backends include Theano or CNTK. To learn more about using alternatate backends (e.g. Theano or CNTK) see the [article on  Keras backends](backends.html).
+
+## How can I run Keras on a GPU?
+
+Note that installation and configuration of the GPU-based backends can take considerably more time and effort. So if you are just getting started with Keras you may want to stick with the CPU version initially, then install the appropriate GPU version once your training becomes more computationally demanding.
+
+Below are instructions for installing and enabling GPU support for the various supported backends.
+
+### TensorFlow
+
+If your system has an NVIDIA® GPU and you have the GPU version of TensorFlow installed then your Keras code will automatically run on the GPU.
+
+Additional details on GPU installation can be found here: <https://tensorflow.rstudio.com/installation_gpu.html>.
+
+### Theano
+
+If you are running on the Theano backend, you can set the `THEANO_FLAGS` environment variable to indicate you'd like to execute tensor operations on the GPU. For example:
+
+```r
+Sys.setenv(KERAS_BACKEND = "keras")
+Sys.setenv(THEANO_FLAGS = "device=gpu,floatX=float32")
+library(keras)
+```
+
+The name 'gpu' might have to be changed depending on your device's identifier (e.g. `gpu0`, `gpu1`, etc).
+
+### CNTK
+
+If you have the GPU version of CNTK installed then your Keras code will automatically run on the GPU.
+
+Additional information on installing the GPU version of CNTK can be found here: https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python
+
+
+## How can I obtain reproducible results using Keras during development?
+
+During development of a model, sometimes it is useful to be able to obtain reproducible results from run to run in order to determine if a change in performance is due to an actual model or data modification, or merely a result of a new random sample.  
+
+The below snippet of code provides an example of how to obtain reproducible results when using the TensorFlow backend. To do this we set the R session's random seed, then manually construct a TensorFlow session (via the **tensorflow** package) and set it's random seed, and then finally arrange for Keras to use this session within its backend.
+
+```{r}
+library(keras)
+library(tensorflow)
+
+# Set R random seed
+set.seed(42L)
+
+# TensorFlow session configuration that uses only a single thread. Multiple threads are a 
+# potential source of non-reproducible results, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
+session_conf <- tf$ConfigProto(intra_op_parallelism_threads = 1L, 
+                               inter_op_parallelism_threads = 1L)
+
+# Set TF random seed (see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed)
+tf$set_random_seed(1042L)
+
+# Create the session using the custom configuration
+sess <- tf$Session(graph = tf$get_default_graph(), config = session_conf)
+
+# Instruct Keras to use this session
+K <- backend()
+K$set_session(sess)
+
+# Rest of code follows ...
+```
+
+## Where is the Keras configuration filed stored?
+
+The default directory where all Keras data is stored is:
+
+```bash
+$HOME/.keras/
+```
+
+Note that Windows users should replace `$HOME` with `%USERPROFILE%`.
+In case Keras cannot create the above directory (e.g. due to permission issues), `/tmp/.keras/` is used as a backup.
+
+The Keras configuration file is a JSON file stored at `$HOME/.keras/keras.json`. The default configuration file looks like this:
+
+```
+{
+    "image_data_format": "channels_last",
+    "epsilon": 1e-07,
+    "floatx": "float32",
+    "backend": "tensorflow"
+}
+```
+
+It contains the following fields:
+
+- The image data format to be used as default by image processing layers and utilities (either `channels_last` or `channels_first`).
+- The `epsilon` numerical fuzz factor to be used to prevent division by zero in some operations.
+- The default float data type.
+- The default backend (this will always be "tensorflow" in the R interface to Keras)
+
+Likewise, cached dataset files, such as those downloaded with `get_file()`, are stored by default in `$HOME/.keras/datasets/`.
