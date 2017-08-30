@@ -18,9 +18,12 @@
 #' This allows you to save the entirety of the state of a model
 #' in a single file.
 #' 
-#' Saved models can be reinstantiated via `load_model()`. The model returned by
-#' `load_model()` is a compiled model ready to be used (unless the saved model
+#' Saved models can be reinstantiated via `load_model_hdf5()`. The model returned by
+#' `load_model_hdf5()` is a compiled model ready to be used (unless the saved model
 #' was never compiled in the first place or `compile = FALSE` is specified.
+#'
+#' @note The [serialize_model()] function enables saving Keras models to
+#' R objects that can be persisted across R sessions.
 #' 
 #' @family model persistence
 #' 
@@ -36,6 +39,7 @@ save_model_hdf5 <- function(object, filepath, overwrite = TRUE, include_optimize
                             filepath = filepath, 
                             overwrite = overwrite,
                             include_optimizer = include_optimizer)
+    mirror_to_run_dir(filepath)
     invisible(TRUE) 
   } else {
     invisible(FALSE)
@@ -99,6 +103,7 @@ save_model_weights_hdf5 <- function(object, filepath, overwrite = TRUE) {
   filepath <- normalize_path(filepath)
   if (confirm_overwrite(filepath, overwrite)) {
     object$save_weights(filepath = filepath, overwrite = overwrite)
+    mirror_to_run_dir(filepath)
     invisible(TRUE)
   } else {
     invisible(FALSE)
@@ -169,6 +174,84 @@ model_from_yaml <- function(yaml, custom_objects = NULL) {
   
   keras$models$model_from_yaml(yaml, custom_objects)
 }
+
+#' Serialize a model to an R object
+#'
+#' Model objects are external references to Keras objects which cannot be saved
+#' and restored across R sessions. The `serialize_model()` and
+#' `unserialize_model()` functions provide facilities to convert Keras models to
+#' R objects for persistence within R data files.
+#'
+#' @note The [save_model_hdf5()] function enables saving Keras models to
+#' external hdf5 files.
+#'
+#' @inheritParams save_model_hdf5
+#' @param model Keras model or R "raw" object containing serialized Keras model.
+#'
+#' @return `serialize_model()` returns an R "raw" object containing an hdf5
+#'   version of the Keras model. `unserialize_model()` returns a Keras model.
+#'
+#' @family model persistence
+#'
+#' @export
+serialize_model <- function(model, include_optimizer = TRUE) {
+  
+  if (!inherits(model, "keras.engine.training.Model"))
+    stop("You must pass a Keras model object to serialize_model")
+  
+  # write hdf5 file to temp file
+  tmp <- tempfile(pattern = "keras_model", fileext = ".h5")  
+  on.exit(unlink(tmp), add = TRUE)
+  save_model_hdf5(model, tmp, include_optimizer = include_optimizer)
+  
+  # read it back into a raw vector
+  readBin(tmp, what = "raw", n = file.size(tmp))
+}
+
+#' @rdname serialize_model
+#' @export
+unserialize_model <- function(model, custom_objects = NULL, compile = TRUE) {
+  
+  # write raw hdf5 bytes to temp file 
+  tmp <- tempfile(pattern = "keras_model", fileext = ".h5")  
+  on.exit(unlink(tmp), add = TRUE)
+  writeBin(model, tmp)
+  
+  # read in from hdf5
+  load_model_hdf5(tmp, custom_objects = custom_objects, compile = compile)
+}
+
+
+# utility function to mirror saved models/weights into the run_dir
+# whenever a training_run is active
+mirror_to_run_dir <- function(filepath) {
+  
+  if (tfruns::is_run_active()) {
+    
+    # get the full path to the saved file and the working dir
+    saved_filepath <- normalizePath(filepath, mustWork = FALSE, winslash = "/")
+    wd <- normalizePath(getwd(), mustWork = FALSE, winslash = "/")
+  
+    # if the saved file is within the working dir then mirror it  
+    if (grepl(paste0("^", wd), saved_filepath)) {
+      
+      # compute target path within run_dir
+      relative_filepath <- relative_to(wd, saved_filepath)
+      copy_filepath <- file.path(run_dir(), relative_filepath)
+      
+      # create directory if needed
+      copy_dir <- dirname(copy_filepath)
+      if (!utils::file_test("-d", copy_dir))
+        dir.create(copy_dir, recursive = TRUE)
+      
+      # perform the copy
+      file.copy(saved_filepath, copy_filepath, overwrite = TRUE)
+    }
+  }
+  
+}
+
+
 
 
 

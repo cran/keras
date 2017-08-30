@@ -62,24 +62,15 @@ plot.keras_training_history <- function(x, y, metrics = NULL, method = c("auto",
       method <- "base"
   }
   
+  # convert to data frame
+  df <- as.data.frame(x)
+  
   # if metrics is null we plot all of the metrics
   if (is.null(metrics))
     metrics <- Filter(function(name) !grepl("^val_", name), names(x$metrics))
 
-  # prepare data to plot as a data.frame
-  df <- data.frame(
-    epoch = seq_len(x$params$epochs),
-    value = unlist(x$metrics),
-    metric = rep(sub("^val_", "", names(x$metrics)), each = x$params$epochs),
-    data = rep(grepl("^val_", names(x$metrics)), each = x$params$epochs)
-  )
-  
   # select the correct metrics
   df <- df[df$metric %in% metrics, ]
-  
-  # order factor levles appropriately
-  df$data <- factor(df$data, c(FALSE, TRUE), c('training', 'validation'))
-  df$metric <- factor(df$metric, unique(sub("^val_", "", names(x$metrics))))
   
   if (method == "ggplot2") {
     # helper function for correct breaks (integers only)
@@ -144,3 +135,41 @@ plot.keras_training_history <- function(x, y, metrics = NULL, method = c("auto",
 }
 
 
+#' @export
+as.data.frame.keras_training_history <- function(x, ...) {
+  # prepare data to plot as a data.frame
+  df <- data.frame(
+    epoch = seq_len(x$params$epochs),
+    value = unlist(x$metrics),
+    metric = rep(sub("^val_", "", names(x$metrics)), each = x$params$epochs),
+    data = rep(grepl("^val_", names(x$metrics)), each = x$params$epochs)
+  )
+  rownames(df) <- NULL
+  
+  # order factor levles appropriately
+  df$data <- factor(df$data, c(FALSE, TRUE), c('training', 'validation'))
+  df$metric <- factor(df$metric, unique(sub("^val_", "", names(x$metrics))))
+
+  # return
+  df
+}
+
+
+keras_training_history <- function(params, metrics) {
+  
+  # pad missing metrics with NA
+  rows <- max(as.integer(lapply(metrics, length)))
+  for (metric in names(metrics)) {
+    metric_data <- metrics[[metric]]
+    pad <- rows - length(metric_data)
+    pad_data <- rep_len(NA, pad)
+    metric_data <- c(metric_data, pad_data)
+    metrics[[metric]] <- metric_data
+  }
+  
+  # return history
+  structure(class = "keras_training_history", list(
+    params = params,
+    metrics = metrics
+  ))
+}

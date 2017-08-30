@@ -31,7 +31,7 @@
 #' }
 #' @export
 keras_model <- function(inputs, outputs = NULL) {
-  keras$models$Model(inputs = inputs, outputs = outputs)
+  keras$models$Model(inputs = unname(inputs), outputs = unname(outputs))
 }
 
 
@@ -134,59 +134,70 @@ compile <- function(object, optimizer, loss, metrics = NULL, loss_weights = NULL
 
 
 #' Train a Keras model
-#' 
+#'
 #' Trains the model for a fixed number of epochs (iterations on a dataset).
 #'
 #' @param object Model to train.
-#' @param x Vector, matrix, or array of training data (or list if the model has 
+#' @param x Vector, matrix, or array of training data (or list if the model has
 #'   multiple inputs). If all inputs in the model are named, you can also pass a
 #'   list mapping input names to data.
-#' @param y  Vector, matrix, or array of target data (or list if the model has 
+#' @param y  Vector, matrix, or array of target data (or list if the model has
 #'   multiple outputs). If all outputs in the model are named, you can also pass
 #'   a list mapping output names to data.
 #' @param batch_size Number of samples per gradient update.
 #' @param epochs Number of times to iterate over the training data arrays.
 #' @param verbose  Verbosity mode (0 = silent, 1 = verbose, 2 = one log line per
 #'   epoch).
+#' @param view_metrics View realtime plot of training metrics (by epoch). The
+#'   default (`"auto"`) will display the plot when running within RStudio,
+#'   `metrics` were specified during model [compile()], `epochs > 1` and
+#'   `verbose > 0`. Use the global `keras.view_metrics` option to establish a
+#'   different default.
 #' @param callbacks List of callbacks to be called during training.
-#' @param validation_split Float between 0 and 1: fraction of the training data 
-#'   to be used as validation data. The model will set apart this fraction of 
+#' @param validation_split Float between 0 and 1: fraction of the training data
+#'   to be used as validation data. The model will set apart this fraction of
 #'   the training data, will not train on it, and will evaluate the loss and any
 #'   model metrics on this data at the end of each epoch.
-#' @param validation_data Data on which to evaluate the loss and any model 
-#'   metrics at the end of each epoch. The model will not be trained on this 
-#'   data. This could be a list (x_val, y_val) or a list (x_val, y_val, 
+#' @param validation_data Data on which to evaluate the loss and any model
+#'   metrics at the end of each epoch. The model will not be trained on this
+#'   data. This could be a list (x_val, y_val) or a list (x_val, y_val,
 #'   val_sample_weights).
 #' @param shuffle `TRUE` to shuffle the training data before each epoch.
 #' @param class_weight Optional named list mapping indices (integers) to a
 #'   weight (float) to apply to the model's loss for the samples from this class
-#'   during training. This can be useful to tell the model to "pay more 
+#'   during training. This can be useful to tell the model to "pay more
 #'   attention" to samples from an under-represented class.
-#' @param sample_weight Optional array of the same length as x, containing 
-#'   weights to apply to the model's loss for each sample. In the case of 
-#'   temporal data, you can pass a 2D array with shape (samples, 
-#'   sequence_length), to apply a different weight to every timestep of every 
-#'   sample. In this case you should make sure to specify 
+#' @param sample_weight Optional array of the same length as x, containing
+#'   weights to apply to the model's loss for each sample. In the case of
+#'   temporal data, you can pass a 2D array with shape (samples,
+#'   sequence_length), to apply a different weight to every timestep of every
+#'   sample. In this case you should make sure to specify
 #'   sample_weight_mode="temporal" in [compile()].
 #' @param initial_epoch epoch at which to start training (useful for resuming a
 #'   previous training run).
 #' @param ... Unused
-#' 
+#'
 #' @family model functions
-#' 
+#'
 #' @export
-fit <- function(object, x, y, batch_size=32, epochs=10, verbose=1, callbacks=NULL,
+fit <- function(object, x, y, batch_size=32, epochs=10, 
+                verbose=1, callbacks=NULL,
+                view_metrics = getOption("keras.view_metrics", default = "auto"),
                 validation_split=0.0, validation_data=NULL, shuffle=TRUE,
                 class_weight=NULL, sample_weight=NULL, initial_epoch=0, ...) {
   
+  # resolve view_metrics
+  if (identical(view_metrics, "auto"))
+    view_metrics <- resolve_view_metrics(verbose, epochs, object$metrics)
+  
   # fit the model
   history <- object$fit(
-    x = normalize_x(x),
-    y = normalize_x(y),
+    x = to_numpy_array(x),
+    y = to_numpy_array(y),
     batch_size = as.integer(batch_size),
     epochs = as.integer(epochs),
     verbose = as.integer(verbose),
-    callbacks = normalize_callbacks(callbacks),
+    callbacks = normalize_callbacks(view_metrics, callbacks),
     validation_split = validation_split,
     validation_data = validation_data,
     shuffle = shuffle,
@@ -200,10 +211,10 @@ fit <- function(object, x, y, batch_size=32, epochs=10, verbose=1, callbacks=NUL
   params <- history$params
   if (params$do_validation)
     params$validation_samples <- dim(history$validation_data[[1]])[[1]]
-  history <- structure(class = "keras_training_history", list(
+  history <- keras_training_history(
     params = params,
     metrics = lapply(history$history, as.numeric)
-  ))
+  )
   
   # return the history invisibly
   invisible(history)
@@ -216,20 +227,31 @@ fit <- function(object, x, y, batch_size=32, epochs=10, verbose=1, callbacks=NUL
 #'   
 #' @param object Model object to evaluate
 #'   
-#' @return Scalar test loss (if the model has a single output and no metrics) or
-#'   list of scalars (if the model has multiple outputs and/or metrics).
+#' @return Named list of model test loss (or losses for models with multiple outputs) 
+#'   and model metrics.
 #'   
 #' @family model functions
 #'   
 #' @export
 evaluate <- function(object, x, y, batch_size = 32, verbose=1, sample_weight = NULL) {
-  object$evaluate(
-    x = normalize_x(x),
-    y = normalize_x(y),
+  
+  # perform evaluation
+  result <- object$evaluate(
+    x = to_numpy_array(x),
+    y = to_numpy_array(y),
     batch_size = as.integer(batch_size),
     verbose = as.integer(verbose),
     sample_weight = sample_weight
   )
+  
+  # apply names
+  names(result) <- object$metrics_names
+  
+  # write run data
+  tfruns::write_run_metadata("evaluation", result)
+  
+  # return result
+  result
 }
 
 
@@ -255,7 +277,7 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=32, verbos
   
   # call predict
   object$predict(
-    normalize_x(x), 
+    to_numpy_array(x), 
     batch_size = as.integer(batch_size),
     verbose = as.integer(verbose)
   )
@@ -275,7 +297,7 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=32, verbos
 #' @export
 predict_proba <- function(object, x, batch_size = 32, verbose = 0) {
   object$predict_proba(
-    x = normalize_x(x),
+    x = to_numpy_array(x),
     batch_size = as.integer(batch_size),
     verbose = as.integer(verbose)
   )
@@ -285,7 +307,7 @@ predict_proba <- function(object, x, batch_size = 32, verbose = 0) {
 #' @export
 predict_classes <- function(object, x, batch_size = 32, verbose = 0) {
   object$predict_classes(
-    x = normalize_x(x),
+    x = to_numpy_array(x),
     batch_size = as.integer(batch_size),
     verbose = as.integer(verbose)
   )
@@ -305,7 +327,7 @@ predict_classes <- function(object, x, batch_size = 32, verbose = 0) {
 #' @export
 predict_on_batch <- function(object, x) {
   object$predict_on_batch(
-    x = normalize_x(x)
+    x = to_numpy_array(x)
   )
 }
 
@@ -329,8 +351,8 @@ predict_on_batch <- function(object, x) {
 #' @export
 train_on_batch <- function(object, x, y, class_weight = NULL, sample_weight = NULL) {
   object$train_on_batch(
-    x = normalize_x(x),
-    y = normalize_x(y),
+    x = to_numpy_array(x),
+    y = to_numpy_array(y),
     class_weight = as_class_weight(class_weight),
     sample_weight = sample_weight
   )
@@ -340,8 +362,8 @@ train_on_batch <- function(object, x, y, class_weight = NULL, sample_weight = NU
 #' @export
 test_on_batch <- function(object, x, y, sample_weight = NULL) {
   object$test_on_batch(
-    x = normalize_x(x),
-    y = normalize_x(y),
+    x = to_numpy_array(x),
+    y = to_numpy_array(y),
     sample_weight = sample_weight
   )
 }
@@ -353,6 +375,8 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #' The generator is run in parallel to the model, for efficiency. For instance,
 #' this allows you to do real-time data augmentation on images on CPU in
 #' parallel to training your model on GPU.
+#' 
+#' @inheritParams fit 
 #'
 #' @param object Keras model object
 #' @param generator A generator (e.g. like the one provided by
@@ -363,6 +387,10 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #'      - (inputs, targets)
 #'      - (inputs, targets, sample_weights)
 #'      
+#'   Note that the generator should call the [to_numpy_array()] function on its
+#'   results prior to returning them (this ensures that arrays are provided in 
+#'   'C' order and using the default floating point type for the backend.)
+#'      
 #'   All arrays should contain the same number of samples. The generator is expected
 #'   to loop over its data indefinitely. An epoch finishes when `steps_per_epoch`
 #'   batches have been seen by the model.
@@ -371,7 +399,6 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #'   epoch. It should typically be equal to the number of unique samples if your
 #'   dataset divided by the batch size.
 #' @param epochs integer, total number of iterations on the data.
-#' @param verbose verbosity mode, 0, 1, or 2.
 #' @param callbacks list of callbacks to be called during training.
 #' @param validation_data this can be either: 
 #'    - a generator for the validation data 
@@ -391,16 +418,22 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #' @family model functions
 #'
 #' @export
-fit_generator <- function(object, generator, steps_per_epoch, epochs = 1, verbose = 1, 
-                          callbacks = NULL, validation_data = NULL, validation_steps = NULL, 
+fit_generator <- function(object, generator, steps_per_epoch, epochs = 1, 
+                          verbose = 1, callbacks = NULL, 
+                          view_metrics = getOption("keras.view_metrics", default = "auto"),
+                          validation_data = NULL, validation_steps = NULL, 
                           class_weight = NULL, max_queue_size = 10, initial_epoch = 0) {
+  
+  # resolve view_metrics
+  if (identical(view_metrics, "auto"))
+    view_metrics <- resolve_view_metrics(verbose, epochs, object$metrics)
   
   call_generator_function(object$fit_generator, list(
     generator = as_generator(generator),
     steps_per_epoch = as.integer(steps_per_epoch),
     epochs = as.integer(epochs),
     verbose = as.integer(verbose),
-    callbacks = normalize_callbacks(callbacks),
+    callbacks = normalize_callbacks(view_metrics, callbacks),
     validation_data = validation_data,
     validation_steps = as_nullable_integer(validation_steps),
     class_weight = as_class_weight(class_weight),
@@ -423,20 +456,29 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1, verbos
 #'   `generator` before stopping.
 #' @param max_queue_size maximum size for the generator queue
 #'   
-#' @return Scalar test loss (if the model has a single output and no metrics) or
-#'   list of scalars (if the model has multiple outputs and/or metrics). The
-#'   attribute `model$metrics_names` will give you the display labels for the
-#'   scalar outputs.
+#' @return Named list of model test loss (or losses for models with multiple outputs) 
+#'   and model metrics.
 #'  
 #' @family model functions   
 #'     
 #' @export
 evaluate_generator <- function(object, generator, steps, max_queue_size = 10) {
-  call_generator_function(object$evaluate_generator, list(
+  
+  # perform evaluation
+  result <- call_generator_function(object$evaluate_generator, list(
     generator = generator,
     steps = as.integer(steps),
     max_queue_size = as.integer(max_queue_size)
   ))
+  
+  # apply names
+  names(result) <- object$metrics_names
+  
+  # write run data
+  tfruns::write_run_metadata("evaluation", result)
+  
+  # return result
+  result
 }
 
 
@@ -563,7 +605,7 @@ summary.keras.engine.training.Model <- function(object, line_length = getOption(
   if (py_is_null_xptr(object))
     cat("<pointer: 0x0>\n")
   else {
-    if (keras_version() >= "2.05")
+    if (keras_version() >= "2.0.6")
       object$summary(line_length = getOption("width"), print_fn = function(object) cat(object, "\n", sep = ""))
     else
       cat(py_str(object, line_length = line_length, positions = positions), "\n")
@@ -577,32 +619,16 @@ py_str.keras.engine.training.Model <- function(object,  line_length = getOption(
 }
 
 
-# Convert input data into a numpy array. This would be done 
-# automatically by reticulate for arrays and matrices however we
-# want to marshall arrays/matrices with C column ordering 
-# rather than the default Fortrain column ordering, as this will
-# make for more efficient copying of data to GPUs
-normalize_x <- function(x) {
-  
-  # recurse for lists
-  if (is.list(x))
-    return(lapply(x, normalize_x))
-  
-  # convert to numpy
-  if (!inherits(x, "numpy.ndarray")) {
-    
-    # convert non-array to array
-    if (!is.array(x))
-      x <- as.array(x)
-    
-    # do the conversion (will result in Fortran column ordering)
-    x <- r_to_py(x)
-  }
-  
-  # ensure we use C column ordering (won't create a new array if the array
-  # is already using C ordering)
-  x$astype(dtype = x$dtype, order = 'C', copy = FALSE)
+# determine whether to view metrics or not
+resolve_view_metrics <- function(verbose, epochs, metrics) {
+  (epochs > 1)          &&            # more than 1 epoch
+  (length(metrics) > 0) &&            # capturing at least one metric
+  (verbose > 0) &&                    # verbose mode is on
+  !is.null(getOption("viewer")) &&    # have an internal viewer available
+  nzchar(Sys.getenv("RSTUDIO"))       # running under RStudio
 }
+
+
 
 as_class_weight <- function(class_weight) {
   # convert class weights to python dict

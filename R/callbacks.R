@@ -160,8 +160,12 @@ callback_terminate_on_naan <- function() {
 #' @param histogram_freq frequency (in epochs) at which to compute activation 
 #'   histograms for the layers of the model. If set to 0, histograms won't be
 #'   computed.
+#' @param batch_size size of batch of inputs to feed to the network
+#'   for histograms computation.
 #' @param write_graph whether to visualize the graph in Tensorboard. The log
 #'   file can become quite large when write_graph is set to `TRUE`
+#' @param write_grads whether to visualize gradient histograms in TensorBoard.
+#'   `histogram_freq` must be greater than 0.
 #' @param write_images whether to write model weights to visualize as image in
 #'   Tensorboard.
 #' @param embeddings_freq frequency (in epochs) at which selected embedding 
@@ -177,25 +181,29 @@ callback_terminate_on_naan <- function() {
 #' @details TensorBoard is a visualization tool provided with TensorFlow.
 #'   
 #' You can find more information about TensorBoard
-#' [here](https://tensorflow.rstudio.com/howto_summaries_and_tensorboard.html).
+#' [here](https://www.tensorflow.org/get_started/summaries_and_tensorboard).
 #' 
 #' @family callbacks 
 #'    
 #' @export
-callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0, 
-                                 write_graph = TRUE, write_images = FALSE,
-                                 embeddings_freq = 0, embeddings_layer_names = NULL,
+callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0,
+                                 batch_size = 32,
+                                 write_graph = TRUE, 
+                                 write_grads = FALSE,
+                                 write_images = FALSE,
+                                 embeddings_freq = 0, 
+                                 embeddings_layer_names = NULL,
                                  embeddings_metadata = NULL) {
   
   # establish the log_dir
   if (is.null(log_dir)) {
-    if (!is.null(run_dir()))
-      log_dir <- run_dir()
+    if (tfruns::is_run_active())
+      log_dir <- tfruns::run_dir()
     else
       log_dir <- "logs"
   }
-  
-  keras$callbacks$TensorBoard(
+   
+  args <- list(
     log_dir = normalize_path(log_dir),
     histogram_freq = as.integer(histogram_freq),
     write_graph = write_graph,
@@ -204,6 +212,13 @@ callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0,
     embeddings_layer_names = embeddings_layer_names,
     embeddings_metadata = embeddings_metadata
   )
+  
+  if (keras_version() >= "2.0.5") {
+    args$batch_size <- as.integer(batch_size)
+    args$write_grads <- write_grads
+  }
+  
+  do.call(keras$callbacks$TensorBoard, args)
 }
 
 
@@ -269,6 +284,7 @@ callback_csv_logger <- function(filename, separator = ",", append = FALSE) {
 }
 
 
+
 #' Create a custom callback
 #' 
 #' This callback is constructed with anonymous functions that will be called at
@@ -301,7 +317,6 @@ callback_lambda <- function(on_epoch_begin = NULL, on_epoch_end = NULL,
     on_train_end = on_train_end
   )
 }
-
 
 #' Base R6 class for Keras callbacks
 #' 
@@ -390,31 +405,21 @@ KerasCallback <- R6Class("KerasCallback",
   )
 )
 
-normalize_callbacks <- function(callbacks) {
+normalize_callbacks <- function(view_metrics, callbacks) {
   
-  # helper to determine if we should add a tensorboard callback
-  have_tensorboard_callback <- FALSE
-  include_tensorboard_callback <- function() {
-    !have_tensorboard_callback && is_backend("tensorflow") && !is.null(run_dir())
-  }
-  
-  # if there are no callbacks specified and we are in a run_dir
-  # then automatically add the tensorboard_callback
-  if (is.null(callbacks) && include_tensorboard_callback())
-    callbacks <- callback_tensorboard(run_dir())
-  
-  # return NULL if there are no callbacks
-  if (is.null(callbacks)) 
-    return(NULL)
-    
   # if callbacks isn't a list then make it one
   if (!is.null(callbacks) && !is.list(callbacks))
     callbacks <- list(callbacks)
   
+  # always include the metrics callback
+  callbacks <- append(callbacks, KerasMetricsCallback$new(view_metrics))  
+ 
   # import callback utility module
   python_path <- system.file("python", package = "keras")
   tools <- import_from_path("kerastools", path = python_path)
   
+  # convert R callbacks to Python and check whether the user
+  # has already included the tensorboard callback
   have_tensorboard_callback <- FALSE
   callbacks <- lapply(callbacks, function(callback) {
     
@@ -438,9 +443,9 @@ normalize_callbacks <- function(callbacks) {
     }
   })
   
-  # if we have a run_dir() and no tensorboard_callback then add one
-  if (include_tensorboard_callback())
-    callbacks <- append(callbacks, callback_tensorboard(run_dir()))
+  # add the tensorboard callback if necessary
+  if (is_backend("tensorflow") && tfruns::is_run_active() && !have_tensorboard_callback)
+    callbacks <- append(callbacks, callback_tensorboard())
   
   # return the callbacks
   callbacks

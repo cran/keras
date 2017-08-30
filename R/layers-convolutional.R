@@ -19,6 +19,9 @@
 #'   length of the convolution. Specifying any stride value != 1 is incompatible
 #'   with specifying any `dilation_rate` value != 1.
 #' @param padding One of `"valid"`, `"causal"` or `"same"` (case-insensitive). 
+#'   `"valid"` means "no padding".
+#'   `"same"` results in padding the input such that the output has the same 
+#'   length as the original input.
 #'   `"causal"` results in causal (dilated) convolutions, e.g. `output[t]` does
 #'   not depend on `input[t+1:]`. Useful when modeling temporal data where the
 #'   model should not violate the temporal order. See [WaveNet: A Generative
@@ -344,12 +347,12 @@ layer_conv_2d_transpose <- function(object, filters, kernel_size, strides = c(1L
 #'
 #' @param filters Integer, the dimensionality of the output space (i.e. the
 #'   number of output filters in the convolution).
-#' @param kernel_size An integer or list of 3 integers, specifying the width and
-#'   height of the 3D convolution window. Can be a single integer to specify the
-#'   same value for all spatial dimensions.
+#' @param kernel_size An integer or list of 3 integers, specifying the depth,
+#'   height, and width of the 3D convolution window. Can be a single integer
+#'   to specify the same value for all spatial dimensions.
 #' @param strides An integer or list of 3 integers, specifying the strides of
-#'   the convolution along the width and height. Can be a single integer to
-#'   specify the same value for all spatial dimensions. Specifying any stride
+#'   the convolution along the depth, height and width.. Can be a single integer
+#'   to specify the same value for all spatial dimensions. Specifying any stride
 #'   value != 1 is incompatible with specifying any `dilation_rate` value != 1.
 #' @param padding one of `"valid"` or `"same"` (case-insensitive).
 #' @param data_format A string, one of `channels_last` (default) or

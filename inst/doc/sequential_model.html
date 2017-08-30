@@ -86,21 +86,23 @@ model <span class="op">%&gt;%</span><span class="st"> </span>
 <p>Print a summary of the model’s structure using the <code>summary()</code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(model)</code></pre></div>
 <pre><code>Model
-__________________________________________________________________________________________
-Layer (type)                            Output Shape                        Param #       
-==========================================================================================
-dense_4 (Dense)                         (None, 32)                          25120         
-__________________________________________________________________________________________
-activation_1 (Activation)               (None, 32)                          0             
-__________________________________________________________________________________________
-dense_5 (Dense)                         (None, 10)                          330           
-__________________________________________________________________________________________
-activation_2 (Activation)               (None, 10)                          0             
-==========================================================================================
-Total params: 25,450
-Trainable params: 25,450
+________________________________________________________________________________
+Layer (type)                        Output Shape                    Param #     
+================================================================================
+dense_1 (Dense)                     (None, 256)                     200960      
+________________________________________________________________________________
+dropout_1 (Dropout)                 (None, 256)                     0           
+________________________________________________________________________________
+dense_2 (Dense)                     (None, 128)                     32896       
+________________________________________________________________________________
+dropout_2 (Dropout)                 (None, 128)                     0           
+________________________________________________________________________________
+dense_3 (Dense)                     (None, 10)                      1290        
+================================================================================
+Total params: 235,146
+Trainable params: 235,146
 Non-trainable params: 0
-__________________________________________________________________________________________</code></pre>
+________________________________________________________________________________</code></pre>
 <div id="input-shapes" class="section level3">
 <h3>Input Shapes</h3>
 <p>The model needs to know what input shape it should expect. For this reason, the first layer in a sequential model (and only the first, because following layers can do automatic shape inference) needs to receive information about its input shape.</p>
@@ -205,13 +207,13 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">fi
 <div id="examples" class="section level2">
 <h2>Examples</h2>
 <p>Here are a few examples to get you started!</p>
-<p>On the <a href="https://rstudio.github.io/keras/articles/examples/index.html">examples</a> page you will also find example models for real datasets:</p>
+<p>On the <a href="https://keras.rstudio.com/articles/examples/index.html">examples</a> page you will also find example models for real datasets:</p>
 <ul>
-<li><p><a href="https://rstudio.github.io/keras/articles/examples/cifar10_cnn.html">CIFAR10 small images classification</a></p></li>
-<li><p><a href="https://rstudio.github.io/keras/articles/examples/imdb_cnn_lstm.html">IMDB movie review sentiment classification</a></p></li>
-<li><p><a href="https://rstudio.github.io/keras/articles/examples/reuters_mlp.html">Reuters newswires topic classification</a></p></li>
-<li><p><a href="https://rstudio.github.io/keras/articles/examples/mnist_mlp.html">MNIST handwritten digits classification</a></p></li>
-<li><p><a href="https://rstudio.github.io/keras/articles/examples/lstm_text_generation.html">Character-level text generation with LSTM</a></p></li>
+<li><p><a href="https://keras.rstudio.com/articles/examples/cifar10_cnn.html">CIFAR10 small images classification</a></p></li>
+<li><p><a href="https://keras.rstudio.com/articles/examples/imdb_cnn_lstm.html">IMDB movie review sentiment classification</a></p></li>
+<li><p><a href="https://keras.rstudio.com/articles/examples/reuters_mlp.html">Reuters newswires topic classification</a></p></li>
+<li><p><a href="https://keras.rstudio.com/articles/examples/mnist_mlp.html">MNIST handwritten digits classification</a></p></li>
+<li><p><a href="https://keras.rstudio.com/articles/examples/lstm_text_generation.html">Character-level text generation with LSTM</a></p></li>
 </ul>
 <p>Some additional examples are provided below.</p>
 <div id="multilayer-perceptron-mlp-for-multi-class-softmax-classification" class="section level3">

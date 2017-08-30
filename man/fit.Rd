@@ -5,9 +5,9 @@
 \title{Train a Keras model}
 \usage{
 fit(object, x, y, batch_size = 32, epochs = 10, verbose = 1,
-  callbacks = NULL, validation_split = 0, validation_data = NULL,
-  shuffle = TRUE, class_weight = NULL, sample_weight = NULL,
-  initial_epoch = 0, ...)
+  callbacks = NULL, view_metrics = getOption("keras.view_metrics", default =
+  "auto"), validation_split = 0, validation_data = NULL, shuffle = TRUE,
+  class_weight = NULL, sample_weight = NULL, initial_epoch = 0, ...)
 }
 \arguments{
 \item{object}{Model to train.}
@@ -28,6 +28,12 @@ a list mapping output names to data.}
 epoch).}
 
 \item{callbacks}{List of callbacks to be called during training.}
+
+\item{view_metrics}{View realtime plot of training metrics (by epoch). The
+default (\code{"auto"}) will display the plot when running within RStudio,
+\code{metrics} were specified during model \code{\link[=compile]{compile()}}, \code{epochs > 1} and
+\code{verbose > 0}. Use the global \code{keras.view_metrics} option to establish a
+different default.}
 
 \item{validation_split}{Float between 0 and 1: fraction of the training data
 to be used as validation data. The model will set apart this fraction of

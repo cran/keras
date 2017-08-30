@@ -1,11 +1,29 @@
-
+#' R interface to Keras
+#'
+#' Keras is a high-level neural networks API, developed with a focus on enabling
+#' fast experimentation. Keras has the following key features:
+#' 
+#' - Allows the same code to run on CPU or on GPU, seamlessly.
+#' - User-friendly API which makes it easy to quickly prototype deep learning models.
+#' - Built-in support for convolutional networks (for computer vision), recurrent 
+#'   networks (for sequence processing), and any combination of both.
+#' - Supports arbitrary network architectures: multi-input or multi-output models, 
+#'   layer sharing, model sharing, etc. This means that Keras is appropriate for 
+#'   building essentially any deep learning model, from a memory network to a neural
+#'   Turing machine.
+#' - Is capable of running on top of multiple back-ends including 
+#'   [TensorFlow](https://github.com/tensorflow/tensorflow), 
+#'   [CNTK](https://github.com/Microsoft/cntk), 
+#'   or [Theano](https://github.com/Theano/Theano).
+#' 
+#' See the package website at <https://keras.rstudio.com> for complete documentation.
+#'
 #' @import methods
 #' @import R6
 #' @importFrom reticulate import dict iterate import_from_path py_iterator py_call py_capture_output py_get_attr py_has_attr py_is_null_xptr py_to_r r_to_py tuple
 #' @importFrom graphics par plot points
-#' @importFrom tensorflow tf_version 
-#' @importFrom tfruns run_dir
-NULL
+#' @importFrom tensorflow tf_version tf_config install_tensorflow
+"_PACKAGE"
 
 # Main Keras module
 keras <- NULL
@@ -24,6 +42,8 @@ keras <- NULL
   keras <<- import(implementation_module, as = "keras", delay_load = list(
   
     priority = 10,
+    
+    environment = "r-tensorflow",
      
     on_load = function() {
       check_implementation_version()
@@ -41,26 +61,7 @@ keras <- NULL
 resolve_implementation_module <- function() {
   
   # determine implementation to use
-  implementation <- get_keras_implementation(default = NULL)
-  
-  # determine backend to use
-  backend <- get_keras_backend()
-  
-  # set KERAS_BACKEND environment variable 
-  if (!is.null(backend))
-    Sys.setenv(KERAS_BACKEND = backend)
-  
-  # fully resolve implementation if it's not yet provided
-  if (is.null(implementation)) {
-    # if there is a backend then this implies 'keras' implementation
-    if (!is.null(backend)) {
-      implementation <- "keras"
-      Sys.setenv(KERAS_IMPLEMENTATION = "keras")
-      # otherwise implementation is 'tensorflow'
-    } else {
-      implementation <- "tensorflow"
-    }
-  }
+  implementation <- get_keras_implementation()
   
   # set the implementation module
   if (identical(implementation, "tensorflow"))
@@ -72,12 +73,8 @@ resolve_implementation_module <- function() {
   implementation_module
 }
 
-get_keras_implementation <- function(default = "tensorflow") {
+get_keras_implementation <- function(default = "keras") {
   get_keras_option("KERAS_IMPLEMENTATION", default = default)
-}
-
-get_keras_backend <- function(default = NULL) {
-  get_keras_option("KERAS_BACKEND", default = default)
 }
 
 get_keras_python <- function(default = NULL) {

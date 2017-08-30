@@ -214,7 +214,7 @@ model <span class="op">%&gt;%</span><span class="st"> </span>
 <div id="image-generators" class="section level3">
 <h3>Image Generators</h3>
 <p>You can also use the <code>flow_images_from_directory()</code> and <code>flow_images_from_data()</code> functions along with <code>fit_generator()</code> for training on sets of images stored on disk (with optional image augmentation/normalization via <code>image_data_generator()</code>).</p>
-<p>You can see batch image training in action in our <a href="https://rstudio.github.io/keras/articles/examples/cifar10_cnn.html">CIFAR10 example</a>.</p>
+<p>You can see batch image training in action in our <a href="https://keras.rstudio.com/articles/examples/cifar10_cnn.html">CIFAR10 example</a>.</p>
 </div>
 <div id="batch-functions" class="section level3">
 <h3>Batch Functions</h3>
@@ -302,16 +302,17 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">po
 <h2>How can I use pre-trained models in Keras?</h2>
 <p>Code and pre-trained weights are available for the following image classification models:</p>
 <ul>
-<li><a href="../reference/application_xception.html">Xception</a></li>
-<li><a href="../reference/application_vgg.html">VGG16</a></li>
-<li><a href="../reference/application_vgg.html">VGG19</a></li>
-<li><a href="../reference/application_resnet50.html">ResNet50</a></li>
-<li><a href="../%20reference/application_inception_v3.html">InceptionV3</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_xception.html">Xception</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_vgg.html">VGG16</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_vgg.html">VGG19</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_resnet50.html">ResNet50</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_inception_v3.html">InceptionV3</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_mobilenet.html">MobileNet</a></li>
 </ul>
 <p>For example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">model &lt;-<span class="st"> </span><span class="kw">application_vgg16</span>(<span class="dt">weights =</span> <span class="st">'imagenet'</span>, <span class="dt">include_top =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p>For a few simple usage examples, see <a href="applications.html">the documentation for the Applications module</a>.</p>
-<p>The VGG16 model is also the basis for the <a href="https://rstudio.github.io/keras/articles/examples/deep_dream.html">Deep dream</a> Keras example script.</p>
+<p>The VGG16 model is also the basis for the <a href="https://keras.rstudio.com/articles/examples/deep_dream.html">Deep dream</a> Keras example script.</p>
 </div>
 <div id="how-can-i-use-other-keras-backends" class="section level2">
 <h2>How can I use other Keras backends?</h2>
@@ -338,6 +339,42 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">po
 <h3>CNTK</h3>
 <p>If you have the GPU version of CNTK installed then your Keras code will automatically run on the GPU.</p>
 <p>Additional information on installing the GPU version of CNTK can be found here: <a href="https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python" class="uri">https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python</a></p>
+</div>
+</div>
+<div id="how-can-i-use-keras-in-another-r-package" class="section level2">
+<h2>How can I use Keras in another R package?</h2>
+<div id="testing-on-cran" class="section level3">
+<h3>Testing on CRAN</h3>
+<p>The main consideration in using Keras within another R package is to ensure that your package can be tested in an environment where Keras is not available (e.g. the CRAN test servers). To do this, arrange for your tests to be skipped when Keras isn’t available using the <code>is_keras_available()</code> function.</p>
+<p>For example, here’s a <a href="http://r-pkgs.had.co.nz/tests.html">testthat</a> utility function that can be used to skip a test when Keras isn’t available:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># testthat utilty for skipping tests when Keras isn't available</span>
+skip_if_no_keras &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">version =</span> <span class="ot">NULL</span>) {
+  <span class="cf">if</span> (<span class="op">!</span><span class="kw">is_keras_available</span>(version))
+    <span class="kw">skip</span>(<span class="st">&quot;Required keras version not available for testing&quot;</span>)
+}
+
+<span class="co"># use the function within a test</span>
+<span class="kw">test_that</span>(<span class="st">&quot;keras function works correctly&quot;</span>, {
+  <span class="kw">skip_if_no_keras</span>()
+  <span class="co"># test code here</span>
+})</code></pre></div>
+<p>You can pass the <code>version</code> argument to check for a specific version of Keras.</p>
+</div>
+<div id="keras-module" class="section level3">
+<h3>Keras Module</h3>
+<p>Another consideration is gaining access to the underlying Keras python module. You might need to do this if you require lower level access to Keras than is provided for by the Keras R package.</p>
+<p>Since the Keras R package can bind to multiple different implementations of Keras (either the original Keras or the TensorFlow implementation of Keras), you should use the <code>keras::implementation()</code> function to obtain access to the correct python module. You can use this function within the <code>.onLoad</code> function of a package to provide global access to the module within your package. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Keras python module</span>
+keras &lt;-<span class="st"> </span><span class="ot">NULL</span>
+
+<span class="co"># Obtain a reference to the module from the keras R package</span>
+.onLoad &lt;-<span class="st"> </span><span class="cf">function</span>(libname, pkgname) {
+  keras &lt;&lt;-<span class="st"> </span>keras<span class="op">::</span><span class="kw">implementation</span>() 
+}</code></pre></div>
+</div>
+<div id="custom-layers" class="section level3">
+<h3>Custom Layers</h3>
+<p>If you create <a href="custom_layers.html">custom layers in R</a> or import other Python packages which include custom Keras layers, be sure to wrap them using the <code>create_layer()</code> function so that they are composable using the magrittr pipe operator. See the documentation on <a href="custom_layers.html#layer-wrapper-function">layer wrapper functions</a> for additional details.</p>
 </div>
 </div>
 <div id="how-can-i-obtain-reproducible-results-using-keras-during-development" class="section level2">

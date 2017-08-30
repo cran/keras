@@ -7,6 +7,10 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  library(keras)
 
 ## ------------------------------------------------------------------------
+#  Sys.setenv(KERAS_BACKEND = "cntk")
+#  library(keras)
+
+## ------------------------------------------------------------------------
 #  library(keras)
 #  K <- backend()
 

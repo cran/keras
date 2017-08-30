@@ -47,21 +47,23 @@ summary(model)
 
 ```
 Model
-__________________________________________________________________________________________
-Layer (type)                            Output Shape                        Param #       
-==========================================================================================
-dense_4 (Dense)                         (None, 32)                          25120         
-__________________________________________________________________________________________
-activation_1 (Activation)               (None, 32)                          0             
-__________________________________________________________________________________________
-dense_5 (Dense)                         (None, 10)                          330           
-__________________________________________________________________________________________
-activation_2 (Activation)               (None, 10)                          0             
-==========================================================================================
-Total params: 25,450
-Trainable params: 25,450
+________________________________________________________________________________
+Layer (type)                        Output Shape                    Param #     
+================================================================================
+dense_1 (Dense)                     (None, 256)                     200960      
+________________________________________________________________________________
+dropout_1 (Dropout)                 (None, 256)                     0           
+________________________________________________________________________________
+dense_2 (Dense)                     (None, 128)                     32896       
+________________________________________________________________________________
+dropout_2 (Dropout)                 (None, 128)                     0           
+________________________________________________________________________________
+dense_3 (Dense)                     (None, 10)                      1290        
+================================================================================
+Total params: 235,146
+Trainable params: 235,146
 Non-trainable params: 0
-__________________________________________________________________________________________
+________________________________________________________________________________
 ```
 
 ### Input Shapes
@@ -196,17 +198,17 @@ model %>% fit(data, one_hot_labels, epochs=10, batch_size=32)
 
 Here are a few examples to get you started!
 
-On the [examples](https://rstudio.github.io/keras/articles/examples/index.html) page you will also find example models for real datasets:
+On the [examples](https://keras.rstudio.com/articles/examples/index.html) page you will also find example models for real datasets:
 
-- [CIFAR10 small images classification](https://rstudio.github.io/keras/articles/examples/cifar10_cnn.html) 
+- [CIFAR10 small images classification](https://keras.rstudio.com/articles/examples/cifar10_cnn.html) 
 
-- [IMDB movie review sentiment classification](https://rstudio.github.io/keras/articles/examples/imdb_cnn_lstm.html) 
+- [IMDB movie review sentiment classification](https://keras.rstudio.com/articles/examples/imdb_cnn_lstm.html) 
 
-- [Reuters newswires topic classification](https://rstudio.github.io/keras/articles/examples/reuters_mlp.html) 
+- [Reuters newswires topic classification](https://keras.rstudio.com/articles/examples/reuters_mlp.html) 
 
-- [MNIST handwritten digits classification](https://rstudio.github.io/keras/articles/examples/mnist_mlp.html)
+- [MNIST handwritten digits classification](https://keras.rstudio.com/articles/examples/mnist_mlp.html)
 
-- [Character-level text generation with LSTM](https://rstudio.github.io/keras/articles/examples/lstm_text_generation.html)
+- [Character-level text generation with LSTM](https://keras.rstudio.com/articles/examples/lstm_text_generation.html)
 
 Some additional examples are provided below.
 
