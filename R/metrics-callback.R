@@ -17,12 +17,22 @@ KerasMetricsCallback <- R6::R6Class("KerasMetricsCallback",
     
     on_train_begin = function(logs = NULL) {
       
+      # strip validation metrics if do_validation is FALSE (for
+      # fit_generator and fitting TF record the val_ metrics are
+      # passed even though no data will be provided for them)
+      if (!self$params$do_validation) {
+        self$params$metrics <- Filter(function(metric) {
+          !grepl("^val_", metric)
+        }, self$params$metrics)
+      }
+      
       # initialize metrics
       for (metric in self$params$metrics)
         self$metrics[[metric]] <- numeric()
       
       # handle metrics
-      self$on_metrics(logs, 0.5)
+      if (length(logs) > 0)
+        self$on_metrics(logs, 0.5)
       
       if (tfruns::is_run_active()) {
         self$write_params(self$params)
@@ -40,8 +50,16 @@ KerasMetricsCallback <- R6::R6Class("KerasMetricsCallback",
     on_metrics = function(logs, sleep) {
       
       # record metrics
-      for (metric in names(self$metrics))
-        self$metrics[[metric]] <- c(self$metrics[[metric]], logs[[metric]])
+      for (metric in names(self$metrics)) {
+        # guard against metrics not yet available by using NA 
+        # when a named metrics isn't passed in 'logs'
+        value <- logs[[metric]]
+        if (is.null(value))
+          value <- NA
+        else
+          value <- mean(value)
+        self$metrics[[metric]] <- c(self$metrics[[metric]], value)
+      }
       
       # create history object and convert to metrics data frame
       history <- keras_training_history(self$params, self$metrics)
@@ -97,7 +115,7 @@ KerasMetricsCallback <- R6::R6Class("KerasMetricsCallback",
       tryCatch({
         K <- backend()
         model_info <- list()
-        model_info$model <- py_str(model)
+        model_info$model <- py_str(model, line_length = 80L)
         model_info$loss_function <- model$loss
         if (is.function(model_info$loss_function))
           model_info$loss_function <- model_info$loss_function$func_name

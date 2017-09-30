@@ -39,7 +39,6 @@ save_model_hdf5 <- function(object, filepath, overwrite = TRUE, include_optimize
                             filepath = filepath, 
                             overwrite = overwrite,
                             include_optimizer = include_optimizer)
-    mirror_to_run_dir(filepath)
     invisible(TRUE) 
   } else {
     invisible(FALSE)
@@ -103,7 +102,6 @@ save_model_weights_hdf5 <- function(object, filepath, overwrite = TRUE) {
   filepath <- normalize_path(filepath)
   if (confirm_overwrite(filepath, overwrite)) {
     object$save_weights(filepath = filepath, overwrite = overwrite)
-    mirror_to_run_dir(filepath)
     invisible(TRUE)
   } else {
     invisible(FALSE)
@@ -220,38 +218,6 @@ unserialize_model <- function(model, custom_objects = NULL, compile = TRUE) {
   # read in from hdf5
   load_model_hdf5(tmp, custom_objects = custom_objects, compile = compile)
 }
-
-
-# utility function to mirror saved models/weights into the run_dir
-# whenever a training_run is active
-mirror_to_run_dir <- function(filepath) {
-  
-  if (tfruns::is_run_active()) {
-    
-    # get the full path to the saved file and the working dir
-    saved_filepath <- normalizePath(filepath, mustWork = FALSE, winslash = "/")
-    wd <- normalizePath(getwd(), mustWork = FALSE, winslash = "/")
-  
-    # if the saved file is within the working dir then mirror it  
-    if (grepl(paste0("^", wd), saved_filepath)) {
-      
-      # compute target path within run_dir
-      relative_filepath <- relative_to(wd, saved_filepath)
-      copy_filepath <- file.path(run_dir(), relative_filepath)
-      
-      # create directory if needed
-      copy_dir <- dirname(copy_filepath)
-      if (!utils::file_test("-d", copy_dir))
-        dir.create(copy_dir, recursive = TRUE)
-      
-      # perform the copy
-      file.copy(saved_filepath, copy_filepath, overwrite = TRUE)
-    }
-  }
-  
-}
-
-
 
 
 

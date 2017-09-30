@@ -1,5 +1,35 @@
 
-# keras 2.0.6
+## keras 2.0.8 (CRAN)
+
+- Add `use_session_with_seed()` function that establishes a random seed for the Keras session.
+  Note that this should not be used when training time is paramount, as it disables GPU
+  computation and CPU parallelism by default for more deterministic computations.
+
+- Fix for plotting training history with early stopping callback (thanks to @JamesAllingham).
+
+- Return R training history object from `fit_generator()`
+
+- Rename `to_numpy_array()` function to `keras_array()` reflecting automatic use
+  of Keras default backend float type and "C" ordering.
+  
+- Add standard layer arguments (e.g. `name`, `trainable`, etc.) to merge layers
+
+- Better support for training models from data tensors in TensorFlow (e.g. Datasets, TFRecords). Add a related example script.
+
+- Add `clone_model()` function, enabling to construct a new model, given an existing model to use as a template. Works even in a TensorFlow graph different from that of the original model.
+
+- Add `target_tensors` argument in `compile()`, enabling to use custom tensors or placeholders as model targets.
+
+- Add `steps_per_epoch` argument in `fit()`, enabling to train a model from data tensors in a way that is consistent with training from arrays. Similarly, add `steps` argument in `predict()` and `evaluate()`.
+
+- Add `layer_subtract()` layer function.
+
+- Add `weighted_metrics` argument in compile to specify metric functions meant to take into account `sample_weight` or `class_weight`.
+
+- Enable stateful RNNs with CNTK.
+
+
+## keras 2.0.6
 
 - `install_keras()` function which installs both TensorFlow and Keras
 
@@ -38,7 +68,7 @@
 - Provide hint to use r-tensorflow environment when importing keras
 
 
-# keras 2.0.5
+## keras 2.0.5
 
 - Initial CRAN release
 

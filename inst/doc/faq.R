@@ -158,26 +158,16 @@ knitr::opts_chunk$set(eval = FALSE)
 #  }
 
 ## ------------------------------------------------------------------------
+#  devtools::install_github("rstudio/keras")
+
+## ------------------------------------------------------------------------
 #  library(keras)
-#  library(tensorflow)
+#  use_session_with_seed(42)
 #  
-#  # Set R random seed
-#  set.seed(42L)
+#  # ...rest of code follows...
 #  
-#  # TensorFlow session configuration that uses only a single thread. Multiple threads are a
-#  # potential source of non-reproducible results, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
-#  session_conf <- tf$ConfigProto(intra_op_parallelism_threads = 1L,
-#                                 inter_op_parallelism_threads = 1L)
-#  
-#  # Set TF random seed (see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed)
-#  tf$set_random_seed(1042L)
-#  
-#  # Create the session using the custom configuration
-#  sess <- tf$Session(graph = tf$get_default_graph(), config = session_conf)
-#  
-#  # Instruct Keras to use this session
-#  K <- backend()
-#  K$set_session(sess)
-#  
-#  # Rest of code follows ...
+
+## ------------------------------------------------------------------------
+#  library(keras)
+#  use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
 

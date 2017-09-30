@@ -59,8 +59,8 @@ knitr::opts_chunk$set(eval = FALSE)
 #  plot(history)
 
 ## ---- results = 'hide'---------------------------------------------------
-#  loss_and_metrics <- model %>% evaluate(x_test, y_test)
+#  model %>% evaluate(x_test, y_test)
 
 ## ---- results = 'hide'---------------------------------------------------
-#  classes <- model %>% predict_classes(x_test)
+#  model %>% predict_classes(x_test)
 

@@ -15,11 +15,11 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  K <- backend()
 
 ## ------------------------------------------------------------------------
-#  input <- K$placeholder(shape = list(2L, 4L, 5L))
+#  inputs <- K$placeholder(shape = list(2L, 4L, 5L))
 #  # also works:
-#  input <-  K$placeholder(shape = list(NULL, 4L, 5L))
+#  inputs <-  K$placeholder(shape = list(NULL, 4L, 5L))
 #  # also works:
-#  input <- K$placeholder(ndim = 3L)
+#  inputs <- K$placeholder(ndim = 3L)
 
 ## ------------------------------------------------------------------------
 #  val <- array(runif(60), dim = c(3L, 4L, 5L))

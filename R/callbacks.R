@@ -198,7 +198,7 @@ callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0,
   # establish the log_dir
   if (is.null(log_dir)) {
     if (tfruns::is_run_active())
-      log_dir <- tfruns::run_dir()
+      log_dir <- file.path(tfruns::run_dir(), "logs")
     else
       log_dir <- "logs"
   }
@@ -423,7 +423,7 @@ normalize_callbacks <- function(view_metrics, callbacks) {
   have_tensorboard_callback <- FALSE
   callbacks <- lapply(callbacks, function(callback) {
     
-    # track whether we have a tensorboard callback
+    # track whether we have a TensorBoard callback
     if (inherits(callback, "keras.callbacks.TensorBoard"))
       have_tensorboard_callback <<- TRUE
     

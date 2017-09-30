@@ -109,6 +109,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="how-can-i-save-a-keras-model" class="section level2">
 <h2>How can I save a Keras model?</h2>
+<div id="savingloading-whole-models-architecture-weights-optimizer-state" class="section level3">
+<h3>Saving/loading whole models (architecture + weights + optimizer state)</h3>
 <p>You can use <code>save_model_hdf5()</code> to save a Keras model into a single HDF5 file which will contain:</p>
 <ul>
 <li>the architecture of the model, allowing to re-create the model</li>
@@ -120,6 +122,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save_model_hdf5</span>(model, <span class="st">'my_model.h5'</span>)
 model &lt;-<span class="st"> </span><span class="kw">load_model_hdf5</span>(<span class="st">'my_model.h5'</span>)</code></pre></div>
+</div>
+<div id="savingloading-only-a-models-architecture" class="section level3">
+<h3>Saving/loading only a model’s architecture</h3>
 <p>If you only need to save the <strong>architecture of a model</strong>, and not its weights or its training configuration, you can do:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">json_string &lt;-<span class="st"> </span><span class="kw">model_to_json</span>(model)
 yaml_string &lt;-<span class="st"> </span><span class="kw">model_to_yaml</span>(model)</code></pre></div>
@@ -127,6 +132,9 @@ yaml_string &lt;-<span class="st"> </span><span class="kw">model_to_yaml</span>(
 <p>You can then build a fresh model from this data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">model &lt;-<span class="st"> </span><span class="kw">model_from_json</span>(json_string)
 model &lt;-<span class="st"> </span><span class="kw">model_from_yaml</span>(yaml_string)</code></pre></div>
+</div>
+<div id="savingloading-only-a-models-weights" class="section level3">
+<h3>Saving/loading only a model’s weights</h3>
 <p>If you need to save the <strong>weights of a model</strong>, you can do so in HDF5 with the code below.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save_model_weights_hdf5</span>(<span class="st">'my_model_weights.h5'</span>)</code></pre></div>
 <p>Assuming you have code for instantiating your model, you can then load the weights you saved into a model with the <em>same</em> architecture:</p>
@@ -150,6 +158,7 @@ model <span class="op">%&gt;%</span><span class="st"> </span>
 
 <span class="co"># load weights from first model; will only affect the first layer, dense_1.</span>
 <span class="kw">load_model_weights</span>(fname, <span class="dt">by_name =</span> <span class="ot">TRUE</span>)</code></pre></div>
+</div>
 </div>
 <div id="why-is-the-training-loss-much-higher-than-the-testing-loss" class="section level2">
 <h2>Why is the training loss much higher than the testing loss?</h2>
@@ -380,29 +389,18 @@ keras &lt;-<span class="st"> </span><span class="ot">NULL</span>
 <div id="how-can-i-obtain-reproducible-results-using-keras-during-development" class="section level2">
 <h2>How can I obtain reproducible results using Keras during development?</h2>
 <p>During development of a model, sometimes it is useful to be able to obtain reproducible results from run to run in order to determine if a change in performance is due to an actual model or data modification, or merely a result of a new random sample.</p>
-<p>The below snippet of code provides an example of how to obtain reproducible results when using the TensorFlow backend. To do this we set the R session’s random seed, then manually construct a TensorFlow session (via the <strong>tensorflow</strong> package) and set it’s random seed, and then finally arrange for Keras to use this session within its backend.</p>
+<p>The <code>use_session_with_seed()</code> function establishes a common random seed for R, Python, NumPy, and TensorFlow. It furthermore disables hash randomization, GPU computations, and CPU parallelization, which can be additional sources of non-reproducibility.</p>
+<p>The <code>use_session_with_seed()</code> function is available in the development version of the Keras package, which you can install as follows:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;rstudio/keras&quot;</span>)</code></pre></div>
+<p>To use the function, call it immediately after you load the keras package:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(keras)
-<span class="kw">library</span>(tensorflow)
+<span class="kw">use_session_with_seed</span>(<span class="dv">42</span>)
 
-<span class="co"># Set R random seed</span>
-<span class="kw">set.seed</span>(42L)
-
-<span class="co"># TensorFlow session configuration that uses only a single thread. Multiple threads are a </span>
-<span class="co"># potential source of non-reproducible results, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res</span>
-session_conf &lt;-<span class="st"> </span>tf<span class="op">$</span><span class="kw">ConfigProto</span>(<span class="dt">intra_op_parallelism_threads =</span> 1L, 
-                               <span class="dt">inter_op_parallelism_threads =</span> 1L)
-
-<span class="co"># Set TF random seed (see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed)</span>
-tf<span class="op">$</span><span class="kw">set_random_seed</span>(1042L)
-
-<span class="co"># Create the session using the custom configuration</span>
-sess &lt;-<span class="st"> </span>tf<span class="op">$</span><span class="kw">Session</span>(<span class="dt">graph =</span> tf<span class="op">$</span><span class="kw">get_default_graph</span>(), <span class="dt">config =</span> session_conf)
-
-<span class="co"># Instruct Keras to use this session</span>
-K &lt;-<span class="st"> </span><span class="kw">backend</span>()
-K<span class="op">$</span><span class="kw">set_session</span>(sess)
-
-<span class="co"># Rest of code follows ...</span></code></pre></div>
+<span class="co"># ...rest of code follows...</span></code></pre></div>
+<p>This function takes all measures known to promote reproducible results from Keras sessions, however it’s possible that various individual features or libraries used by the backend escape its effects. If you encounter non-reproducible results please investigate the possible sources of the problem. The source code for <code>use_session_with_seed()</code> is here: <a href="https://github.com/rstudio/tensorflow/blob/master/R/seed.R" class="uri">https://github.com/rstudio/tensorflow/blob/master/R/seed.R</a>. Contributions via pull request are very welcome!</p>
+<p>Please note again that <code>use_session_with_seed()</code> disables GPU computations and CPU parallelization by default (as both can lead to non-deterministic computations) so should generally not be used when model training time is paramount. You can re-enable GPU computations and/or CPU parallelism using the <code>disable_gpu</code> and <code>disable_parallel_cpu</code> arguments. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(keras)
+<span class="kw">use_session_with_seed</span>(<span class="dv">42</span>, <span class="dt">disable_gpu =</span> <span class="ot">FALSE</span>, <span class="dt">disable_parallel_cpu =</span> <span class="ot">FALSE</span>)</code></pre></div>
 </div>
 <div id="where-is-the-keras-configuration-filed-stored" class="section level2">
 <h2>Where is the Keras configuration filed stored?</h2>
