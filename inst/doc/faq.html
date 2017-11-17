@@ -81,6 +81,76 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
   howpublished={\url{https://github.com/fchollet/keras}},
 }</code></pre>
 </div>
+<div id="how-can-i-run-keras-on-a-gpu" class="section level2">
+<h2>How can I run Keras on a GPU?</h2>
+<p>Note that installation and configuration of the GPU-based backends can take considerably more time and effort. So if you are just getting started with Keras you may want to stick with the CPU version initially, then install the appropriate GPU version once your training becomes more computationally demanding.</p>
+<p>Below are instructions for installing and enabling GPU support for the various supported backends.</p>
+<div id="tensorflow" class="section level3">
+<h3>TensorFlow</h3>
+<p>If your system has an NVIDIA® GPU and you have the GPU version of TensorFlow installed then your Keras code will automatically run on the GPU.</p>
+<p>Additional details on GPU installation can be found here: <a href="https://tensorflow.rstudio.com/installation_gpu.html" class="uri">https://tensorflow.rstudio.com/installation_gpu.html</a>.</p>
+</div>
+<div id="theano" class="section level3">
+<h3>Theano</h3>
+<p>If you are running on the Theano backend, you can set the <code>THEANO_FLAGS</code> environment variable to indicate you’d like to execute tensor operations on the GPU. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Sys.setenv</span>(<span class="dt">KERAS_BACKEND =</span> <span class="st">&quot;keras&quot;</span>)
+<span class="kw">Sys.setenv</span>(<span class="dt">THEANO_FLAGS =</span> <span class="st">&quot;device=gpu,floatX=float32&quot;</span>)
+<span class="kw">library</span>(keras)</code></pre></div>
+<p>The name ‘gpu’ might have to be changed depending on your device’s identifier (e.g. <code>gpu0</code>, <code>gpu1</code>, etc).</p>
+</div>
+<div id="cntk" class="section level3">
+<h3>CNTK</h3>
+<p>If you have the GPU version of CNTK installed then your Keras code will automatically run on the GPU.</p>
+<p>Additional information on installing the GPU version of CNTK can be found here: <a href="https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python" class="uri">https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python</a></p>
+</div>
+</div>
+<div id="how-can-i-run-a-keras-model-on-multiple-gpus" class="section level2">
+<h2>How can I run a Keras model on multiple GPUs?</h2>
+<p>We recommend doing so using the <strong>TensorFlow</strong> backend. There are two ways to run a single model on multiple GPUs: <strong>data parallelism</strong> and <strong>device parallelism</strong>.</p>
+<p>In most cases, what you need is most likely data parallelism.</p>
+<div id="data-parallelism" class="section level3">
+<h3>Data parallelism</h3>
+<p>Data parallelism consists in replicating the target model once on each device, and using each replica to process a different fraction of the input data. Keras has a built-in utility, <code>multi_gpu_model()</code>, which can produce a data-parallel version of any model, and achieves quasi-linear speedup on up to 8 GPUs.</p>
+<p>For more information, see the documentation for <a href="https://keras.rstudio.com/reference/multi_gpu_model.html">multi_gpu_model</a>. Here is a quick example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Replicates `model` on 8 GPUs.</span>
+<span class="co"># This assumes that your machine has 8 available GPUs.</span>
+parallel_model &lt;-<span class="st"> </span><span class="kw">multi_gpu_model</span>(model, <span class="dt">gpus=</span><span class="dv">8</span>)
+parallel_model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>(
+  <span class="dt">loss =</span> <span class="st">&quot;categorical_crossentropy&quot;</span>,
+  <span class="dt">optimizer =</span> <span class="st">&quot;rmsprop&quot;</span>
+)
+
+<span class="co"># This `fit` call will be distributed on 8 GPUs.</span>
+<span class="co"># Since the batch size is 256, each GPU will process 32 samples.</span>
+parallel_model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">fit</span>(x, y, <span class="dt">epochs =</span> <span class="dv">20</span>, <span class="dt">batch_size =</span> <span class="dv">256</span>)</code></pre></div>
+</div>
+<div id="device-parallelism" class="section level3">
+<h3>Device parallelism</h3>
+<p>Device parallelism consists in running different parts of a same model on different devices. It works best for models that have a parallel architecture, e.g. a model with two branches.</p>
+<p>This can be achieved by using TensorFlow device scopes. Here is a quick example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Model where a shared LSTM is used to encode two different sequences in parallel</span>
+input_a &lt;-<span class="st"> </span><span class="kw">layer_input</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">140</span>, <span class="dv">256</span>))
+input_b &lt;-<span class="st"> </span><span class="kw">layer_input</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">140</span>, <span class="dv">256</span>))
+
+shared_lstm &lt;-<span class="st"> </span><span class="kw">layer_lstm</span>(<span class="dt">units =</span> <span class="dv">64</span>)
+
+<span class="co"># Process the first sequence on one GPU</span>
+<span class="kw">library</span>(tensorflow)
+<span class="kw">with</span>(tf<span class="op">$</span><span class="kw">device_scope</span>(<span class="st">&quot;/gpu:0&quot;</span>, {
+  encoded_a &lt;-<span class="st"> </span><span class="kw">shared_lstm</span>(tweet_a)
+})<span class="op">:</span>
+<span class="st">    </span>
+<span class="co"># Process the next sequence on another GPU</span>
+<span class="kw">with</span>(tf<span class="op">$</span><span class="kw">device_scope</span>(<span class="st">&quot;/gpu:1&quot;</span>, {
+  encoded_b &lt;-<span class="st"> </span><span class="kw">shared_lstm</span>(tweet_b)
+})<span class="op">:</span>
+
+<span class="co"># Concatenate results on CPU</span>
+<span class="kw">with</span>(tf<span class="op">$</span><span class="kw">device_scope</span>(<span class="st">&quot;/cpu:0&quot;</span>, {
+  merged_vector &lt;-<span class="st"> </span><span class="kw">layer_concatenate</span>(<span class="kw">list</span>(encoded_a, encoded_b))
+})<span class="op">:</span></code></pre></div>
+</div>
+</div>
 <div id="what-does-sample-batch-epoch-mean" class="section level2">
 <h2>What does “sample”, “batch”, “epoch” mean?</h2>
 <p>Below are some common definitions that are necessary to know and understand to correctly utilize Keras:</p>
@@ -172,7 +242,7 @@ model <span class="op">%&gt;%</span><span class="st"> </span>
 
 layer_name &lt;-<span class="st"> 'my_layer'</span>
 intermediate_layer_model &lt;-<span class="st"> </span><span class="kw">keras_model</span>(<span class="dt">inputs =</span> model<span class="op">$</span>input,
-                                        <span class="dt">outputs =</span> <span class="kw">get_layer</span>(layer_name)<span class="op">$</span>output)
+                                        <span class="dt">outputs =</span> <span class="kw">get_layer</span>(model, layer_name)<span class="op">$</span>output)
 intermediate_output &lt;-<span class="st"> </span><span class="kw">predict</span>(intermediate_layer_model, data)</code></pre></div>
 </div>
 <div id="how-can-i-use-keras-with-datasets-that-dont-fit-in-memory" class="section level2">
@@ -276,6 +346,40 @@ trainable_model <span class="op">%&gt;%</span><span class="st"> </span><span cla
 
 frozen_model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">fit</span>(data, labels)  <span class="co"># this does NOT update the weights of `layer`</span>
 trainable_model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">fit</span>(data, labels)  <span class="co"># this updates the weights of `layer`</span></code></pre></div>
+<p>Finally, you can freeze or unfreeze the weights for an entire model (or a range of layers within the model) using the <code>freeze_weights()</code> and <code>unfreeze_weights()</code> functions. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># instantiate a VGG16 model</span>
+conv_base &lt;-<span class="st"> </span><span class="kw">application_vgg16</span>(
+  <span class="dt">weights =</span> <span class="st">&quot;imagenet&quot;</span>,
+  <span class="dt">include_top =</span> <span class="ot">FALSE</span>,
+  <span class="dt">input_shape =</span> <span class="kw">c</span>(<span class="dv">150</span>, <span class="dv">150</span>, <span class="dv">3</span>)
+)
+
+<span class="co"># freeze it's weights</span>
+<span class="kw">freeze_weights</span>(conv_base)
+
+<span class="co"># create a composite model that includes the base + more layers</span>
+model &lt;-<span class="st"> </span><span class="kw">keras_model_sequential</span>() <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>conv_base <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">layer_flatten</span>() <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">layer_dense</span>(<span class="dt">units =</span> <span class="dv">256</span>, <span class="dt">activation =</span> <span class="st">&quot;relu&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">layer_dense</span>(<span class="dt">units =</span> <span class="dv">1</span>, <span class="dt">activation =</span> <span class="st">&quot;sigmoid&quot;</span>)
+
+<span class="co"># compile</span>
+model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>(
+  <span class="dt">loss =</span> <span class="st">&quot;binary_crossentropy&quot;</span>,
+  <span class="dt">optimizer =</span> <span class="kw">optimizer_rmsprop</span>(<span class="dt">lr =</span> <span class="fl">2e-5</span>),
+  <span class="dt">metrics =</span> <span class="kw">c</span>(<span class="st">&quot;accuracy&quot;</span>)
+)
+
+<span class="co"># unfreeze weights from &quot;block5_conv1&quot; on</span>
+<span class="kw">unfreeze_weights</span>(conv_base, <span class="dt">from =</span> <span class="st">&quot;block5_conv1&quot;</span>)
+
+<span class="co"># compile again since we froze or unfroze layers</span>
+model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>(
+  <span class="dt">loss =</span> <span class="st">&quot;binary_crossentropy&quot;</span>,
+  <span class="dt">optimizer =</span> <span class="kw">optimizer_rmsprop</span>(<span class="dt">lr =</span> <span class="fl">2e-5</span>),
+  <span class="dt">metrics =</span> <span class="kw">c</span>(<span class="st">&quot;accuracy&quot;</span>)
+)</code></pre></div>
 </div>
 <div id="how-can-i-use-stateful-rnns" class="section level2">
 <h2>How can I use stateful RNNs?</h2>
@@ -291,7 +395,7 @@ trainable_model <span class="op">%&gt;%</span><span class="st"> </span><span cla
 <li>set <code>stateful=TRUE</code> in your RNN layer(s).</li>
 <li>specify <code>shuffle=FALSE</code> when calling fit().</li>
 </ul>
-<p>To reset the states accumulated in either a singel layer or an entire model use the <code>reset_states()</code> function.</p>
+<p>To reset the states accumulated in either a single layer or an entire model use the <code>reset_states()</code> function.</p>
 <p>Notes that the methods <code>predict()</code>, <code>fit()</code>, <code>train_on_batch()</code>, <code>predict_classes()</code>, etc. will <em>all</em> update the states of the stateful layers in a model. This allows you to do not only stateful training, but also stateful prediction.</p>
 </div>
 <div id="how-can-i-remove-a-layer-from-a-sequential-model" class="section level2">
@@ -316,6 +420,7 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">po
 <li><a href="https://keras.rstudio.com/reference/application_vgg.html">VGG19</a></li>
 <li><a href="https://keras.rstudio.com/reference/application_resnet50.html">ResNet50</a></li>
 <li><a href="https://keras.rstudio.com/reference/application_inception_v3.html">InceptionV3</a></li>
+<li><a href="https://keras.rstudio.com/reference/application_inception_resnet_v2.html">InceptionResNetV2</a></li>
 <li><a href="https://keras.rstudio.com/reference/application_mobilenet.html">MobileNet</a></li>
 </ul>
 <p>For example:</p>
@@ -326,29 +431,6 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">po
 <div id="how-can-i-use-other-keras-backends" class="section level2">
 <h2>How can I use other Keras backends?</h2>
 <p>By default the Keras Python and R packages use the TensorFlow backend. Other available backends include Theano or CNTK. To learn more about using alternatate backends (e.g. Theano or CNTK) see the <a href="backends.html">article on Keras backends</a>.</p>
-</div>
-<div id="how-can-i-run-keras-on-a-gpu" class="section level2">
-<h2>How can I run Keras on a GPU?</h2>
-<p>Note that installation and configuration of the GPU-based backends can take considerably more time and effort. So if you are just getting started with Keras you may want to stick with the CPU version initially, then install the appropriate GPU version once your training becomes more computationally demanding.</p>
-<p>Below are instructions for installing and enabling GPU support for the various supported backends.</p>
-<div id="tensorflow" class="section level3">
-<h3>TensorFlow</h3>
-<p>If your system has an NVIDIA® GPU and you have the GPU version of TensorFlow installed then your Keras code will automatically run on the GPU.</p>
-<p>Additional details on GPU installation can be found here: <a href="https://tensorflow.rstudio.com/installation_gpu.html" class="uri">https://tensorflow.rstudio.com/installation_gpu.html</a>.</p>
-</div>
-<div id="theano" class="section level3">
-<h3>Theano</h3>
-<p>If you are running on the Theano backend, you can set the <code>THEANO_FLAGS</code> environment variable to indicate you’d like to execute tensor operations on the GPU. For example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Sys.setenv</span>(<span class="dt">KERAS_BACKEND =</span> <span class="st">&quot;keras&quot;</span>)
-<span class="kw">Sys.setenv</span>(<span class="dt">THEANO_FLAGS =</span> <span class="st">&quot;device=gpu,floatX=float32&quot;</span>)
-<span class="kw">library</span>(keras)</code></pre></div>
-<p>The name ‘gpu’ might have to be changed depending on your device’s identifier (e.g. <code>gpu0</code>, <code>gpu1</code>, etc).</p>
-</div>
-<div id="cntk" class="section level3">
-<h3>CNTK</h3>
-<p>If you have the GPU version of CNTK installed then your Keras code will automatically run on the GPU.</p>
-<p>Additional information on installing the GPU version of CNTK can be found here: <a href="https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python" class="uri">https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python</a></p>
-</div>
 </div>
 <div id="how-can-i-use-keras-in-another-r-package" class="section level2">
 <h2>How can I use Keras in another R package?</h2>
@@ -390,8 +472,6 @@ keras &lt;-<span class="st"> </span><span class="ot">NULL</span>
 <h2>How can I obtain reproducible results using Keras during development?</h2>
 <p>During development of a model, sometimes it is useful to be able to obtain reproducible results from run to run in order to determine if a change in performance is due to an actual model or data modification, or merely a result of a new random sample.</p>
 <p>The <code>use_session_with_seed()</code> function establishes a common random seed for R, Python, NumPy, and TensorFlow. It furthermore disables hash randomization, GPU computations, and CPU parallelization, which can be additional sources of non-reproducibility.</p>
-<p>The <code>use_session_with_seed()</code> function is available in the development version of the Keras package, which you can install as follows:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;rstudio/keras&quot;</span>)</code></pre></div>
 <p>To use the function, call it immediately after you load the keras package:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(keras)
 <span class="kw">use_session_with_seed</span>(<span class="dv">42</span>)

@@ -7,7 +7,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  K <- backend()
 #  
-#  CustomLayer <- R6::R6Class("KerasLayer",
+#  CustomLayer <- R6::R6Class("CustomLayer",
 #  
 #    inherit = KerasLayer,
 #  

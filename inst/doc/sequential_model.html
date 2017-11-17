@@ -118,7 +118,7 @@ ________________________________________________________________________________
 <li><p>A loss function. This is the objective that the model will try to minimize. It can be the string identifier of an existing loss function (e.g. “categorical_crossentropy” or “mse”) or a call to a loss function (e.g. <code>loss_mean_squared_error()</code>).</p></li>
 <li><p>A list of metrics. For any classification problem you will want to set this to <code>metrics = c('accuracy')</code>. A metric could be the string identifier of an existing metric or a call to metric function (e.g. <code>metric_binary_crossentropy()</code>).</p></li>
 </ul>
-<p>Here’s the definition of a model along with the compilation step (the <code>compile()</code> function has arguments appropriate for a a multi-class classification problem):</p>
+<p>Here’s the definition of a model along with the compilation step (the <code>compile()</code> function has arguments appropriate for a multi-class classification problem):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># For a multi-class classification problem</span>
 model &lt;-<span class="st"> </span><span class="kw">keras_model_sequential</span>() 
 model <span class="op">%&gt;%</span><span class="st"> </span>
@@ -159,7 +159,7 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">co
 </div>
 <div id="training" class="section level2">
 <h2>Training</h2>
-<p>Keras models are trained on R matrixes or higher dimensional arrays of input data and labels. For training a model, you will typically use the <code>fit()</code> function.</p>
+<p>Keras models are trained on R matrices or higher dimensional arrays of input data and labels. For training a model, you will typically use the <code>fit()</code> function.</p>
 <p>Here’s a single-input model with 2 classes (binary classification):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create model</span>
 model &lt;-<span class="st"> </span><span class="kw">keras_model_sequential</span>()

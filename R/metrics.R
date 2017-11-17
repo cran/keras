@@ -12,29 +12,46 @@
 #' @section Custom Metrics:
 #' You can provide an arbitrary R function as a custom metric. Note that
 #' the `y_true` and `y_pred` parameters are tensors, so computations on 
-#' them should use backend tensor functions. For example:
+#' them should use backend tensor functions. See below for an example.
 #' 
-#' ```r
+#' Note that a name ('mean_pred') is provided for the custom metric
+#' function. This name is used within training progress output.
+#' 
+#' Documentation on the available backend tensor functions can be 
+#' found at <https://keras.rstudio.com/articles/backend.html#backend-functions>.
+#' 
+#' @section Metrics with Parameters:
+#' 
+#' To use metrics with parameters (e.g. `metric_top_k_categorical_accurary()`)
+#' you should create a custom metric that wraps the call with the parameter.
+#' See below for an example.
+#' 
+#' @examples \dontrun{
+#' 
 #' # create metric using backend tensor functions
 #' K <- backend()
 #' metric_mean_pred <- function(y_true, y_pred) {
 #'   K$mean(y_pred) 
 #' }
 #' 
-#' model %>% compile( 
+#' model %>% compile(
 #'   optimizer = optimizer_rmsprop(),
 #'   loss = loss_binary_crossentropy,
 #'   metrics = c('accuracy', 
 #'               'mean_pred' = metric_mean_pred)
 #' )
-#' ```
 #' 
-#' Note that a name ('mean_pred') is provided for the custom metric
-#' function. This name is used within training progress output.
-#' 
-#' Documentation on the available backend tensor functions can be 
-#' found at <https://keras.rstudio.com/articles/backend.html#backend-functions>.     
+#' # create custom metric to wrap metric with parameter
+#' metric_top_3_categorical_accuracy <- function(y_true, y_pred) {
+#'   metric_top_k_categorical_accuracy(y_true, y_pred, k = 3) 
+#' }
 #'
+#' model %>% compile(
+#'   loss = 'categorical_crossentropy',
+#'   optimizer = optimizer_rmsprop(),
+#'   metrics = c(top_3_categorical_accuracy = metric_top_3_categorical_accuracy)
+#' )
+#' }
 #' @export
 metric_binary_accuracy <- function(y_true, y_pred) {
   keras$metrics$binary_accuracy(y_true, y_pred)

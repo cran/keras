@@ -13,7 +13,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  # ensure we have a 4d tensor with single element in the batch dimension,
 #  # the preprocess the input for prediction using resnet50
-#  dim(x) <- c(1, dim(x))
+#  x <- array_reshape(x, c(1, dim(x)))
 #  x <- imagenet_preprocess_input(x)
 #  
 #  # make predictions then decode and print them
@@ -26,7 +26,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  img_path <- "elephant.jpg"
 #  img <- image_load(img_path, target_size = c(224,224))
 #  x <- image_to_array(img)
-#  dim(x) <- c(1, dim(x))
+#  x <- array_reshape(x, c(1, dim(x)))
 #  x <- imagenet_preprocess_input(x)
 #  
 #  features <- model %>% predict(x)
@@ -39,7 +39,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  img_path <- "elephant.jpg"
 #  img <- image_load(img_path, target_size = c(224,224))
 #  x <- image_to_array(img)
-#  dim(x) <- c(1, dim(x))
+#  x <- array_reshape(x, c(1, dim(x)))
 #  x <- imagenet_preprocess_input(x)
 #  
 #  block4_pool_features <- model %>% predict(x)
@@ -59,8 +59,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  # first: train only the top layers (which were randomly initialized)
 #  # i.e. freeze all convolutional InceptionV3 layers
-#  for (layer in base_model$layers)
-#    layer$trainable <- FALSE
+#  freeze_weights(base_model)
 #  
 #  # compile the model (should be done *after* setting layers to non-trainable)
 #  model %>% compile(optimizer = 'rmsprop', loss = 'categorical_crossentropy')
@@ -80,10 +79,8 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  # we chose to train the top 2 inception blocks, i.e. we will freeze
 #  # the first 172 layers and unfreeze the rest:
-#  for (i in 1:172)
-#    layers[[i]]$trainable <- FALSE
-#  for (i in 173:length(layers))
-#    layers[[i]]$trainable <- TRUE
+#  freeze_weights(base_model, from = 1, to = 172)
+#  unfreeze_weights(base_model, from = 173)
 #  
 #  # we need to recompile the model for these modifications to take effect
 #  # we use SGD with a low learning rate

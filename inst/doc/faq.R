@@ -2,6 +2,42 @@
 library(keras)
 knitr::opts_chunk$set(eval = FALSE)
 
+## ---- eval= FALSE--------------------------------------------------------
+#  # Replicates `model` on 8 GPUs.
+#  # This assumes that your machine has 8 available GPUs.
+#  parallel_model <- multi_gpu_model(model, gpus=8)
+#  parallel_model %>% compile(
+#    loss = "categorical_crossentropy",
+#    optimizer = "rmsprop"
+#  )
+#  
+#  # This `fit` call will be distributed on 8 GPUs.
+#  # Since the batch size is 256, each GPU will process 32 samples.
+#  parallel_model %>% fit(x, y, epochs = 20, batch_size = 256)
+
+## ---- eval = FALSE-------------------------------------------------------
+#  # Model where a shared LSTM is used to encode two different sequences in parallel
+#  input_a <- layer_input(shape = c(140, 256))
+#  input_b <- layer_input(shape = c(140, 256))
+#  
+#  shared_lstm <- layer_lstm(units = 64)
+#  
+#  # Process the first sequence on one GPU
+#  library(tensorflow)
+#  with(tf$device_scope("/gpu:0", {
+#    encoded_a <- shared_lstm(tweet_a)
+#  }):
+#  
+#  # Process the next sequence on another GPU
+#  with(tf$device_scope("/gpu:1", {
+#    encoded_b <- shared_lstm(tweet_b)
+#  }):
+#  
+#  # Concatenate results on CPU
+#  with(tf$device_scope("/cpu:0", {
+#    merged_vector <- layer_concatenate(list(encoded_a, encoded_b))
+#  }):
+
 ## ------------------------------------------------------------------------
 #  model %>%
 #    layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>%
@@ -56,7 +92,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  
 #  layer_name <- 'my_layer'
 #  intermediate_layer_model <- keras_model(inputs = model$input,
-#                                          outputs = get_layer(layer_name)$output)
+#                                          outputs = get_layer(model, layer_name)$output)
 #  intermediate_output <- predict(intermediate_layer_model, data)
 
 ## ------------------------------------------------------------------------
@@ -122,6 +158,41 @@ knitr::opts_chunk$set(eval = FALSE)
 #  trainable_model %>% fit(data, labels)  # this updates the weights of `layer`
 
 ## ------------------------------------------------------------------------
+#  # instantiate a VGG16 model
+#  conv_base <- application_vgg16(
+#    weights = "imagenet",
+#    include_top = FALSE,
+#    input_shape = c(150, 150, 3)
+#  )
+#  
+#  # freeze it's weights
+#  freeze_weights(conv_base)
+#  
+#  # create a composite model that includes the base + more layers
+#  model <- keras_model_sequential() %>%
+#    conv_base %>%
+#    layer_flatten() %>%
+#    layer_dense(units = 256, activation = "relu") %>%
+#    layer_dense(units = 1, activation = "sigmoid")
+#  
+#  # compile
+#  model %>% compile(
+#    loss = "binary_crossentropy",
+#    optimizer = optimizer_rmsprop(lr = 2e-5),
+#    metrics = c("accuracy")
+#  )
+#  
+#  # unfreeze weights from "block5_conv1" on
+#  unfreeze_weights(conv_base, from = "block5_conv1")
+#  
+#  # compile again since we froze or unfroze layers
+#  model %>% compile(
+#    loss = "binary_crossentropy",
+#    optimizer = optimizer_rmsprop(lr = 2e-5),
+#    metrics = c("accuracy")
+#  )
+
+## ------------------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>%
@@ -156,9 +227,6 @@ knitr::opts_chunk$set(eval = FALSE)
 #  .onLoad <- function(libname, pkgname) {
 #    keras <<- keras::implementation()
 #  }
-
-## ------------------------------------------------------------------------
-#  devtools::install_github("rstudio/keras")
 
 ## ------------------------------------------------------------------------
 #  library(keras)
