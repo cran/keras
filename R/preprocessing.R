@@ -540,9 +540,13 @@ image_array_save <- function(img, path) {
 #'   in the range `[1-z, 1+z]`. A sequence of two can be passed instead to select
 #'   this range.
 #' @param channel_shift_range shift range for each channels.
-#' @param fill_mode points outside the boundaries are filled according to the
-#'   given mode ('constant', 'nearest', 'reflect' or 'wrap'). Default is
-#'   'nearest'.
+#' @param fill_mode One of "constant", "nearest", "reflect" or "wrap".  
+#' Points outside the boundaries of the input are filled according to 
+#' the given mode:
+#'    - "constant": `kkkkkkkk|abcd|kkkkkkkk` (`cval=k`)
+#'    - "nearest":  `aaaaaaaa|abcd|dddddddd`
+#'    - "reflect":  `abcddcba|abcd|dcbaabcd`
+#'    - "wrap":     `abcdabcd|abcd|abcdabcd`
 #' @param cval value used for points outside the boundaries when fill_mode is
 #'   'constant'. Default is 0.
 #' @param horizontal_flip whether to randomly flip images horizontally.
@@ -683,6 +687,7 @@ flow_images_from_data <- function(
 #' 
 #' @details Yields batches indefinitely, in an infinite loop.
 #'   
+#' @inheritParams image_load   
 #' @inheritParams flow_images_from_data
 #'   
 #' @param generator Image data generator (default generator does no data
@@ -720,8 +725,9 @@ flow_images_from_directory <- function(
   classes = NULL, class_mode = "categorical",
   batch_size = 32, shuffle = TRUE, seed = NULL,
   save_to_dir = NULL, save_prefix = "", save_format = "png",
-  follow_links = FALSE) {
-  generator$flow_from_directory(
+  follow_links = FALSE, interpolation = "nearest") {
+  
+  args <- list(
     directory = normalize_path(directory),
     target_size = as.integer(target_size),
     color_mode = color_mode,
@@ -735,6 +741,11 @@ flow_images_from_directory <- function(
     save_format = save_format,
     follow_links = follow_links
   )
+  
+  if (keras_version() >= "2.1.2")
+    args$interpolation <- interpolation
+  
+  do.call(generator$flow_from_directory, args)
 }
 
 

@@ -82,8 +82,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(keras)
 
-K &lt;-<span class="st"> </span><span class="kw">backend</span>()
-
 CustomLayer &lt;-<span class="st"> </span>R6<span class="op">::</span><span class="kw">R6Class</span>(<span class="st">&quot;CustomLayer&quot;</span>,
                                   
   <span class="dt">inherit =</span> KerasLayer,
@@ -108,7 +106,7 @@ CustomLayer &lt;-<span class="st"> </span>R6<span class="op">::</span><span clas
     },
     
     <span class="dt">call =</span> <span class="cf">function</span>(x, <span class="dt">mask =</span> <span class="ot">NULL</span>) {
-      K<span class="op">$</span><span class="kw">dot</span>(x, self<span class="op">$</span>kernel)
+      <span class="kw">k_dot</span>(x, self<span class="op">$</span>kernel)
     },
     
     <span class="dt">compute_output_shape =</span> <span class="cf">function</span>(input_shape) {

@@ -1,4 +1,32 @@
 
+## Keras 2.1.2 (CRAN)
+
+- Added `theme_bw` option to plot method for training history 
+
+- Support TF Dataset objects as generators for `fit_generator()`, etc.
+
+- Added `use_implementation()` and `use_backend()` functions as alternative to
+  setting `KERAS_IMPLEMENATION` and `KERAS_BACKEND` environment variables.
+
+- Added R wrappers for Keras backend functions (e.g. `k_variable()`, 
+  `k_dot()`, etc.)
+
+- Use 1-based axis for `normalize` function.
+
+- Fix issue with printing training history after early stopping.
+
+- Experimental support for using the PlaidML backend.
+
+- Correct handling for R functions specified in `custom_objects`
+
+- Added `with_custom_object_scope()` function.
+
+- Automatically provide name to loss function during compile
+  (enables save/load of models with custom loss function)
+  
+- Provide global `keras.fit_verbose` option (defaults to 1)
+
+
 ## keras 2.0.9
 
 - Added `multi_gpu_model()` function.

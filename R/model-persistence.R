@@ -7,7 +7,8 @@
 #' @param overwrite Overwrite existing file if necessary
 #' @param include_optimizer If `TRUE`, save optimizer's state.
 #' @param custom_objects Mapping class names (or function names) of custom 
-#'   (non-Keras) objects to class/functions
+#'   (non-Keras) objects to class/functions (for example, custom metrics
+#'   or custom loss functions).
 #' 
 #' @details The following components of the model are saved: 
 #' 
@@ -20,7 +21,11 @@
 #' 
 #' Saved models can be reinstantiated via `load_model_hdf5()`. The model returned by
 #' `load_model_hdf5()` is a compiled model ready to be used (unless the saved model
-#' was never compiled in the first place or `compile = FALSE` is specified.
+#' was never compiled in the first place or `compile = FALSE` is specified).
+#'
+#' As an alternative to providing the `custom_objects` argument, you can 
+#' execute the definition and persistence of your model using the 
+#' [with_custom_object_scope()] function.
 #'
 #' @note The [serialize_model()] function enables saving Keras models to
 #' R objects that can be persisted across R sessions.
@@ -51,6 +56,9 @@ load_model_hdf5 <- function(filepath, custom_objects = NULL, compile = TRUE) {
   
   if (!have_h5py())
     stop("The h5py Python package is required to save and load models")
+  
+  # prepare custom objects
+  custom_objects <- objects_with_py_function_names(custom_objects)
   
   # build args dynamically so we can only pass `compile` if it's supported
   # (compile requires keras 2.0.4 / tensorflow 1.3)
@@ -240,11 +248,12 @@ model_to_tensors_info <- function(layers, name) {
 #' @param object An \R object.
 #' @param export_dir_base A string containing a directory in which to create
 #'   versioned subdirectories containing exported SavedModels.
+#' @param ... Unused
 #' 
 #' @return The path to the exported directory, as a string.
 #'
 #' @export
-export_savedmodel.keras.engine.training.Model <- function(object, export_dir_base) {
+export_savedmodel.keras.engine.training.Model <- function(object, export_dir_base, ...) {
   if (!is_backend("tensorflow"))
     stop("'export_savedmodel' is only supported in the TensorFlow backend.")
   

@@ -119,10 +119,21 @@ knitr::opts_chunk$set(eval = FALSE)
 #      # move to the next file (note the <<- assignment operator)
 #      next_file <<- next_file + 1
 #  
+#      # if we've exhausted all of the files then start again at the
+#      # beginning of the list (keras generators need to yield
+#      # data infinitely -- termination is controlled by the epochs
+#      # and steps_per_epoch arguments to fit_generator())
+#      if (next_file > length(files))
+#        next_file <<- 1
+#  
 #      # determine the file name
 #      file <- files[[next_file]]
 #  
-#      # process and return the data in the file
+#      # process and return the data in the file. note that in a
+#      # real example you'd further subdivide the data within the
+#      # file into appropriately sized training batches. this
+#      # would make this function much more complicated so we
+#      # don't demonstrated it here
 #      file_to_training_data(file)
 #    }
 #  }
@@ -205,6 +216,15 @@ knitr::opts_chunk$set(eval = FALSE)
 
 ## ------------------------------------------------------------------------
 #  model <- application_vgg16(weights = 'imagenet', include_top = TRUE)
+
+## ------------------------------------------------------------------------
+#  library(keras)
+#  use_backend("plaidml")
+
+## ------------------------------------------------------------------------
+#  library(keras)
+#  use_condaenv("plaidml")
+#  use_backend("plaidml")
 
 ## ------------------------------------------------------------------------
 #  # testthat utilty for skipping tests when Keras isn't available

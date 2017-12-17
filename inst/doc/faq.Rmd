@@ -65,6 +65,7 @@ If you have the GPU version of CNTK installed then your Keras code will automati
 
 Additional information on installing the GPU version of CNTK can be found here: https://docs.microsoft.com/en-us/cognitive-toolkit/setup-linux-python
 
+
 ## How can I run a Keras model on multiple GPUs?
 
 We recommend doing so using the **TensorFlow** backend. There are two ways to run a single model on multiple GPUs: **data parallelism** and **device parallelism**.
@@ -130,7 +131,7 @@ Below are some common definitions that are necessary to know and understand to c
   - *Example:* one image is a **sample** in a convolutional network
   - *Example:* one audio file is a **sample** for a speech recognition model
 - **Batch**: a set of *N* samples. The samples in a **batch** are processed independently, in parallel. If training, a batch results in only one update to the model.
-  - A **batch** generally approximates the distribution of the input data better than a single input. The larger the batch, the better the approximation; however, it is also true that the batch will take longer to processes and will still result in only one update. For inference (evaluate/predict), it is recommended to pick a batch size that is as large as you can afford without going out of memory (since larger batches will usually result in faster evaluating/prediction).
+  - A **batch** generally approximates the distribution of the input data better than a single input. The larger the batch, the better the approximation; however, it is also true that the batch will take longer to process and will still result in only one update. For inference (evaluate/predict), it is recommended to pick a batch size that is as large as you can afford without going out of memory (since larger batches will usually result in faster evaluating/prediction).
 - **Epoch**: an arbitrary cutoff, generally defined as "one pass over the entire dataset", used to separate training into distinct phases, which is useful for logging and periodic evaluation.
   - When using `evaluation_data` or `evaluation_split` with the `fit` method of Keras models, evaluation will be run at the end of every **epoch**.
   - Within Keras, there is the ability to add [callbacks](training_callbacks.html) specifically designed to be run at the end of an **epoch**. Examples of these are learning rate changes and model checkpointing (saving).
@@ -301,10 +302,21 @@ data_files_generator <- function(dir) {
     # move to the next file (note the <<- assignment operator)
     next_file <<- next_file + 1
     
+    # if we've exhausted all of the files then start again at the
+    # beginning of the list (keras generators need to yield
+    # data infinitely -- termination is controlled by the epochs
+    # and steps_per_epoch arguments to fit_generator())
+    if (next_file > length(files))
+      next_file <<- 1
+    
     # determine the file name
     file <- files[[next_file]]
     
-    # process and return the data in the file
+    # process and return the data in the file. note that in a 
+    # real example you'd further subdivide the data within the
+    # file into appropriately sized training batches. this 
+    # would make this function much more complicated so we
+    # don't demonstrated it here
     file_to_training_data(file)
   }
 }
@@ -485,8 +497,29 @@ The VGG16 model is also the basis for the [Deep dream](https://keras.rstudio.com
 
 ## How can I use other Keras backends?
 
-By default the Keras Python and R packages use the TensorFlow backend. Other available backends include Theano or CNTK. To learn more about using alternatate backends (e.g. Theano or CNTK) see the [article on  Keras backends](backends.html).
+By default the Keras Python and R packages use the TensorFlow backend. Other available backends include Theano or CNTK. To learn more about using alternatate backends (e.g. Theano or CNTK) see the [article on Keras backends](backend.html).
 
+
+## How can I use the PlaidML backend?
+
+[PlaidML](http://vertex.ai/blog/announcing-plaidml) is an open source portable deep learning engine that runs on most existing PC hardware with OpenCL-capable GPUs from NVIDIA, AMD, or Intel. PlaidML includes a Keras backend which you can use as described below.
+
+First, build and install PlaidML as described on the [project website](https://github.com/plaidml/plaidml). You must be sure that PlaidML is correctly installed, setup, and working before proceeding further!
+
+Then, to use Keras with the PlaidML backend you do the following:
+
+```{r}
+library(keras)
+use_backend("plaidml")
+```
+
+This should automatically discover and use the Python environment where `plaidml` and `plaidml-keras` were installed. If this doesn't work as expected you can also force the selection of a particular Python environment. For example, if you installed PlaidML in conda environment named "plaidml" you would do this:
+
+```{r}
+library(keras)
+use_condaenv("plaidml") 
+use_backend("plaidml")
+```
 
 
 ## How can I use Keras in another R package?

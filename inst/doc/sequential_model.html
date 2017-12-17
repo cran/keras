@@ -145,9 +145,8 @@ model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">co
 )</code></pre></div>
 <p>Here’s compilation with a custom metric:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create metric using backend tensor functions</span>
-K &lt;-<span class="st"> </span><span class="kw">backend</span>()
 metric_mean_pred &lt;-<span class="st"> </span><span class="cf">function</span>(y_true, y_pred) {
-  K<span class="op">$</span><span class="kw">mean</span>(y_pred) 
+  <span class="kw">k_mean</span>(y_pred) 
 }
 
 model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>( 

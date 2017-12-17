@@ -94,7 +94,8 @@ hdf5_matrix <- function(datapath, dataset, start = 0, end = NULL, normalizer = N
 #' Normalize a matrix or nd-array
 #' 
 #' @param x Matrix or array to normalize
-#' @param axis Axis along which to normalize
+#' @param axis Axis along which to normalize. Axis indexes are 1-based
+#'   (pass -1 to select the last axis).
 #' @param order Normalization order (e.g. 2 for L2 norm) 
 #' 
 #' @return A normalized copy of the array.
@@ -103,9 +104,76 @@ hdf5_matrix <- function(datapath, dataset, start = 0, end = NULL, normalizer = N
 normalize <- function(x, axis = -1, order = 2) {
   keras$utils$normalize(
     x = x,
-    axis = as.integer(axis),
+    axis = as_axis(axis),
     order = as.integer(order)
   )
+}
+
+#' Provide a scope with mappings of names to custom objects
+#' 
+#' @param objects Named list of objects
+#' @param expr Expression to evaluate
+#' 
+#' @details 
+#' There are many elements of Keras models that can be customized with
+#' user objects (e.g. losses, metrics, regularizers, etc.). When
+#' loading saved models that use these functions you typically 
+#' need to explicitily map names to user objects via the `custom_objects` 
+#' parmaeter. 
+#' 
+#' The `with_custom_object_scope()` function provides an alternative that 
+#' lets you create a named alias for a user object that applies to an entire
+#' block of code, and is automatically recognized when loading saved models.
+#' 
+#' @examples \dontrun{
+#' # define custom metric
+#' sparse_top_k_cat_acc <- function(y_pred, y_true) {
+#'   metric_sparse_top_k_categorical_accuracy(y_pred, y_true, k = 5)
+#' }
+#' 
+#' with_custom_object_scope(c(top_k_acc = sparse_top_k_cat_acc), {
+#' 
+#'   # ...define model...
+#'   
+#'   # compile model (refer to "top_k_acc" by name)
+#'   model %>% compile(
+#'     loss = "binary_crossentropy",
+#'     optimizer = optimizer_nadam(),
+#'     metrics = c("top_k_acc")
+#'   )
+#'
+#'   # save the model
+#'   save_model_hdf5("my_model.h5")
+#'
+#'   # loading the model within the custom object scope doesn't
+#'   # require explicitly providing the custom_object
+#'   load_model_hdf5("my_model.h5")
+#' })
+#' }
+#' 
+#' @export
+with_custom_object_scope <- function(objects, expr) {
+  objects <- objects_with_py_function_names(objects)
+  with(keras$utils$custom_object_scope(objects), expr)
+}
+
+
+objects_with_py_function_names <- function(objects) {
+  if (!is.null(objects)) {
+    object_names <- names(objects)
+    if (is.null(object_names))
+      stop("objects must be named", call. = FALSE)
+    objects <- lapply(1:length(objects), function(i) {
+      object <- objects[[i]]
+      if (is.function(object))
+        attr(object, "py_function_name") <- object_names[[i]]
+      object
+    })
+    names(objects) <- object_names
+    objects
+  } else {
+    NULL
+  }
 }
 
 
@@ -226,27 +294,6 @@ is_keras_available <- function(version = NULL) {
 #' @export
 implementation <- function() {
   keras
-}
-
-
-#' Keras backend tensor engine
-#' 
-#' Obtain a reference to the `keras.backend` Python module used to implement
-#' tensor operations.
-#'
-#' @inheritParams reticulate::import
-#'
-#' @note See the documentation here <https://keras.io/backend/> for 
-#'   additional details on the available functions.
-#'
-#' @return Reference to Keras backend python module.
-#'  
-#' @export   
-backend <- function(convert = TRUE) {
-  if (convert)
-    keras$backend
-  else
-    r_to_py(keras$backend)
 }
 
 

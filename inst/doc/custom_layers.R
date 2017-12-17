@@ -5,8 +5,6 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 ## ------------------------------------------------------------------------
 #  library(keras)
 #  
-#  K <- backend()
-#  
 #  CustomLayer <- R6::R6Class("CustomLayer",
 #  
 #    inherit = KerasLayer,
@@ -31,7 +29,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #      },
 #  
 #      call = function(x, mask = NULL) {
-#        K$dot(x, self$kernel)
+#        k_dot(x, self$kernel)
 #      },
 #  
 #      compute_output_shape = function(input_shape) {
