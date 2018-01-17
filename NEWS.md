@@ -1,5 +1,19 @@
 
-## Keras 2.1.2 (CRAN)
+## Keras 2.1.3 (CRAN)
+
+- Models saved via `export_savedmodel()` that make use of learning phases can
+  now be exported without having to manually reload the original model.
+
+- Ensure that models saved via `export_savedmodel()` can be served from CloudML
+
+- Run image data generators with R preprocessing functions on the main thread
+
+- Return R list from `texts_to_sequences()`
+
+- Various fixes for `use_implementation()` function
+
+
+## Keras 2.1.2 
 
 - Added `theme_bw` option to plot method for training history 
 

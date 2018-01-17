@@ -228,17 +228,21 @@ unserialize_model <- function(model, custom_objects = NULL, compile = TRUE) {
   load_model_hdf5(tmp, custom_objects = custom_objects, compile = compile)
 }
 
-model_to_tensors_info <- function(layers, name) {
-  named_layers <- lapply(layers, function(layer) {
-    tensorflow::tf$saved_model$utils$build_tensor_info(layer[[name]])
-  })
+reload_model <- function(object) {
+  old_config <- object$get_config()
+  old_weights <- object$get_weights()
   
-  if (length(named_layers) == 1)
-    names(named_layers) <- name
-  else
-    names(named_layers) <- paste(name, seq_along(named_layers), sep = "")
+  models <- import("keras.models")
+  if ("keras.models.Sequential" %in% class(object)) {
+    new_model <- models$Sequential$from_config(old_config)
+  }
+  else {
+    new_model <- models$Model$from_config(old_config)
+  }
   
-  named_layers
+  new_model$set_weights(old_weights)
+  
+  new_model
 }
 
 #' Export a Saved Model
@@ -246,31 +250,55 @@ model_to_tensors_info <- function(layers, name) {
 #' Serialize a model to disk.
 #'
 #' @param object An \R object.
-#' @param export_dir_base A string containing a directory in which to create
-#'   versioned subdirectories containing exported SavedModels.
+#' @param export_dir_base A string containing a directory in which to export the
+#'   SavedModel.
+#' @param overwrite Should the \code{export_dir_base} directory be overwritten?
+#' @param versioned Should the model be exported under a versioned subdirectory?
 #' @param ... Unused
 #' 
 #' @return The path to the exported directory, as a string.
 #'
 #' @export
-export_savedmodel.keras.engine.training.Model <- function(object, export_dir_base, ...) {
+export_savedmodel.keras.engine.training.Model <- function(
+  object,
+  export_dir_base,
+  overwrite = TRUE,
+  versioned = !overwrite,
+  ...) {
   if (!is_backend("tensorflow"))
     stop("'export_savedmodel' is only supported in the TensorFlow backend.")
   
+  if (versioned) {
+    export_dir_base <- file.path(export_dir_base, format(Sys.time(), "%Y%m%d%H%M%OS", tz = "GMT"))
+  }
+  
+  if (is_tensorflow_implementation()) {
+    stop(
+      "'export_savedmodel()' is currently unsupported under the TensorFlow Keras ",
+      "implementation, consider using 'tfestimators::keras_model_to_estimator()'."
+    )
+  } else {
+    k_set_learning_phase(0)
+    message("Keras learning phase set to 0 for export (restart R session before doing additional training)")
+    object <- reload_model(object)
+  }
+  
   sess <- backend()$get_session()
-  
-  if (tensorflow::tf_version() < '1.4') {
-    input_tensor <- object$input_layers
-    output_tensor <- object$output_layers
-  }
-  else {
-    input_tensor <- object$layers
-    output_tensor <- object$layers
-  }
 
-  input_info <- model_to_tensors_info(input_tensor, "input")
-  output_info <- model_to_tensors_info(output_tensor, "output")
+  input_info <- lapply(object$inputs, function(e) {
+    tensorflow::tf$saved_model$utils$build_tensor_info(e)
+  })
   
+  output_info <- lapply(object$outputs, function(e) {
+    tensorflow::tf$saved_model$utils$build_tensor_info(e)
+  })
+  
+  names(input_info) <- lapply(object$input_names, function(e) e)
+  names(output_info) <- lapply(object$output_names, function(e) e)
+  
+  if (overwrite && file.exists(export_dir_base))
+    unlink(export_dir_base, recursive = TRUE)
+
   builder <- tensorflow::tf$saved_model$builder$SavedModelBuilder(export_dir_base)
   builder$add_meta_graph_and_variables(
     sess,
@@ -280,10 +308,14 @@ export_savedmodel.keras.engine.training.Model <- function(object, export_dir_bas
     signature_def_map = list(
       serving_default = tensorflow::tf$saved_model$signature_def_utils$build_signature_def(
         inputs = input_info,
-        outputs = output_info
+        outputs = output_info,
+        method_name = tensorflow::tf$saved_model$signature_constants$PREDICT_METHOD_NAME
       )
     )
   )
+  
   builder$save()
+  
+  invisible(export_dir_base)
 }
 
