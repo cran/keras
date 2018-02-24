@@ -1,7 +1,7 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.1.3
+Version: 2.1.4
 Authors@R: c(
   person("JJ", "Allaire", role = c("aut", "cre"), email = "jj@rstudio.com"),
   person("François", "Chollet", role = c("aut", "cph")),
@@ -21,14 +21,14 @@ License: MIT + file LICENSE
 URL: https://keras.rstudio.com
 BugReports: https://github.com/rstudio/keras/issues
 Depends: R (>= 3.2)
-Imports: reticulate (>= 1.4), tensorflow (>= 1.5), tfruns (>= 1.0),
+Imports: reticulate (>= 1.5), tensorflow (>= 1.5), tfruns (>= 1.0),
         magrittr, zeallot, methods, R6
 Suggests: ggplot2, testthat, knitr, rmarkdown
 SystemRequirements: Keras >= 2.0 (https://keras.io)
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-01-17 17:44:11 UTC; jjallaire
+Packaged: 2018-02-23 23:20:20 UTC; jjallaire
 Author: JJ Allaire [aut, cre],
   François Chollet [aut, cph],
   RStudio [ctb, cph, fnd],
@@ -39,4 +39,4 @@ Author: JJ Allaire [aut, cre],
   Martin Studer [ctb, cph]
 Maintainer: JJ Allaire <jj@rstudio.com>
 Repository: CRAN
-Date/Publication: 2018-01-17 18:08:54 UTC
+Date/Publication: 2018-02-24 21:32:15 UTC

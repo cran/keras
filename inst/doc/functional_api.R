@@ -100,8 +100,8 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 ## ------------------------------------------------------------------------
 #  library(keras)
 #  
-#  tweet_a <- layer_input(shape = c(140, 256))
-#  tweet_b <- layer_input(shape = c(140, 256))
+#  tweet_a <- layer_input(shape = c(280, 256))
+#  tweet_b <- layer_input(shape = c(280, 256))
 
 ## ----eval=FALSE----------------------------------------------------------
 #  # This layer can take as input a matrix and will return a vector of size 64
@@ -129,7 +129,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 
 ## ------------------------------------------------------------------------
-#  a <- layer_input(shape = c(140, 256))
+#  a <- layer_input(shape = c(280, 256))
 #  
 #  lstm <- layer_lstm(units = 32)
 #  
@@ -138,8 +138,8 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  lstm$output
 
 ## ------------------------------------------------------------------------
-#  a <- layer_input(shape = c(140, 256))
-#  b <- layer_input(shape = c(140, 256))
+#  a <- layer_input(shape = c(280, 256))
+#  b <- layer_input(shape = c(280, 256))
 #  
 #  lstm <- layer_lstm(units = 32)
 #  

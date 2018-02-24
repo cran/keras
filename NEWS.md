@@ -1,5 +1,23 @@
 
-## Keras 2.1.3 (CRAN)
+## Keras 2.1.4 (CRAN)
+
+- Added support for `remove_learning_phase` in `export_savedmodel()` to avoid
+  removing learning phase.
+  
+- Normalize validation data to Keras array in `fit()` and `fit_generator()`
+
+- Ensure that custom layers return a tuple from `compute_output_shape()`
+
+- Added Nasnet and Densenet pre-trained models
+
+- New layers `layer_activation_softmax()` and `layer_separable_conv_1d()`
+
+- Added `amsgrad` parameter to `optimizer_adam()` 
+
+- Fix incompatibility with Progbar.update() method in Keras 2.1.4
+
+
+## Keras 2.1.3
 
 - Models saved via `export_savedmodel()` that make use of learning phases can
   now be exported without having to manually reload the original model.
