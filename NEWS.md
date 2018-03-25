@@ -1,5 +1,17 @@
 
-## Keras 2.1.4 (CRAN)
+## Keras 2.1.5 (CRAN)
+
+- Support for custom constraints from R 
+
+- Added `timeseries_generator()` utilty function 
+
+- New layer `layer_depthwise_conv_2d()`
+
+- Added `brightness_range` and `validation_split` arguments to 
+  [image_data_generator()].
+
+
+## Keras 2.1.4
 
 - Added support for `remove_learning_phase` in `export_savedmodel()` to avoid
   removing learning phase.

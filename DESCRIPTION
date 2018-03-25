@@ -1,13 +1,15 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.1.4
+Version: 2.1.5
 Authors@R: c(
   person("JJ", "Allaire", role = c("aut", "cre"), email = "jj@rstudio.com"),
   person("François", "Chollet", role = c("aut", "cph")),
   person(family = "RStudio", role = c("ctb", "cph", "fnd")),
   person(family = "Google", role = c("ctb", "cph", "fnd")),
-  person("Yuan", "Tang", role = c("ctb", "cph")),
+  person("Yuan", "Tang", role = c("ctb", "cph"),
+         email = "terrytangyuan@gmail.com",
+         comment = c(ORCID = "0000-0001-5243-233X")),
   person("Daniel", "Falbel", role = c("ctb", "cph")),
   person("Wouter", "Van Der Bijl", role = c("ctb", "cph")),
   person("Martin", "Studer", role = c("ctb", "cph"))
@@ -28,15 +30,15 @@ SystemRequirements: Keras >= 2.0 (https://keras.io)
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-02-23 23:20:20 UTC; jjallaire
+Packaged: 2018-03-24 11:46:06 UTC; jjallaire
 Author: JJ Allaire [aut, cre],
   François Chollet [aut, cph],
   RStudio [ctb, cph, fnd],
   Google [ctb, cph, fnd],
-  Yuan Tang [ctb, cph],
+  Yuan Tang [ctb, cph] (<https://orcid.org/0000-0001-5243-233X>),
   Daniel Falbel [ctb, cph],
   Wouter Van Der Bijl [ctb, cph],
   Martin Studer [ctb, cph]
 Maintainer: JJ Allaire <jj@rstudio.com>
 Repository: CRAN
-Date/Publication: 2018-02-24 21:32:15 UTC
+Date/Publication: 2018-03-25 15:25:14 UTC
