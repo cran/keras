@@ -1,9 +1,35 @@
 
-## Keras 2.1.5 (CRAN)
+## Keras 2.1.6 (CRAN)
+
+- Fix issue with single-element vectors passed to text preprocessing functions
+
+- Compatibility with TensorFlow v1.7 Keras implementation
+
+- Support `workers` parameter for native Keras generators (e.g. `flow_images_from_directory()`)
+
+- Accept tensor as argument to `k_pow()` 
+
+- In `callback_reduce_lr_on_plateau()`, rename `epsilon` argument to `min_delta` 
+  (backwards-compatible).
+
+- Add `axis` parameter to `k_softmax()`
+
+- Add `send_as_json` parameter to `callback_remote_monitor()`
+
+- Add `data_format` method to `layer_flatten()`
+
+- In `multi_gpu_model()`, add arguments `cpu_merge` and `cpu_relocation` (controlling whether
+  to force the template model's weights to be on CPU, and whether to operate merge operations
+  on CPU or GPU).
+  
+- Record correct loss name for tfruns when custom functions are provided for `loss`
+
+
+## Keras 2.1.5
 
 - Support for custom constraints from R 
 
-- Added `timeseries_generator()` utilty function 
+- Added `timeseries_generator()` utility function 
 
 - New layer `layer_depthwise_conv_2d()`
 

@@ -335,30 +335,47 @@ layer_masking <- function(object, mask_value = 0.0, input_shape = NULL,
 
 
 #' Flattens an input
-#' 
+#'
 #' Flatten a given input, does not affect the batch size.
-#' 
+#'
 #' @inheritParams layer_activation
-#' 
+#'
+#' @param data_format A string, one of `channels_last` (default) or
+#'   `channels_first`. The ordering of the dimensions in the inputs.
+#'   `channels_last` corresponds to inputs with shape `(batch, ..., channels)`
+#'   while `channels_first` corresponds to inputs with shape `(batch, channels, ...)`.
+#'
 #' @family core layers
-#' 
+#'
 #' @export
-layer_flatten <- function(object, input_shape = NULL, dtype = NULL, 
+layer_flatten <- function(object, data_format = "channels_last", input_shape = NULL, dtype = NULL, 
                           name = NULL, trainable = NULL, weights = NULL) {
   
-  create_layer(keras$layers$Flatten, object, list(
+  args <- list(
     input_shape = normalize_shape(input_shape),
     dtype = dtype,
     name = name,
     trainable = trainable,
     weights = weights
-  ))
+  )
+  
+  if (keras_version() >= "2.1.6")
+    args$data_format <- data_format
+  
+  create_layer(keras$layers$Flatten, object, args)
   
 }
 
 
 
 
+
+as_integer <- function(x) {
+  if (is.numeric(x))
+    as.integer(x)
+  else
+    x
+}
 
 as_integer_tuple <- function(x, force_tuple = FALSE) {
   if (is.null(x))
@@ -501,6 +518,8 @@ compose_layer.keras.models.Sequential <- function(object, layer) {
   object$add(layer)
   object
 }
+
+compose_layer.keras.engine.sequential.Sequential <- compose_layer.keras.models.Sequential
 
 compose_layer.python.builtin.object <- function(object, layer) {
   if (is.function(layer))

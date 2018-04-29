@@ -1,7 +1,7 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.1.5
+Version: 2.1.6
 Authors@R: c(
   person("JJ", "Allaire", role = c("aut", "cre"), email = "jj@rstudio.com"),
   person("François", "Chollet", role = c("aut", "cph")),
@@ -30,7 +30,7 @@ SystemRequirements: Keras >= 2.0 (https://keras.io)
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-03-24 11:46:06 UTC; jjallaire
+Packaged: 2018-04-29 11:31:28 UTC; jjallaire
 Author: JJ Allaire [aut, cre],
   François Chollet [aut, cph],
   RStudio [ctb, cph, fnd],
@@ -41,4 +41,4 @@ Author: JJ Allaire [aut, cre],
   Martin Studer [ctb, cph]
 Maintainer: JJ Allaire <jj@rstudio.com>
 Repository: CRAN
-Date/Publication: 2018-03-25 15:25:14 UTC
+Date/Publication: 2018-04-29 20:08:05 UTC

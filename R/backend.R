@@ -1971,7 +1971,7 @@ k_pool3d <- function(x, pool_size, strides = c(1, 1, 1), padding = "valid",
 k_pow <- function(x, a) {
   keras$backend$pow(
     x = x,
-    a = as.integer(a)
+    a = as_integer(a)
   )
 }
 
@@ -2493,16 +2493,24 @@ k_sin <- function(x) {
 #' Softmax of a tensor.
 #' 
 #' @param x A tensor or variable.
+#' @param axis The dimension softmax would be performed on.
+#'   The default is -1 which indicates the last dimension.
 #' 
 #' @return A tensor.
 #' 
 #' @template roxlate-keras-backend  
 #' 
 #' @export
-k_softmax <- function(x) {
-  keras$backend$softmax(
+k_softmax <- function(x, axis = -1) {
+  
+  args <- list(
     x = x
   )
+  
+  if (keras_version() >= "2.1.6")
+    args$axis <- as_axis(axis)
+  
+  do.call(keras$backend$softmax, args)
 }
 
 
