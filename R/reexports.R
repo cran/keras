@@ -38,6 +38,10 @@ reticulate::use_condaenv
 #' @export
 reticulate::array_reshape
 
+#' @importFrom reticulate tuple
+#' @export
+reticulate::tuple
+
 #' @importFrom tensorflow use_session_with_seed
 #' @export
 tensorflow::use_session_with_seed
@@ -53,6 +57,10 @@ tensorflow::evaluate
 #' @importFrom tensorflow export_savedmodel
 #' @export
 tensorflow::export_savedmodel
+
+#' @importFrom tensorflow shape
+#' @export
+tensorflow::shape
 
 #' @importFrom tfruns flags
 #' @export

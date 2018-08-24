@@ -72,7 +72,7 @@
 #' If you wish to add additional PyPI packages to your Keras / TensorFlow environment you 
 #' can either specify the packages in the `extra_packages` argument of `install_keras()`, 
 #' or alternatively install them into an existing environment using the 
-#' [install_tensorflow_extras()] function.
+#' [reticulate::py_install()] function.
 #' 
 #' @examples
 #' \dontrun{
@@ -100,7 +100,7 @@
 install_keras <- function(method = c("auto", "virtualenv", "conda"), 
                           conda = "auto",
                           tensorflow = "default",
-                          extra_packages = NULL) {
+                          extra_packages = c("tensorflow-hub")) {
   
   # verify method
   method <- match.arg(method)
@@ -128,14 +128,11 @@ install_keras <- function(method = c("auto", "virtualenv", "conda"),
     }
   }
   
-  # extra packages
-  extra_packages <- c("keras", extra_packages)
-  
   # perform the install
   install_tensorflow(method = method,
                      conda = conda,
                      version = tensorflow,
-                     extra_packages = extra_packages)
+                     extra_packages = c("keras", extra_packages))
 }
 
 

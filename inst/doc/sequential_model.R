@@ -45,15 +45,14 @@ knitr::opts_chunk$set(eval = FALSE)
 
 ## ------------------------------------------------------------------------
 #  # create metric using backend tensor functions
-#  metric_mean_pred <- function(y_true, y_pred) {
+#  metric_mean_pred <- custom_metric("mean_pred", function(y_true, y_pred) {
 #    k_mean(y_pred)
-#  }
+#  })
 #  
 #  model %>% compile(
 #    optimizer = optimizer_rmsprop(),
 #    loss = loss_binary_crossentropy,
-#    metrics = c('accuracy',
-#                'mean_pred' = metric_mean_pred)
+#    metrics = c('accuracy', metric_mean_pred)
 #  )
 
 ## ------------------------------------------------------------------------

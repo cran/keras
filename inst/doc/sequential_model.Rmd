@@ -126,15 +126,14 @@ Here's compilation with a custom metric:
 
 ```{r}
 # create metric using backend tensor functions
-metric_mean_pred <- function(y_true, y_pred) {
+metric_mean_pred <- custom_metric("mean_pred", function(y_true, y_pred) {
   k_mean(y_pred) 
-}
+})
 
 model %>% compile( 
   optimizer = optimizer_rmsprop(),
   loss = loss_binary_crossentropy,
-  metrics = c('accuracy', 
-              'mean_pred' = metric_mean_pred)
+  metrics = c('accuracy', metric_mean_pred)
 )
 ```
 
@@ -438,7 +437,7 @@ model %>% fit(
 
 A stateful recurrent model is one for which the internal states (memories) obtained after processing a batch of samples are reused as initial states for the samples of the next batch. This allows to process longer sequences while keeping computational complexity manageable.
 
-[You can read more about stateful RNNs in the FAQ.](/faq/#how-can-i-use-stateful-rnns)
+[You can read more about stateful RNNs in the FAQ.](faq.html#how-can-i-use-stateful-rnns)
 
 ```{r}
 library(keras)

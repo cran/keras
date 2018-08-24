@@ -192,6 +192,13 @@ py_to_r_wrapper.keras.engine.training.Model <- function(x) {
   }
 }
 
+#' @export
+py_to_r_wrapper.kerastools.model.RModel <- function(x) {
+  function(...) {
+    x$call(...)
+  }
+}
+
 
 #' Clone a model instance.
 #'
@@ -274,13 +281,21 @@ compile <- function(object, optimizer, loss,
     if (is.null(metric_names))
       metric_names <- rep_len("", length(metrics))
     
-    # convert metrics to a list (adding names to any custom functions)
-    metrics <- lapply(1:length(metrics), function(i) {
-      metric <- metrics[[i]]
-      if (is.function(metric) && nzchar(metric_names[[i]]))
-        attr(metric, "py_function_name") <- metric_names[[i]]
-      metric
-    })
+    # if all the metrics names are output names then leave them alone
+    # (just convert to a list with no special processing)
+    if (py_has_attr(object, "output_names") && all(metric_names %in% object$output_names)) {
+      metrics <- as.list(metrics)
+    } else {
+      # convert metrics to a list (adding names to any custom functions)
+      metrics <- lapply(1:length(metrics), function(i) {
+        metric <- metrics[[i]]
+        if (is.function(metric) && nzchar(metric_names[[i]]))
+          warning("Passing names for custom metrics is deprecated. Please use the ",
+                  "custom_metric() function to define custom metrics.")
+          attr(metric, "py_function_name") <- metric_names[[i]]
+        metric
+      })
+    }
   }
   
   # args
@@ -409,17 +424,30 @@ fit <- function(object, x = NULL, y = NULL, batch_size=NULL, epochs=10,
     validation_split = validation_split,
     shuffle = shuffle,
     class_weight = as_class_weight(class_weight),
-    sample_weight = as_nullable_array(sample_weight),
+    sample_weight = keras_array(sample_weight),
     initial_epoch = as.integer(initial_epoch)
   )
   
-  if (!is.null(validation_data))
-    args$validation_data <- keras_array(validation_data)
-  
-  if (!is.null(x))
-    args$x <- keras_array(x)
-  if (!is.null(y))
-    args$y <- keras_array(y)
+  # resolve validation_Data (check for TF dataset)
+  if (!is.null(validation_data)) {
+    dataset <- resolve_tensorflow_dataset(validation_data)
+    if (!is.null(dataset))
+      args$validation_data <- dataset
+    else
+      args$validation_data <- keras_array(validation_data)  
+  }
+    
+  # resolve x and y (check for TF dataset)
+  dataset <- resolve_tensorflow_dataset(x)
+  if (!is.null(dataset)) {
+    args$x <- dataset[[1]]
+    args$y <- dataset[[2]]
+  } else {
+    if (!is.null(x))
+      args$x <- keras_array(x)
+    if (!is.null(y))
+      args$y <- keras_array(y) 
+  }
   
   if (keras_version() >= "2.0.7") {
     args$steps_per_epoch <- as_nullable_integer(steps_per_epoch)
@@ -472,14 +500,23 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
   
   # args
   args <- list(
-    x = keras_array(x),
-    y = keras_array(y),
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose),
     sample_weight = sample_weight
   )
+  
+  # resolve x and y (check for TF dataset)
+  dataset <- resolve_tensorflow_dataset(x)
+  if (!is.null(dataset)) {
+    args$x <- dataset[[1]]
+    args$y <- dataset[[2]]
+  } else {
+    args$x <- keras_array(x)
+    args$y <- keras_array(y) 
+  }
+  
   if (keras_version() >= "2.0.7")
-    args$steps <- steps
+    args$steps <- as_nullable_integer(steps)
   
   # perform evaluation
   result <- do.call(object$evaluate, args)
@@ -523,12 +560,20 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verb
   
   # args
   args <- list(
-    x = keras_array(x), 
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
+  
+  # resolve x (check for TF dataset)
+  dataset <- resolve_tensorflow_dataset(x)
+  if (!is.null(dataset)) {
+    args$x <- dataset[[1]]
+  } else {
+    args$x <- keras_array(x)
+  }
+  
   if (keras_version() >= "2.0.7")
-    args$steps <- steps
+    args$steps <- as_nullable_integer(steps)
   
   # call predict
   do.call(object$predict, args)
@@ -550,11 +595,19 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verb
 #' 
 #' @export
 predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
+  
   args <- list(
-    x = keras_array(x),
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
+  
+  # resolve x (check for TF dataset)
+  dataset <- resolve_tensorflow_dataset(x)
+  if (!is.null(dataset)) {
+    args$x <- dataset[[1]]
+  } else {
+    args$x <- keras_array(x)
+  }
   
   if (keras_version() >= "2.1.3")
     args$steps <- as_nullable_integer(steps)
@@ -566,11 +619,18 @@ predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NUL
 #' @export
 predict_classes <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
   args <- list(
-    x = keras_array(x),
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
-
+  
+  # resolve x (check for TF dataset)
+  dataset <- resolve_tensorflow_dataset(x)
+  if (!is.null(dataset)) {
+    args$x <- dataset[[1]]
+  } else {
+    args$x <- keras_array(x)
+  }
+  
   if (keras_version() >= "2.1.3")
     args$steps <- as_nullable_integer(steps)
   
@@ -897,11 +957,45 @@ is_main_thread_generator.keras.preprocessing.image.Iterator <- function(x) {
   }
 }
 
+is_tensorflow_dataset <- function(x) {
+  inherits(x, "tensorflow.python.data.ops.dataset_ops.Dataset")
+}
+
+resolve_tensorflow_dataset <- function(x) {
+  
+  if (is_tensorflow_dataset(x)) {
+    
+    # check version compatibility
+    
+    if (is_tensorflow_implementation()) {
+      if (tensorflow::tf_version() < "1.9")
+        stop("TensorFlow v1.9 or higher is required for direct tensor input to models", call. = FALSE)
+    } else {
+      if (keras_version() < "2.2.0")
+        stop("Keras v2.2 or higher is required for direct tensor input to models", call. = FALSE)
+      if (!is_backend("tensorflow"))
+        stop("The tensorflow backend is required for direct tensor input to models", call. = FALSE)
+      if (tensorflow::tf_version() < "1.8")
+        stop("TensorFlow v1.8 or higher is required for direct tensor input to models", call. = FALSE)
+    }
+    
+    
+    # yield iterators
+    iter = x$make_one_shot_iterator()
+    iter$get_next()
+    
+  } else {
+    NULL
+  }
+}
+
+
+
   
 #' Retrieves a layer based on either its name (unique) or index.
 #'
 #' Indices are based on order of horizontal graph traversal (bottom-up) and are
-#' 0-based. If `name` and `index` are both provided, `index` will take
+#' 1-based. If `name` and `index` are both provided, `index` will take
 #' precedence.
 #'
 #' @param object Keras model object
@@ -914,9 +1008,18 @@ is_main_thread_generator.keras.preprocessing.image.Iterator <- function(x) {
 #'
 #' @export
 get_layer <- function(object, name = NULL, index = NULL) {
+  
+  # convert to layer index
+  index <- as_layer_index(index)
+  
+  # check for 0
+  if (identical(index, -1L))
+    stop("Indexes for get_layer() are 1-based (0 was passed as the index)")
+  
+  # call get_layer
   object$get_layer(
     name = name,
-    index = as_nullable_integer(index)
+    index = index
   )
 }
 

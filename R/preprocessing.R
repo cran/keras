@@ -505,18 +505,22 @@ image_load <- function(path, grayscale = FALSE, target_size = NULL,
 
 
 #' 3D array representation of images
-#' 
-#' 3D array that represents an image with dimensions (height,width,channels) or 
-#'  (channels,height,width) depending on the data_format.
-#' 
+#'
+#' 3D array that represents an image with dimensions (height,width,channels) or
+#' (channels,height,width) depending on the data_format.
+#'
 #' @param img Image
 #' @param path Path to save image to
 #' @param width Width to resize to
 #' @param height Height to resize to
 #' @param data_format Image data format ("channels_last" or "channels_first")
-#' 
+#' @param file_format Optional file format override. If omitted, the format to
+#'   use is determined from the filename extension. If a file object was used
+#'   instead of a filename, this parameter should always be used.
+#' @param scale Whether to rescale image values to be within 0,255
+#'
 #' @family image preprocessing
-#' 
+#'
 #' @export
 image_to_array <- function(img, data_format = c("channels_last", "channels_first")) {
   keras$preprocessing$image$img_to_array(
@@ -575,9 +579,18 @@ image_array_resize <- function(img, height, width,
 
 #' @rdname image_to_array
 #' @export
-image_array_save <- function(img, path) {
-  scipy <- import("scipy")
-  invisible(scipy$misc$imsave(path, img))
+image_array_save <- function(img, path, data_format = NULL, file_format = NULL, scale = TRUE) {
+  if (keras_version() >= "2.2.0") {
+    keras$preprocessing$image$save_img(
+      path, img, 
+      data_format = data_format, 
+      file_format = file_format, 
+      scale = scale
+    )
+  } else {
+    scipy <- import("scipy")
+    invisible(scipy$misc$imsave(path, img))
+  }
 }
 
 
@@ -727,6 +740,7 @@ fit_image_data_generator <- function(object, x, augment = FALSE, rounds = 1, see
 #'   set). Default: "png".
 #' @param subset Subset of data (`"training"` or `"validation"`) if
 #'   `validation_split` is set in [image_data_generator()].
+#' @param sample_weight Sample weights.
 #'   
 #' @section Yields: `(x, y)` where `x` is an array of image data and `y` is a 
 #'   array of corresponding labels. The generator loops indefinitely.
@@ -736,7 +750,7 @@ fit_image_data_generator <- function(object, x, augment = FALSE, rounds = 1, see
 #' @export
 flow_images_from_data <- function(
   x, y = NULL, generator = image_data_generator(), batch_size = 32, 
-  shuffle = TRUE, seed = NULL, 
+  shuffle = TRUE, sample_weight = NULL, seed = NULL, 
   save_to_dir = NULL, save_prefix = "", save_format = 'png', subset = NULL) {
   
   args <- list(
@@ -752,6 +766,9 @@ flow_images_from_data <- function(
   
   if (keras_version() >= "2.1.5")
     args$subset <- subset
+  
+  if (keras_version() >= "2.2.0")
+    args$sample_weight <- sample_weight
   
   do.call(generator$flow, args)
 }
@@ -771,7 +788,7 @@ flow_images_from_data <- function(
 #'   of the subdirectories directory tree will be included in the generator.
 #'   See [this script](https://gist.github.com/fchollet/0830affa1f7f19fd47b06d4cf89ed44d)
 #'   for more details.
-#' @param target_size integer vectir, default: `c(256, 256)`. The dimensions to
+#' @param target_size integer vector, default: `c(256, 256)`. The dimensions to
 #'   which all images found will be resized.
 #' @param color_mode one of "grayscale", "rbg". Default: "rgb". Whether the
 #'   images will be converted to have 1 or 3 color channels.
@@ -825,7 +842,6 @@ flow_images_from_directory <- function(
   
   do.call(generator$flow_from_directory, args)
 }
-
 
 
 

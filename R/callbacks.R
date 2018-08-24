@@ -88,19 +88,28 @@ callback_model_checkpoint <- function(filepath, monitor = "val_loss", verbose = 
 #'   when the quantity monitored has stopped increasing; in `auto` mode, the
 #'   direction is automatically inferred from the name of the monitored
 #'   quantity.
+#' @param baseline Baseline value for the monitored quantity to reach.
+#'   Training will stop if the model doesn't show improvement
+#'   over the baseline.
 #' 
 #' @family callbacks 
 #'       
 #' @export
 callback_early_stopping <- function(monitor = "val_loss", min_delta = 0, patience = 0, 
-                                    verbose = 0, mode = c("auto", "min", "max")) {
-  keras$callbacks$EarlyStopping(
+                                    verbose = 0, mode = c("auto", "min", "max"), baseline = NULL) {
+  
+  args <- list(
     monitor = monitor,
     min_delta = min_delta,
     patience = as.integer(patience),
     verbose = as.integer(verbose),
     mode = match.arg(mode)
   )
+  
+  if (keras_version() >= "2.2")
+    args$baseline <- baseline
+  
+  do.call(keras$callbacks$EarlyStopping, args)
 }
 
 
@@ -198,7 +207,10 @@ callback_terminate_on_naan <- function() {
 #'   [details](https://www.tensorflow.org/how_tos/embedding_viz/#metadata_optional)
 #'    about the metadata file format. In case if the same metadata file is used
 #'   for all embedding layers, string can be passed.
-
+#' @param embeddings_data Data to be embedded at layers specified in
+#'   `embeddings_layer_names`. Array (if the model has a single input) or list 
+#'   of arrays (if the model has multiple inputs). Learn [more about embeddings](https://www.tensorflow.org/programmers_guide/embedding)
+#'
 #' @details TensorBoard is a visualization tool provided with TensorFlow.
 #'   
 #' You can find more information about TensorBoard
@@ -218,7 +230,8 @@ callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0,
                                  write_images = FALSE,
                                  embeddings_freq = 0, 
                                  embeddings_layer_names = NULL,
-                                 embeddings_metadata = NULL) {
+                                 embeddings_metadata = NULL,
+                                 embeddings_data = NULL) {
   
   # establish the log_dir
   if (is.null(log_dir)) {
@@ -235,12 +248,16 @@ callback_tensorboard <- function(log_dir = NULL, histogram_freq = 0,
     write_images = write_images
   )
   
+  if (!missing(embeddings_data) && keras_version() < "2.2.0")
+    stop("embeddings_data requires keras >= 2.2. Please update with install_keras()")
+  
   # embeddings arguments seem to have been excluded in the TF implementation
   # (even though they are stil part of the docs there)
   if (!is_tensorflow_implementation()) {
     args$embeddings_freq <- as.integer(embeddings_freq)
     args$embeddings_layer_names <- embeddings_layer_names
     args$embeddings_metadata <- embeddings_metadata
+    args$embeddings_data <- embeddings_data
   }
   
   if (keras_version() >= "2.0.5") {

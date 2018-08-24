@@ -20,7 +20,7 @@
 <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -33,13 +33,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
   { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -355,16 +353,15 @@ ________________________________________________________________________________
 <a class="sourceLine" id="cb6-5" data-line-number="5">)</a></code></pre></div>
 <p>Here’s compilation with a custom metric:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="co"># create metric using backend tensor functions</span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">metric_mean_pred &lt;-<span class="st"> </span><span class="cf">function</span>(y_true, y_pred) {</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">metric_mean_pred &lt;-<span class="st"> </span><span class="kw">custom_metric</span>(<span class="st">&quot;mean_pred&quot;</span>, <span class="cf">function</span>(y_true, y_pred) {</a>
 <a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="kw">k_mean</span>(y_pred) </a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">}</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">})</a>
 <a class="sourceLine" id="cb7-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb7-6" data-line-number="6">model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>( </a>
 <a class="sourceLine" id="cb7-7" data-line-number="7">  <span class="dt">optimizer =</span> <span class="kw">optimizer_rmsprop</span>(),</a>
 <a class="sourceLine" id="cb7-8" data-line-number="8">  <span class="dt">loss =</span> loss_binary_crossentropy,</a>
-<a class="sourceLine" id="cb7-9" data-line-number="9">  <span class="dt">metrics =</span> <span class="kw">c</span>(<span class="st">'accuracy'</span>, </a>
-<a class="sourceLine" id="cb7-10" data-line-number="10">              <span class="st">'mean_pred'</span> =<span class="st"> </span>metric_mean_pred)</a>
-<a class="sourceLine" id="cb7-11" data-line-number="11">)</a></code></pre></div>
+<a class="sourceLine" id="cb7-9" data-line-number="9">  <span class="dt">metrics =</span> <span class="kw">c</span>(<span class="st">'accuracy'</span>, metric_mean_pred)</a>
+<a class="sourceLine" id="cb7-10" data-line-number="10">)</a></code></pre></div>
 </div>
 <div id="training" class="section level2">
 <h2>Training</h2>
@@ -629,7 +626,7 @@ ________________________________________________________________________________
 <div id="same-stacked-lstm-model-rendered-stateful" class="section level3">
 <h3>Same stacked LSTM model, rendered “stateful”</h3>
 <p>A stateful recurrent model is one for which the internal states (memories) obtained after processing a batch of samples are reused as initial states for the samples of the next batch. This allows to process longer sequences while keeping computational complexity manageable.</p>
-<p><a href="/faq/#how-can-i-use-stateful-rnns">You can read more about stateful RNNs in the FAQ.</a></p>
+<p><a href="faq.html#how-can-i-use-stateful-rnns">You can read more about stateful RNNs in the FAQ.</a></p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw">library</span>(keras)</a>
 <a class="sourceLine" id="cb16-2" data-line-number="2"></a>
 <a class="sourceLine" id="cb16-3" data-line-number="3"><span class="co"># constants</span></a>

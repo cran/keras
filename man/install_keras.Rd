@@ -5,13 +5,13 @@
 \title{Install Keras and the TensorFlow backend}
 \usage{
 install_keras(method = c("auto", "virtualenv", "conda"), conda = "auto",
-  tensorflow = "default", extra_packages = NULL)
+  tensorflow = "default", extra_packages = c("tensorflow-hub"))
 }
 \arguments{
 \item{method}{Installation method ("virtualenv" or "conda")}
 
-\item{conda}{Path to conda executable (or "auto" to find conda using the PATH
-and other conventional install locations).}
+\item{conda}{Path to conda executable (or "auto" to find conda using the
+PATH and other conventional install locations).}
 
 \item{tensorflow}{TensorFlow version to install. Specify "default" to install
 the CPU version of the latest release. Specify "gpu" to install the GPU
@@ -84,7 +84,7 @@ by the Keras package.
 If you wish to add additional PyPI packages to your Keras / TensorFlow environment you
 can either specify the packages in the \code{extra_packages} argument of \code{install_keras()},
 or alternatively install them into an existing environment using the
-\code{\link[=install_tensorflow_extras]{install_tensorflow_extras()}} function.
+\code{\link[reticulate:py_install]{reticulate::py_install()}} function.
 }
 
 \examples{

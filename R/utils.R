@@ -127,9 +127,10 @@ normalize <- function(x, axis = -1, order = 2) {
 #' 
 #' @examples \dontrun{
 #' # define custom metric
-#' sparse_top_k_cat_acc <- function(y_pred, y_true) {
-#'   metric_sparse_top_k_categorical_accuracy(y_pred, y_true, k = 5)
-#' }
+#' metric_top_3_categorical_accuracy <- 
+#'   custom_metric("top_3_categorical_accuracy", function(y_true, y_pred) {
+#'     metric_top_k_categorical_accuracy(y_true, y_pred, k = 3) 
+#'   })
 #' 
 #' with_custom_object_scope(c(top_k_acc = sparse_top_k_cat_acc), {
 #' 
@@ -203,6 +204,14 @@ keras_array <- function(x, dtype = NULL) {
   
   # reflect NULL
   if (is.null(x))
+    return(x)
+  
+  # reflect HDF5
+  if (inherits(x, "keras.utils.io_utils.HDF5Matrix"))
+    return(x)
+  
+  # reflect tensor for keras v2.2
+  if ((keras_version() >= "2.2.0") && k_is_tensor(x))
     return(x)
   
   # recurse for lists
@@ -336,3 +345,11 @@ relative_to <- function(dir, file) {
 }
 
 
+as_shape <- function(x) {
+  lapply(x, function(d) {
+    if (is.null(d))
+      NULL
+    else
+      as.integer(d)
+  })
+}

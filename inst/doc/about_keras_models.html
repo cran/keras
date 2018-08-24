@@ -20,7 +20,7 @@
 <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -33,13 +33,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
   { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -282,7 +280,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>There are two types of models available in Keras: <a href="sequential_model.html">sequential models</a> and models created with the <a href="functional_api.html">functional API</a>.</p>
+<p>There are two types of built-in models available in Keras: <a href="sequential_model.html">sequential models</a> and models created with the <a href="functional_api.html">functional API</a>. In addition, you can also create <a href="custom_models.html">custom models</a> that define their own forward-pass logic.</p>
 <div id="sequential" class="section level3">
 <h3>Sequential</h3>
 <p>Sequential models are created using the <code>keras_model_sequential()</code> function and are composed of a set of linear layers:</p>
@@ -316,6 +314,10 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb2-16" data-line-number="16"><span class="co"># We define a trainable model linking the tweet inputs to the predictions</span></a>
 <a class="sourceLine" id="cb2-17" data-line-number="17">model &lt;-<span class="st"> </span><span class="kw">keras_model</span>(<span class="dt">inputs =</span> <span class="kw">c</span>(tweet_a, tweet_b), <span class="dt">outputs =</span> predictions)</a></code></pre></div>
 <p>Learn more by reading the <a href="unctional_api.html">Guide to the Functional API</a>.</p>
+</div>
+<div id="custom" class="section level3">
+<h3>Custom</h3>
+<p>Custom models enable you to implement custom forward-pass logic (e.g. to encapsulate the logic associated with constructuing various types of models). See the article on <a href="custom_models.html">Writing Custom Keras Models</a> for additional documentation, including an example that demonstrates creating a custom model that encapsulates a simple multi-layer-perceptron model with optional dropout and batch normalization layers.</p>
 </div>
 </div>
 <div id="properties" class="section level2">

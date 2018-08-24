@@ -1,5 +1,59 @@
 
-## Keras 2.1.6 (CRAN)
+## Keras 2.2.0 (CRAN)
+
+- Fix issue with serializing models that have constraint arguments
+
+- Fix issue with `k_tile` that needs an integer vector instead of a list as the `n` argument.
+
+- Fix issue with user-supplied `output_shape` in `layer_lambda()` not being supplied to tensorflow backends
+
+- Filter out metrics that were created for callbacks (e.g. `lr`)
+
+- Added `application_mobilenet_v2()` pre-trained model
+
+- Added `sample_weight` parameter to `flow_images_from_data()`
+
+- Use native Keras implementation (rather than SciPy) for `image_array_save()`
+
+- Default `layer_flatten()` `data_format` argument to `NULL` (which defaults to global Keras config).
+
+- Add `baseline` argument to `callback_early_stopping()` (stop training if a given baseline isn't reached).
+
+- Add `data_format` argument to `layer_conv_1d()`.
+
+- Add `layer_activation_relu()`, making the ReLU activation easier to configure
+  while retaining easy serialization capabilities.
+
+- Add `axis = -1` argument in backend crossentropy functions specifying the class prediction
+  axis in the input tensor.
+  
+- Handle symbolic tensors and TF datasets in calls to `fit()`, `evaluate()`, and `predict()`
+
+- Add `embeddings_data` argument to `callback_tensorboard()`
+
+- Support for defining custom Keras models (i.e. custom `call()` logic for forward pass)
+
+- Handle named list of model output names in `metrics` argument of `compile()`
+
+- New `custom_metric()` function for defining custom metrics in R
+
+- Provide typed wrapper for categorical custom metrics
+
+- Provide access to Python layer within R custom layers
+
+- Don't convert custom layer output shape to tuple when shape is a list
+  or tuple of other shapes
+  
+- Re-export `shape()` function from tensorflow package
+
+- Re-export `tuple()` function from reticulate package
+
+- Indexes for `get_layer()` are now 1-based (for consistency w/ `freeze_weights()`)
+
+- Accept named list for `sample_weight` argument to `fit()`
+
+
+## Keras 2.1.6 
 
 - Fix issue with single-element vectors passed to text preprocessing functions
 
