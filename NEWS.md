@@ -1,5 +1,43 @@
 
-## Keras 2.2.0 (CRAN)
+## Keras 2.2.4 (CRAN)
+
+- Improve handling of `timeseries_generator()` in calls to `fit_generator()`
+
+- Add support for `input_shape` argument to `layer_dropout()`
+
+- Improve error message for data frames passed to `fit()`, etc.
+
+- Use 1-based axis indices for `k_gather()`
+
+- Added `version` parameter to `install_keras()` for installing alternate/older versions
+
+- Added `activation_exponential()` function.
+
+- Added `threshold` parameter to `activation_relu()`
+
+- Added `restore_best_weights` parameter to `callback_model_checkpoint()`
+
+- Added `update_freq` parameter to `callback_tensorboard()`
+
+- Added `negative_slope` and `threshold` parameters to `layer_activation_relu()`
+
+- Added `output_padding` and `dilation_rate` parameters to `layer_conv_2d_transpose()`
+
+- Added `output_padding` argument to `layer_conv_3d_transpose()`
+
+- Added `data_format` argument to `layer_separable_conv_1d()`, `layer_average_pooling_1d()`,
+  `layer_global_max_pooling_1d()`, and `layer_global_average_pooling_1d()`
+
+- Added `interpolation` argument to `layer_upsampling_1d()` and `layer_upsampling_2d()`
+
+- Added `dtype` argument to `to_categorical()`
+
+- Added `layer_activation_selu()` function.
+
+- Added `KerasWrapper` class and corresponding `create_wrapper` function.
+
+
+## Keras 2.2.0
 
 - Fix issue with serializing models that have constraint arguments
 

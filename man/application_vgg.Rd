@@ -27,7 +27,7 @@ model.}
 \item{input_shape}{optional shape list, only to be specified if \code{include_top}
 is FALSE (otherwise the input shape has to be \code{(224, 224, 3)} It should
 have exactly 3 inputs channels, and width and height should be no smaller
-than 48. E.g. \code{(200, 200, 3)} would be one valid value.}
+than 32. E.g. \code{(200, 200, 3)} would be one valid value.}
 
 \item{pooling}{Optional pooling mode for feature extraction when
 \code{include_top} is \code{FALSE}.
@@ -56,7 +56,7 @@ Optionally loads weights pre-trained on ImageNet.
 The \code{imagenet_preprocess_input()} function should be used for image preprocessing.
 }
 \section{Reference}{
- - \href{https://arxiv.org/abs/1409.1556}{Very Deep Convolutional Networks for Large-Scale ImageRecognition}
+ - \href{https://arxiv.org/abs/1409.1556}{Very Deep Convolutional Networks for Large-Scale Image Recognition}
 }
 
 \examples{

@@ -4,9 +4,9 @@
 \alias{layer_activation_thresholded_relu}
 \title{Thresholded Rectified Linear Unit.}
 \usage{
-layer_activation_thresholded_relu(object, theta = 1, input_shape = NULL,
-  batch_input_shape = NULL, batch_size = NULL, dtype = NULL,
-  name = NULL, trainable = NULL, weights = NULL)
+layer_activation_thresholded_relu(object, theta = 1,
+  input_shape = NULL, batch_input_shape = NULL, batch_size = NULL,
+  dtype = NULL, name = NULL, trainable = NULL, weights = NULL)
 }
 \arguments{
 \item{object}{Model or layer object}
@@ -45,6 +45,8 @@ Other activation layers: \code{\link{layer_activation_elu}},
   \code{\link{layer_activation_leaky_relu}},
   \code{\link{layer_activation_parametric_relu}},
   \code{\link{layer_activation_relu}},
+  \code{\link{layer_activation_selu}},
   \code{\link{layer_activation_softmax}},
   \code{\link{layer_activation}}
 }
+\concept{activation layers}

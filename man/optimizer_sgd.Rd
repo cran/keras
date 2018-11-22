@@ -24,7 +24,7 @@ value.}
 this value.}
 }
 \value{
-Optimizer for use with \code{\link{compile}}.
+Optimizer for use with \code{\link{compile.keras.engine.training.Model}}.
 }
 \description{
 Stochastic gradient descent optimizer with support for momentum, learning
@@ -38,3 +38,4 @@ Other optimizers: \code{\link{optimizer_adadelta}},
   \code{\link{optimizer_nadam}},
   \code{\link{optimizer_rmsprop}}
 }
+\concept{optimizers}

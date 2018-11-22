@@ -5,7 +5,8 @@
 \title{Upsampling layer for 2D inputs.}
 \usage{
 layer_upsampling_2d(object, size = c(2L, 2L), data_format = NULL,
-  batch_size = NULL, name = NULL, trainable = NULL, weights = NULL)
+  interpolation = "nearest", batch_size = NULL, name = NULL,
+  trainable = NULL, weights = NULL)
 }
 \arguments{
 \item{object}{Model or layer object}
@@ -19,6 +20,10 @@ columns.}
 found in your Keras config file at \code{~/.keras/keras.json}. If you never set
 it, then it will be "channels_last".}
 
+\item{interpolation}{A string, one of \code{nearest} or \code{bilinear}.
+Note that CNTK does not support yet the \code{bilinear} upscaling
+and that with Theano, only \code{size=(2, 2)} is possible.}
+
 \item{batch_size}{Fixed batch size for layer}
 
 \item{name}{An optional name string for the layer. Should be unique in a
@@ -31,9 +36,6 @@ isn't provided.}
 }
 \description{
 Repeats the rows and columns of the data by \code{size[[0]]} and \code{size[[1]]} respectively.
-
-[[0]: R:[0
-[[1]: R:[1
 }
 \section{Input shape}{
 
@@ -72,3 +74,4 @@ Other convolutional layers: \code{\link{layer_conv_1d}},
   \code{\link{layer_zero_padding_2d}},
   \code{\link{layer_zero_padding_3d}}
 }
+\concept{convolutional layers}

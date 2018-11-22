@@ -5,15 +5,24 @@
 #' 
 #' @param y Class vector to be converted into a matrix (integers from 0 to num_classes).
 #' @param num_classes Total number of classes.
+#' @param dtype The data type expected by the input, as a string
+#    (`float32`, `float64`, `int32`...)
 #' 
 #' @return A binary matrix representation of the input.
 #' 
 #' @export
-to_categorical <- function(y, num_classes = NULL) {
-  keras$utils$to_categorical(
+to_categorical <- function(y, num_classes = NULL, dtype = "float32") {
+  
+  args <- list(
     y = y,
     num_classes = as_nullable_integer(num_classes)
   )
+
+  if (keras_version() >= "2.2.3")
+    args$dtype <- dtype
+    
+  do.call(keras$utils$to_categorical, args)
+
 }
 
  
@@ -210,9 +219,23 @@ keras_array <- function(x, dtype = NULL) {
   if (inherits(x, "keras.utils.io_utils.HDF5Matrix"))
     return(x)
   
-  # reflect tensor for keras v2.2
-  if ((keras_version() >= "2.2.0") && k_is_tensor(x))
-    return(x)
+  # reflect tensor for keras v2.2 or TF implementation >= 1.12
+  if (((keras_version() >= "2.2.0") && k_is_tensor(x)) ||
+      ((
+        is_tensorflow_implementation() &&
+        tf_version() >= "1.12" &&
+        (
+          tensorflow::tf$contrib$framework$is_tensor(x) ||
+          is.list(x) && all(vapply(x, tensorflow::tf$contrib$framework$is_tensor, logical(1)))
+        )
+      )))
+  return(x)
+  
+  # error for data frames
+  if (is.data.frame(x)) {
+    stop("Data passed to Keras must be a vector, matrix, or array (you passed a ",
+         "data frame)", call. = FALSE)
+  }
   
   # recurse for lists
   if (is.list(x))

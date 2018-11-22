@@ -4,9 +4,9 @@
 \alias{evaluate.keras.engine.training.Model}
 \title{Evaluate a Keras model}
 \usage{
-\method{evaluate}{keras.engine.training.Model}(object, x = NULL, y = NULL,
-  batch_size = NULL, verbose = 1, sample_weight = NULL, steps = NULL,
-  ...)
+\method{evaluate}{keras.engine.training.Model}(object, x = NULL,
+  y = NULL, batch_size = NULL, verbose = 1, sample_weight = NULL,
+  steps = NULL, ...)
 }
 \arguments{
 \item{object}{Model object to evaluate}
@@ -47,10 +47,11 @@ outputs) and model metrics.
 Evaluate a Keras model
 }
 \seealso{
-Other model functions: \code{\link{compile}},
+Other model functions: \code{\link{compile.keras.engine.training.Model}},
   \code{\link{evaluate_generator}},
-  \code{\link{fit_generator}}, \code{\link{fit}},
-  \code{\link{get_config}}, \code{\link{get_layer}},
+  \code{\link{fit.keras.engine.training.Model}},
+  \code{\link{fit_generator}}, \code{\link{get_config}},
+  \code{\link{get_layer}},
   \code{\link{keras_model_sequential}},
   \code{\link{keras_model}}, \code{\link{multi_gpu_model}},
   \code{\link{pop_layer}},
@@ -61,3 +62,4 @@ Other model functions: \code{\link{compile}},
   \code{\link{summary.keras.engine.training.Model}},
   \code{\link{train_on_batch}}
 }
+\concept{model functions}

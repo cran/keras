@@ -4,12 +4,13 @@
 \alias{layer_conv_1d}
 \title{1D convolution layer (e.g. temporal convolution).}
 \usage{
-layer_conv_1d(object, filters, kernel_size, strides = 1L, padding = "valid",
-  data_format = "channels_last", dilation_rate = 1L, activation = NULL,
-  use_bias = TRUE, kernel_initializer = "glorot_uniform",
-  bias_initializer = "zeros", kernel_regularizer = NULL,
-  bias_regularizer = NULL, activity_regularizer = NULL,
-  kernel_constraint = NULL, bias_constraint = NULL, input_shape = NULL,
+layer_conv_1d(object, filters, kernel_size, strides = 1L,
+  padding = "valid", data_format = "channels_last",
+  dilation_rate = 1L, activation = NULL, use_bias = TRUE,
+  kernel_initializer = "glorot_uniform", bias_initializer = "zeros",
+  kernel_regularizer = NULL, bias_regularizer = NULL,
+  activity_regularizer = NULL, kernel_constraint = NULL,
+  bias_constraint = NULL, input_shape = NULL,
   batch_input_shape = NULL, batch_size = NULL, dtype = NULL,
   name = NULL, trainable = NULL, weights = NULL)
 }
@@ -32,7 +33,7 @@ with specifying any \code{dilation_rate} value != 1.}
 length as the original input.
 \code{"causal"} results in causal (dilated) convolutions, e.g. \code{output[t]} does
 not depend on \code{input[t+1:]}. Useful when modeling temporal data where the
-model should not violate the temporal order. See \href{https://arxiv.org/abs/1609.03499}{WaveNet: A GenerativeModel for Raw Audio, section 2.1}.}
+model should not violate the temporal order. See \href{https://arxiv.org/abs/1609.03499}{WaveNet: A Generative Model for Raw Audio, section 2.1}.}
 
 \item{data_format}{A string, one of \code{"channels_last"} (default) or \code{"channels_first"}.
 The ordering of the dimensions in the inputs. \code{"channels_last"} corresponds
@@ -94,7 +95,7 @@ input over a single spatial (or temporal) dimension to produce a tensor of
 outputs. If \code{use_bias} is TRUE, a bias vector is created and added to the
 outputs. Finally, if \code{activation} is not \code{NULL}, it is applied to the outputs
 as well. When using this layer as the first layer in a model, provide an
-\code{input_shape} argument (list of integers or \code{NULL}, e.g. \code{(10, 128)} for
+\code{input_shape} argument (list of integers or \code{NULL }, e.g. \code{(10, 128)} for
 sequences of 10 vectors of 128-dimensional vectors, or \code{(NULL, 128)} for
 variable-length sequences of 128-dimensional vectors.
 }
@@ -103,7 +104,7 @@ variable-length sequences of 128-dimensional vectors.
 }
 
 \section{Output shape}{
- 3D tensor with shape: \code{(batch_size, new_steps, filters)} \code{steps} value might have changed due to padding or strides.
+ 3D tensor with shape: \code{(batch_size, new_steps,  filters)} \code{steps} value might have changed due to padding or strides.
 }
 
 \seealso{
@@ -125,3 +126,4 @@ Other convolutional layers: \code{\link{layer_conv_2d_transpose}},
   \code{\link{layer_zero_padding_2d}},
   \code{\link{layer_zero_padding_3d}}
 }
+\concept{convolutional layers}

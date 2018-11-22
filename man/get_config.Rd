@@ -33,11 +33,11 @@ only, not weights) or the \code{save_model_hdf5()} function to save the model
 configuration and weights to a file.
 }
 \seealso{
-Other model functions: \code{\link{compile}},
+Other model functions: \code{\link{compile.keras.engine.training.Model}},
   \code{\link{evaluate.keras.engine.training.Model}},
   \code{\link{evaluate_generator}},
-  \code{\link{fit_generator}}, \code{\link{fit}},
-  \code{\link{get_layer}},
+  \code{\link{fit.keras.engine.training.Model}},
+  \code{\link{fit_generator}}, \code{\link{get_layer}},
   \code{\link{keras_model_sequential}},
   \code{\link{keras_model}}, \code{\link{multi_gpu_model}},
   \code{\link{pop_layer}},
@@ -52,3 +52,5 @@ Other layer methods: \code{\link{count_params}},
   \code{\link{get_input_at}}, \code{\link{get_weights}},
   \code{\link{reset_states}}
 }
+\concept{layer methods}
+\concept{model functions}
