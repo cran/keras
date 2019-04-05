@@ -1,4 +1,13 @@
 
+## Development version
+
+- Use `tf.keras` as default implementation module.
+
+- Added AppVeyor to test on Windows.
+
+- Added `flow_images_from_dataframe` function (#658).
+
+
 ## Keras 2.2.4 (CRAN)
 
 - Improve handling of `timeseries_generator()` in calls to `fit_generator()`

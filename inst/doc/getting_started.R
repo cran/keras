@@ -3,7 +3,7 @@ library(keras)
 knitr::opts_chunk$set(eval = FALSE)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  install.packages("keras")
+#  devtools::install_github("rstudio/keras")
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  library(keras)

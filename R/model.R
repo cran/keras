@@ -925,13 +925,22 @@ as_generator.default <- function(x) {
 }
 
 as_generator.tensorflow.python.data.ops.dataset_ops.Dataset <- function(x) {
-  python_path <- system.file("python", package = "tfdatasets")
+  python_path <- system.file("python", package = "keras")
   tools <- reticulate::import_from_path("kerastools", path = python_path)
   tools$generator$dataset_generator(x , k_get_session())
 }
 
+as_generator.tensorflow.python.data.ops.dataset_ops.DatasetV2 <-
+  as_generator.tensorflow.python.data.ops.dataset_ops.Dataset
+
 as_generator.function <- function(x) {
-  reticulate::py_iterator(function() keras_array(x()))
+  python_path <- system.file("python", package = "keras")
+  tools <- reticulate::import_from_path("kerastools", path = python_path)
+  iter <- reticulate::py_iterator(function() {
+    elem <- keras_array(x())
+    reticulate::tuple(elem[1], elem[2])
+  })
+  tools$generator$iter_generator(iter)
 }
 
 as_generator.keras_preprocessing.sequence.TimeseriesGenerator <- function(x) {
@@ -973,7 +982,8 @@ is_main_thread_generator.keras_preprocessing.image.Iterator <- function(x) {
 }
 
 is_tensorflow_dataset <- function(x) {
-  inherits(x, "tensorflow.python.data.ops.dataset_ops.Dataset")
+  inherits(x, "tensorflow.python.data.ops.dataset_ops.DatasetV2") ||
+    inherits(x, "tensorflow.python.data.ops.dataset_ops.Dataset")
 }
 
 resolve_tensorflow_dataset <- function(x) {
