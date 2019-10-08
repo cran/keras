@@ -49,15 +49,18 @@ test_succeeds("image data generator can be used for training", {
   datagen %>% fit_image_data_generator(X_train)
   
   # train using generator
-  model %>%
-    fit_generator(flow_images_from_data(X_train, Y_train, datagen, batch_size = 32),
-                  steps_per_epoch = 32, epochs = 2)
+  x <- capture_output(
+    model %>%
+      fit_generator(flow_images_from_data(X_train, Y_train, datagen, batch_size = 32),
+                    steps_per_epoch = 32, epochs = 2, verbose = 0)  
+  )
   
   # evaluate using generator
   scores <- model %>%
     evaluate_generator(flow_images_from_data(X_test, Y_test, datagen, batch_size = 32),
                        steps = 5)
-  expect_equal(names(scores), c("loss", "acc"))
+  
+  expect_true(all(names(scores) %in% c("loss", "acc", "accuracy")))
   
   # predict using generator
   model %>%
@@ -102,7 +105,7 @@ test_succeeds("R function can be used as custom generator", {
   # Train the model, iterating on the data in batches of 32 samples
   model %>% 
     fit_generator(sampling_generator(X_train, Y_train, batch_size = 32), 
-                  steps_per_epoch = 10, epochs = 10)
+                  steps_per_epoch = 10, epochs = 2, verbose = 0)
   
   # Evaluate the model
   model %>% 
@@ -115,4 +118,74 @@ test_succeeds("R function can be used as custom generator", {
                       steps = 10)
    
 })
+
+test_succeeds("R function can be used as custom generator with multiple inputs", {
+  
+  input1 <- layer_input(shape = 1)
+  input2 <- layer_input(shape = 1)
+  
+  out <- layer_add(list(input1, input2)) %>%
+    layer_dense(units = 1)
+  
+  model <- keras_model(list(input1, input2), out)
+  
+  generator <- function() {
+    list(list(1, 2), 3)
+  }
+  
+  model %>% compile(loss = "mse", optimizer = "sgd")
+  
+  model %>% fit_generator(generator, steps_per_epoch = 10, 
+                          validation_data = generator, validation_steps = 2,
+                          verbose = 0)
+})
+
+test_succeeds("Fixed validation_data instead of generator with fit_generator", {
+
+  input1 <- layer_input(shape = 1)
+  input2 <- layer_input(shape = 1)
+  
+  out <- layer_add(list(input1, input2)) %>% 
+    layer_dense(units = 1)
+  
+  model <- keras_model(list(input1, input2), out)
+  
+  generator <- function() {
+    list(list(1, 2), 3)
+  }
+  
+  model %>% compile(loss = "mse", optimizer = "sgd")
+  
+  model %>% fit_generator(
+    generator, steps_per_epoch = 2, 
+    validation_data = list(list(1, 2), 3),
+    verbose = 0)
+  
+})
+
+test_succeeds("Can use a custom preprocessing function in image_data_generator", {
+  
+  img_gen <- image_data_generator(preprocessing_function = function(x) x/255)
+  
+  mnist <- dataset_mnist()
+  
+  flow <- flow_images_from_data(
+    array_reshape(mnist$train$x, dim = c(dim(mnist$train$x), 1)), 
+    to_categorical(mnist$train$y), 
+    img_gen
+  )
+  
+  model <- keras_model_sequential() %>% 
+    layer_flatten(input_shape = c(28,28, 1)) %>% 
+    layer_dense(units = 10, activation = "softmax")
+  
+  model %>% compile(loss = "categorical_crossentropy", optimizer = "adam", metrics = "accuracy")
+  
+  # test fitting the model
+  model %>% fit_generator(flow, steps_per_epoch = 5, epochs = 1, verbose = 0)
+  preds <- predict_generator(model, flow, steps = 5)
+  eval <- evaluate_generator(model, flow, steps = 10)
+
+})
+
 

@@ -29,7 +29,7 @@ input <- matrix(rexp(10*784), nrow = 10, ncol = 784)
 
 test_succeeds("models can be fit, evaluated, and used for predictions", {
   model <- define_and_compile_model()
-  fit(model, data, labels)
+  fit(model, data, labels, verbose = 0)
   evaluate(model, data, labels)
   predict(model, input)
   predict_on_batch(model, input)
@@ -76,6 +76,33 @@ test_succeeds("models layers can be popped", {
   pop_layer(model)
   expect_equal(length(model$layers), 3)
   
+})
+
+test_succeeds("can call model with R objects", {
+  
+  if (!tensorflow::tf_version() >= "1.14") skip("Needs TF >= 1.14")
+  
+  model <- keras_model_sequential() %>% 
+    layer_dense(units = 1, input_shape = 1)
+  
+  model(
+    tensorflow::tf$convert_to_tensor(
+      matrix(runif(10), ncol = 1), 
+      dtype = tensorflow::tf$float32
+    )
+  )
+  
+  input1 <- layer_input(shape = 1)
+  input2 <- layer_input(shape = 1)
+  
+  output <- layer_concatenate(list(input1, input2))
+  
+  model <- keras_model(list(input1, input2), output)
+  l <- lapply(
+    list(matrix(runif(10), ncol = 1), matrix(runif(10), ncol = 1)), 
+    function(x) tensorflow::tf$convert_to_tensor(x, dtype = tensorflow::tf$float32)
+  )
+  model(l)
 })
 
 

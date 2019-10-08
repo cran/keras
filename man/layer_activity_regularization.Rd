@@ -52,6 +52,7 @@ the first layer in a model.
 
 \seealso{
 Other core layers: \code{\link{layer_activation}},
+  \code{\link{layer_dense_features}},
   \code{\link{layer_dense}}, \code{\link{layer_dropout}},
   \code{\link{layer_flatten}}, \code{\link{layer_input}},
   \code{\link{layer_lambda}}, \code{\link{layer_masking}},

@@ -417,7 +417,7 @@ normalize_path <- function(path) {
   if (is.null(path))
     NULL
   else
-    path.expand(path)
+    normalizePath(path.expand(path), mustWork = FALSE)
 }
 
 # Helper function to coerce shape arguments to tuple
@@ -494,7 +494,7 @@ create_layer <- function(layer_class, object, args = list()) {
     python_path <- system.file("python", package = "keras")
     tools <- import_from_path("kerastools", path = python_path)
     py_wrapper_args$r_build <- r6_layer$build
-    py_wrapper_args$r_call <-  r6_layer$call
+    py_wrapper_args$r_call <-  reticulate::py_func(r6_layer$call)
     py_wrapper_args$r_compute_output_shape <- r6_layer$compute_output_shape
     layer <- do.call(tools$layer$RLayer, py_wrapper_args)
     
@@ -544,6 +544,13 @@ compose_layer.list <- function(object, layer) {
   layer(object)
 }
 
+compose_layer.numeric <- function(object, layer) {
+  if (!tensorflow::tf_version() >= "1.14") stop_with_invalid_layer()
+  if (is.function(layer))
+    layer(object)
+  else
+    stop_with_invalid_layer()
+}
 
 stop_with_invalid_layer <- function() {
   stop("Invalid input to layer function (must be a model or a tensor)",

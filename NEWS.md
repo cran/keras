@@ -1,11 +1,46 @@
 
 ## Development version
 
+- Added `layer_dense_features`.
+
+- Added `on_test_*`, `on_test_batch_*`, `on_predict_*` and `on_predict_*` to callback options.
+
+- Search for the right optimizers and initializers on TensorFlow 2.0
+
+- Fixed bug in function generators when using models with multiple inputs. (#740)
+
+- Added `export_savedmodel` support for TensorFlow 2.0 (#773)
+
+- Fixed bug when using `metric_` functions. (#804)
+
+- Allow users to pass additional arguments to `install_keras` (#808)
+
+- Enabled calling Keras models with R arrays. (#806)
+
+- Allow passing `data.frames` as inputs to Keras models. (#822)
+
+- Fixed bug when passing a fixed validation set to `fit_generator` (#837)
+
+- Fixed bug when passing a TensorFlow dataset to `fit` within a `tf$distribute` scope. (#856)
+
+- `install_keras` will now install Keras dependencies (#856). It won't re-install TensorFlow if it's already installed.
+
+- Fixed deprecation messages showed with TensorFlow v1.14.
+
+- Largely reduced tests verbosity.
+
+## Keras 2.2.4.1 (CRAN)
+
 - Use `tf.keras` as default implementation module.
 
 - Added AppVeyor to test on Windows.
 
 - Added `flow_images_from_dataframe` function (#658).
+
+- Allow for unknown `input_shape` in `application_*` functions.
+
+- Added `save_model_tf` and `load_model_tf` to save/load models in the TensorFlow's 
+SavedModel format.
 
 
 ## Keras 2.2.4 (CRAN)

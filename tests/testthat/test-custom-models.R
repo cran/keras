@@ -21,7 +21,7 @@ keras_model_simple_mlp <- function(num_classes,
       self$bn <- layer_batch_normalization(axis = -1)
     
     # implement call (this code executes during training & inference)
-    function(inputs, mask = NULL) {
+    function(inputs, mask = NULL, training = FALSE) {
       x <- self$dense1(inputs)
       if (use_dp)
         x <- self$dp(x)
@@ -57,6 +57,6 @@ test_succeeds("Use an R-based custom Keras model", {
   one_hot_labels <- to_categorical(labels, num_classes = 10)
   
   # Train the model
-  model %>% fit(data, one_hot_labels, epochs=10, batch_size=32)  
+  model %>% fit(data, one_hot_labels, epochs=2, batch_size=32, verbose = 0)  
   
 })

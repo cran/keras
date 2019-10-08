@@ -33,8 +33,13 @@ CustomWrapper <- R6::R6Class(
       
       regularizer <- k_sum(k_log(self$custom_weight))
       super$add_loss(regularizer)
-      
+    },
+    
+    call = function(x, mask = NULL, training = NULL) {
+      out <- super$call(x)
+      k_sum(self$custom_weight) + out
     }
+    
   )
 )
 
@@ -72,6 +77,7 @@ test_succeeds("Use an R-based custom Keras wrapper", {
       weight_shape = shape(1),
       weight_init = initializer_he_normal()
     ) %>%
+    layer_dense(units = 10, kernel_regularizer = regularizer_l1()) %>% 
     layer_dense(units = 1)
   
   model %>% compile(optimizer = "adam", loss = "mse")
@@ -84,8 +90,9 @@ test_succeeds("Use an R-based custom Keras wrapper", {
   )
   
   expect_true(length(model$layers[[1]]$get_weights()) == 3)
-  expect_true(length(model$layers[[1]]$losses) == 1)
-  
+  # seems like this is no longer garanteed. Python example:
+  # https://colab.research.google.com/drive/15blNyNpK_CCR2vCsAugeivqSf0NBf4S0
+  # expect_true(length(model$layers[[1]]$losses) == 1)
 })
 
 

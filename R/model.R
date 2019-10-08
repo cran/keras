@@ -281,7 +281,7 @@ compile.keras.engine.training.Model <-
     metric_names <- names(metrics)
     if (is.null(metric_names))
       metric_names <- rep_len("", length(metrics))
-    
+
     # if all the metrics names are output names then leave them alone
     # (just convert to a list with no special processing)
     if (py_has_attr(object, "output_names") && all(metric_names %in% object$output_names)) {
@@ -290,10 +290,13 @@ compile.keras.engine.training.Model <-
       # convert metrics to a list (adding names to any custom functions)
       metrics <- lapply(1:length(metrics), function(i) {
         metric <- metrics[[i]]
-        if (is.function(metric) && nzchar(metric_names[[i]]))
+        
+        if (is.function(metric) && nzchar(metric_names[[i]])) {
           warning("Passing names for custom metrics is deprecated. Please use the ",
                   "custom_metric() function to define custom metrics.")
           attr(metric, "py_function_name") <- metric_names[[i]]
+        }
+        
         metric
       })
     }
@@ -410,7 +413,8 @@ fit.keras.engine.training.Model <-
            steps_per_epoch=NULL, validation_steps=NULL, ...) {
     
   # defaults
-  if (is.null(batch_size) && is.null(steps_per_epoch))
+  if (is.null(batch_size) && is.null(steps_per_epoch) && 
+      !is_tensorflow_dataset(x))
     batch_size <- 32L
   
   # resolve view_metrics
@@ -422,7 +426,7 @@ fit.keras.engine.training.Model <-
     batch_size = as_nullable_integer(batch_size),
     epochs = as.integer(epochs),
     verbose = as.integer(verbose),
-    callbacks = normalize_callbacks(view_metrics, callbacks),
+    callbacks = normalize_callbacks_with_metrics(view_metrics, callbacks),
     validation_split = validation_split,
     shuffle = shuffle,
     class_weight = as_class_weight(class_weight),
@@ -441,7 +445,9 @@ fit.keras.engine.training.Model <-
     
   # resolve x and y (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
-  if (!is.null(dataset)) {
+  if (inherits(dataset, "tensorflow.python.data.ops.dataset_ops.DatasetV2")) {
+    args$x <- dataset
+  } else if (!is.null(dataset)) {
     args$x <- dataset[[1]]
     args$y <- dataset[[2]]
   } else {
@@ -484,6 +490,7 @@ fit.keras.engine.training.Model <-
 #'   from framework-native tensors (e.g. TensorFlow data tensors).
 #' @param steps Total number of steps (batches of samples) before declaring the
 #'   evaluation round finished. Ignored with the default value of `NULL`.
+#' @param callbacks List of callbacks to apply during evaluation.
 #' @param ... Unused   
 #'   
 #'   
@@ -494,10 +501,11 @@ fit.keras.engine.training.Model <-
 #'
 #' @export
 evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, batch_size = NULL, 
-                                                 verbose=1, sample_weight = NULL, steps = NULL, ...) {
+                                                 verbose=1, sample_weight = NULL, steps = NULL, 
+                                                 callbacks = NULL, ...) {
   
   # defaults
-  if (is.null(batch_size) && is.null(steps))
+  if (is.null(batch_size) && is.null(steps) &&!is_tensorflow_dataset(x))
     batch_size <- 32L
   
   # args
@@ -507,11 +515,15 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
     sample_weight = sample_weight
   )
   
+  args <- resolve_callbacks(args, callbacks)
+  
   # resolve x and y (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
-  if (!is.null(dataset)) {
+  if (inherits(dataset, "tensorflow.python.data.ops.dataset_ops.DatasetV2")) {
+    args$x <- dataset
+  } else if (!is.null(dataset)) {
     args$x <- dataset[[1]]
-    args$y <- dataset[[2]]
+    args$y <- dataset[[2]] 
   } else {
     args$x <- keras_array(x)
     args$y <- keras_array(y) 
@@ -533,6 +545,15 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
   result
 }
 
+resolve_callbacks <- function(args, callbacks) {
+  if (get_keras_implementation() == "tensorflow" && tensorflow::tf_version() >= "2.0") {
+    args <- append(args, list(callbacks = normalize_callbacks(callbacks)))
+  } else if (!is.null(callbacks)) {
+    warning("Prediction callbacks are only supported for TensorFlow ",
+            "implementation of Keras. And tf_version() >= 2.0")
+  }
+  args
+}
 
 #' Generate predictions from a Keras model
 #' 
@@ -545,6 +566,7 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
 #' @param x Input data (vector, matrix, or array)
 #' @param batch_size Integer. If unspecified, it will default to 32.
 #' @param verbose Verbosity mode, 0 or 1.
+#' @param callbacks List of callbacks to apply during prediction. 
 #' @param ... Unused
 #' 
 #' @return vector, matrix, or array of predictions
@@ -554,10 +576,11 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
 #' 
 #' @importFrom stats predict
 #' @export
-predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verbose=0, steps=NULL, ...) {
+predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verbose=0, steps=NULL, 
+                                                callbacks = NULL,...) {
   
   # defaults
-  if (is.null(batch_size) && is.null(steps))
+  if (is.null(batch_size) && is.null(steps) &&!is_tensorflow_dataset(x))
     batch_size <- 32L
   
   # args
@@ -566,9 +589,13 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verb
     verbose = as.integer(verbose)
   )
   
+  args <- resolve_callbacks(args, callbacks)
+  
   # resolve x (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
-  if (!is.null(dataset)) {
+  if (inherits(dataset, "tensorflow.python.data.ops.dataset_ops.DatasetV2")) {
+    args$x <- dataset 
+  } else if (!is.null(dataset)) {
     args$x <- dataset[[1]]
   } else {
     args$x <- keras_array(x)
@@ -638,7 +665,6 @@ predict_classes <- function(object, x, batch_size = NULL, verbose = 0, steps = N
   
   do.call(object$predict_classes, args)
 }
-
 
 #' Returns predictions for a single batch of samples.
 #' 
@@ -770,14 +796,14 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
     view_metrics <- resolve_view_metrics(verbose, epochs, object$metrics)
   
   if (is.list(validation_data))
-    validation_data <- keras_array(validation_data)
+    validation_data <- do.call(reticulate::tuple, keras_array(validation_data))
   
   history <- call_generator_function(object$fit_generator, list(
     generator = generator,
     steps_per_epoch = as.integer(steps_per_epoch),
     epochs = as.integer(epochs),
     verbose = as.integer(verbose),
-    callbacks = normalize_callbacks(view_metrics, callbacks),
+    callbacks = normalize_callbacks_with_metrics(view_metrics, callbacks),
     validation_data = validation_data,
     validation_steps = as_nullable_integer(validation_steps),
     class_weight = as_class_weight(class_weight),
@@ -815,15 +841,20 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
 #' @family model functions   
 #'     
 #' @export
-evaluate_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1) {
+evaluate_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1,
+                               callbacks = NULL) {
   
-  # perform evaluation
-  result <- call_generator_function(object$evaluate_generator, list(
+  args <- list(
     generator = generator,
     steps = as.integer(steps),
     max_queue_size = as.integer(max_queue_size),
     workers = as.integer(workers)
-  ))
+  )
+  
+  args <- resolve_callbacks(args, callbacks)
+  
+  # perform evaluation
+  result <- call_generator_function(object$evaluate_generator, args)
   
   # apply names
   names(result) <- object$metrics_names
@@ -858,7 +889,8 @@ evaluate_generator <- function(object, generator, steps, max_queue_size = 10, wo
 #' @family model functions   
 #'     
 #' @export
-predict_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1, verbose = 0) {
+predict_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1, verbose = 0,
+                              callbacks = NULL) {
   
   args <- list(
     generator = generator,
@@ -869,6 +901,8 @@ predict_generator <- function(object, generator, steps, max_queue_size = 10, wor
   
   if (keras_version() >= "2.0.1")
     args$verbose <- as.integer(verbose)
+  
+  args <- resolve_callbacks(args, callbacks)
   
   call_generator_function(object$predict_generator, args)
 }
@@ -930,15 +964,27 @@ as_generator.tensorflow.python.data.ops.dataset_ops.Dataset <- function(x) {
   tools$generator$dataset_generator(x , k_get_session())
 }
 
-as_generator.tensorflow.python.data.ops.dataset_ops.DatasetV2 <-
-  as_generator.tensorflow.python.data.ops.dataset_ops.Dataset
-
+as_generator.tensorflow.python.data.ops.dataset_ops.DatasetV2 <- function(x) {
+   
+  if (tensorflow::tf_version() >= "2.0")
+    x
+  else
+    as_generator.tensorflow.python.data.ops.dataset_ops.Dataset(x)  
+  
+}
+  
 as_generator.function <- function(x) {
   python_path <- system.file("python", package = "keras")
   tools <- reticulate::import_from_path("kerastools", path = python_path)
   iter <- reticulate::py_iterator(function() {
     elem <- keras_array(x())
-    reticulate::tuple(elem[1], elem[2])
+    
+    # deals with the case where the generator is used for prediction and only
+    # yields x's values.
+    if (length(elem) == 1)
+      elem[[2]] <- list()
+    
+    do.call(reticulate::tuple, elem)
   })
   tools$generator$iter_generator(iter)
 }
@@ -981,6 +1027,9 @@ is_main_thread_generator.keras_preprocessing.image.Iterator <- function(x) {
   }
 }
 
+is_main_thread_generator.keras_preprocessing.image.iterator.Iterator <- 
+  is_main_thread_generator.keras_preprocessing.image.Iterator
+
 is_tensorflow_dataset <- function(x) {
   inherits(x, "tensorflow.python.data.ops.dataset_ops.DatasetV2") ||
     inherits(x, "tensorflow.python.data.ops.dataset_ops.Dataset")
@@ -1005,9 +1054,13 @@ resolve_tensorflow_dataset <- function(x) {
     }
     
     
-    # yield iterators
-    iter = x$make_one_shot_iterator()
-    iter$get_next()
+    if (tensorflow::tf_version() < "1.14.0") {
+      # yield iterators
+      iter = x$make_one_shot_iterator()
+      iter$get_next()  
+    } else {
+      x
+    }
     
   } else {
     NULL

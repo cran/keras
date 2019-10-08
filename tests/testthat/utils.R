@@ -1,3 +1,4 @@
+Sys.setenv(TF_CPP_MIN_LOG_LEVEL = 1)
 
 skip_if_no_keras <- function(required_version = NULL) {
   if (!is_keras_available(required_version))
@@ -6,10 +7,23 @@ skip_if_no_keras <- function(required_version = NULL) {
 
 
 test_succeeds <- function(desc, expr, required_version = NULL) {
-  test_that(desc, {
-    skip_if_no_keras(required_version)
-    expect_error(force(expr), NA)
-  })
+  
+  py_capture_output <- NULL
+  if (reticulate::py_module_available("IPython")) {
+    IPython <- reticulate::import("IPython")
+    py_capture_output <- IPython$utils$capture$capture_output
+  }
+  
+  invisible(
+    capture.output({
+      test_that(desc, {
+        skip_if_no_keras(required_version)
+        with(py_capture_output(), {
+          expect_error(force(expr), NA)
+        })
+      })
+    })
+  )
 }
 
 test_call_succeeds <- function(call_name, expr, required_version = NULL) {
