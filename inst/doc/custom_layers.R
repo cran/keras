@@ -1,8 +1,8 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(comment = NA, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  CustomLayer <- R6::R6Class("CustomLayer",
@@ -38,7 +38,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    )
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # define layer wrapper function
 #  layer_custom <- function(object, output_dim, name = NULL, trainable = TRUE) {
 #    create_layer(CustomLayer, object, list(

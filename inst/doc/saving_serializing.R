@@ -1,10 +1,10 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  inputs <- layer_input(shape = 784, name = "digits")
 #  outputs <- inputs %>%
 #    layer_dense(units = 64, activation = "relu", name = "dense_1") %>%
@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  model <- keras_model(inputs, outputs)
 #  summary(model)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  c(c(x_train, y_train), c(x_test, y_test)) %<-% dataset_mnist()
 #  x_train <- x_train %>% array_reshape(dim = c(60000, 784))/255
 #  x_test <- x_test %>% array_reshape(dim = c(10000, 784))/255
@@ -23,58 +23,58 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  
 #  history <- model %>% fit(x_train, y_train, batch_size = 64, epochs = 1)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Save predictions for future checks
 #  predictions <- predict(model, x_test)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Save the model
 #  save_model_hdf5(model, "model.h5")
 #  
 #  # Recreate the exact same model purely from the file
 #  new_model <- load_model_hdf5("model.h5")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Check that the state is preserved
 #  new_predictions <- predict(new_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Export the model to a SavedModel
-#  model_to_saved_model(model, "model/")
+#  save_model_tf(model, "model/")
 #  
 #  # Recreate the exact same model
-#  new_model <- model_from_saved_model("model/")
+#  new_model <- load_model_tf("model/")
 #  
 #  # Check that the state is preserved
 #  new_predictions <- predict(new_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  export_savedmodel(model, "savedmodel/")
 #  new_predictions <- tfdeploy::predict_savedmodel(x_test, "savedmodel/")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  config <- get_config(model)
 #  reinitialized_model <- from_config(config)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Note that the model state is not preserved! We only saved the architecture.
 #  new_predictions <- predict(reinitialized_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  json_config <- model_to_json(model)
 #  reinitialized_model <- model_from_json(json_config)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  weights <- get_weights(model)
 #  set_weights(reinitialized_model, weights)
 #  
 #  new_predictions <- predict(reinitialized_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  config <- get_config(model)
 #  weights <- get_weights(model)
 #  
@@ -85,7 +85,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  new_predictions <- predict(new_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Save JSON config to disk
 #  json_config <- model_to_json(model)
 #  writeLines(json_config, "model_config.json")
@@ -102,14 +102,14 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  new_predictions <- predict(new_model, x_test)
 #  all.equal(predictions, new_predictions)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  save_model_hdf5(model, "model.h5")
 #  new_model <- load_model_hdf5("model.h5")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  save_model_weights_tf(model, "model_weights")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  keras_model_simple_mlp <- function(num_classes,
 #                                     use_bn = FALSE, use_dp = FALSE,
 #                                     name = NULL) {
@@ -139,23 +139,23 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  
 #  model <- keras_model_simple_mlp(num_classes = 10)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% compile(loss = "sparse_categorical_crossentropy",
 #                    optimizer = optimizer_rmsprop())
 #  
 #  history <- model %>% fit(x_train, y_train, batch_size = 64, epochs = 1)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  save_model_weights_tf(model, "my_weights")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Save predictions for future checks
 #  predictions <- predict(model, x_test)
 #  # Also save the loss on the first batch
 #  # to later assert that the optimizer state was preserved
 #  first_batch_loss <- train_on_batch(model, x_train[1:64,], y_train[1:64])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  new_model <- keras_model_simple_mlp(num_classes = 10)
 #  new_model %>% compile(loss = "sparse_categorical_crossentropy",
 #                    optimizer = optimizer_rmsprop())

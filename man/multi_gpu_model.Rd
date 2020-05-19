@@ -4,8 +4,7 @@
 \alias{multi_gpu_model}
 \title{Replicates a model on different GPUs.}
 \usage{
-multi_gpu_model(model, gpus = NULL, cpu_merge = TRUE,
-  cpu_relocation = FALSE)
+multi_gpu_model(model, gpus = NULL, cpu_merge = TRUE, cpu_relocation = FALSE)
 }
 \arguments{
 \item{model}{A Keras model instance. To avoid OOM errors,
@@ -108,19 +107,22 @@ model \%>\% save_model_hdf5("my_model.h5")
 
 }
 \seealso{
-Other model functions: \code{\link{compile.keras.engine.training.Model}},
-  \code{\link{evaluate.keras.engine.training.Model}},
-  \code{\link{evaluate_generator}},
-  \code{\link{fit.keras.engine.training.Model}},
-  \code{\link{fit_generator}}, \code{\link{get_config}},
-  \code{\link{get_layer}},
-  \code{\link{keras_model_sequential}},
-  \code{\link{keras_model}}, \code{\link{pop_layer}},
-  \code{\link{predict.keras.engine.training.Model}},
-  \code{\link{predict_generator}},
-  \code{\link{predict_on_batch}},
-  \code{\link{predict_proba}},
-  \code{\link{summary.keras.engine.training.Model}},
-  \code{\link{train_on_batch}}
+Other model functions: 
+\code{\link{compile.keras.engine.training.Model}()},
+\code{\link{evaluate.keras.engine.training.Model}()},
+\code{\link{evaluate_generator}()},
+\code{\link{fit.keras.engine.training.Model}()},
+\code{\link{fit_generator}()},
+\code{\link{get_config}()},
+\code{\link{get_layer}()},
+\code{\link{keras_model_sequential}()},
+\code{\link{keras_model}()},
+\code{\link{pop_layer}()},
+\code{\link{predict.keras.engine.training.Model}()},
+\code{\link{predict_generator}()},
+\code{\link{predict_on_batch}()},
+\code{\link{predict_proba}()},
+\code{\link{summary.keras.engine.training.Model}()},
+\code{\link{train_on_batch}()}
 }
 \concept{model functions}

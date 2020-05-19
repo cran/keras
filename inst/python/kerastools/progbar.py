@@ -9,14 +9,14 @@ import os
 if (os.getenv('KERAS_IMPLEMENTATION', 'tensorflow') == 'keras'):
   from keras.utils import Progbar
 else:
-  from tensorflow.python.keras.utils import Progbar
+  from tensorflow.keras.utils import Progbar
 
 def apply_patch():
 
   # save existing version of update for delegation
   update = Progbar.update
   
-  def update_with_patch(self, current, values=None, force=False):
+  def update_with_patch(self, current, values=None, force=False, finalize=None):
     # force dynamic display
     self._dynamic_display = True
     # delegate 

@@ -1,7 +1,7 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.2.5.0
+Version: 2.3.0.0
 Authors@R: c(
   person("Daniel", "Falbel", role = c("ctb", "cph", "cre"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
@@ -29,10 +29,10 @@ Imports: generics (>= 0.0.1), reticulate (>= 1.10), tensorflow (>=
 Suggests: ggplot2, testthat (>= 2.1.0), knitr, rmarkdown, tfdatasets,
         jpeg
 SystemRequirements: Keras >= 2.0 (https://keras.io)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-10-08 17:30:39 UTC; dfalbel
+Packaged: 2020-05-19 18:26:18 UTC; dfalbel
 Author: Daniel Falbel [ctb, cph, cre],
   JJ Allaire [aut, cph],
   François Chollet [aut, cph],
@@ -44,4 +44,4 @@ Author: Daniel Falbel [ctb, cph, cre],
   Sigrid Keydana [ctb]
 Maintainer: Daniel Falbel <daniel@rstudio.com>
 Repository: CRAN
-Date/Publication: 2019-10-08 18:10:02 UTC
+Date/Publication: 2020-05-19 20:30:02 UTC

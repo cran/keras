@@ -1,8 +1,8 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  model <- keras_model_sequential()
@@ -12,10 +12,10 @@ knitr::opts_chunk$set(eval = FALSE)
 #    layer_dense(units = 10) %>%
 #    layer_activation('softmax')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  summary(model)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # For a multi-class classification problem
 #  model <- keras_model_sequential()
 #  model %>%
@@ -30,20 +30,20 @@ knitr::opts_chunk$set(eval = FALSE)
 #    metrics = c('accuracy')
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = optimizer_rmsprop(lr = 0.002),
 #    loss = 'mse'
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = optimizer_rmsprop(),
 #    loss = loss_binary_crossentropy,
 #    metrics = metric_binary_accuracy
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # create metric using backend tensor functions
 #  metric_mean_pred <- custom_metric("mean_pred", function(y_true, y_pred) {
 #    k_mean(y_pred)
@@ -55,7 +55,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #    metrics = c('accuracy', metric_mean_pred)
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # create model
 #  model <- keras_model_sequential()
 #  
@@ -76,7 +76,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # Train the model, iterating on the data in batches of 32 samples
 #  model %>% fit(data, labels, epochs=10, batch_size=32)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # create model
 #  model <- keras_model_sequential()
 #  
@@ -100,7 +100,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # Train the model, iterating on the data in batches of 32 samples
 #  model %>% fit(data, one_hot_labels, epochs=10, batch_size=32)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # generate dummy data
@@ -140,7 +140,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # evaluate
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 128)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # generate dummy data
@@ -171,7 +171,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # evaluate
 #  score = model %>% evaluate(x_test, y_test, batch_size=128)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # generate dummy data
@@ -220,7 +220,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # evaluate
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 32)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_embedding(input_dim = max_features, output_dim - 256) %>%
@@ -236,7 +236,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  model %>% fit(x_train, y_train, batch_size = 16, epochs = 10)
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 16)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_conv_1d(filters = 64, kernel_size = 3, activation = 'relu',
@@ -257,7 +257,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  model %>% fit(x_train, y_train, batch_size = 16, epochs = 10)
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 16)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # constants
@@ -292,7 +292,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #    x_train, y_train, batch_size = 64, epochs = 5, validation_data = list(x_val, y_val)
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # constants

@@ -1,10 +1,10 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  
 #  model %>%
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    # Add a softmax layer with 10 output units:
 #    layer_dense(units = 10, activation = 'softmax')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Create a sigmoid layer:
 #  layer_dense(units = 64, activation ='sigmoid')
 #  
@@ -34,14 +34,14 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  # A linear layer with a bias vector initialized to 2.0:
 #  layer_dense(units = 64, bias_initializer = initializer_constant(2.0))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = 'adam',
 #    loss = 'categorical_crossentropy',
 #    metrics = list('accuracy')
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Configure a model for mean-squared error regression.
 #  model %>% compile(
 #    optimizer = 'adam',
@@ -56,7 +56,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    metrics = list("categorical_accuracy")
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  
 #  data <- matrix(rnorm(1000 * 32), nrow = 1000, ncol = 32)
 #  labels <- matrix(rnorm(1000 * 10), nrow = 1000, ncol = 10)
@@ -68,7 +68,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    batch_size = 32
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  data <- matrix(rnorm(1000 * 32), nrow = 1000, ncol = 32)
 #  labels <- matrix(rnorm(1000 * 10), nrow = 1000, ncol = 10)
 #  
@@ -83,17 +83,17 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    validation_data = list(val_data, val_labels)
 #  )
 
-## ------------------------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  model %>% evaluate(test_data, test_labels, batch_size = 32)
 #  
 #  model %>% evaluate(test_dataset, steps = 30)
 
-## ------------------------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  model %>% predict(test_data, batch_size = 32)
 #  
 #  model %>% predict(test_dataset, steps = 30)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  inputs <- layer_input(shape = (32))  # Returns a placeholder tensor
 #  
 #  predictions <- inputs %>%
@@ -119,7 +119,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    epochs = 5
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  CustomLayer <- R6::R6Class("CustomLayer",
@@ -155,7 +155,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    )
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # define layer wrapper function
 #  layer_custom <- function(object, output_dim, name = NULL, trainable = TRUE) {
 #    create_layer(CustomLayer, object, list(
@@ -166,13 +166,13 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  }
 #  
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_dense(units = 32, input_shape = c(32,32)) %>%
 #    layer_custom(output_dim = 32)
 
-## ------------------------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  my_model <- function(input_dim, output_dim, name = NULL) {
 #  
 #    # define and return a custom model
@@ -211,7 +211,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    epochs = 5
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  callbacks <- list(
 #    callback_early_stopping(patience = 2, monitor = 'val_loss'),
 #    callback_tensorboard(log_dir = './logs')
@@ -226,15 +226,15 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    validation_data = list(val_data, val_labels)
 #  )
 
-## ------------------------------------------------------------------------
-#  # save in HDF5 format
-#  model %>% save_model_weights_hdf5('my_model.h5')
+## -----------------------------------------------------------------------------
+#  # save in SavedModel format
+#  model %>% save_model_weights_tf('my_model/')
 #  
 #  # Restore the model's state,
 #  # this requires a model with the same architecture.
-#  model %>% load_model_weights_hdf5('my_model.h5')
+#  model %>% load_model_weights_tf('my_model/')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Serialize a model to JSON format
 #  json_string <- model %>% model_to_json()
 #  
@@ -247,24 +247,10 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #  # Recreate the model
 #  fresh_model <- model_from_yaml(yaml_string)
 
-## ------------------------------------------------------------------------
-#  # Save entire model to a HDF5 file
-#  model %>% save_model_hdf5('my_model.h5')
+## -----------------------------------------------------------------------------
+#  # Save entire model to the SavedModel format
+#  model %>% save_model_tf('my_model/')
 #  
 #  # Recreate the exact same model, including weights and optimizer.
-#  model <- load_model_hdf5('my_model.h5')
-
-## ------------------------------------------------------------------------
-#  library(keras)
-#  use_implementation("tensorflow")
-
-## ------------------------------------------------------------------------
-#  install.packages("tfestimators")
-
-## ------------------------------------------------------------------------
-#  library(keras)
-#  use_implementation("tensorflow")
-#  library(tfestimators)
-#  
-#  estimator <- keras_model_to_estimator(model)
+#  model <- load_model_tf('my_model/')
 

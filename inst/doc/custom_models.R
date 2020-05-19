@@ -1,8 +1,8 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(comment = NA, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  keras_model_simple_mlp <- function(num_classes,
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #        self$bn <- layer_batch_normalization(axis = -1)
 #  
 #      # implement call (this code executes during training & inference)
-#      function(inputs, mask = NULL) {
+#      function(inputs, mask = NULL, training = FALSE) {
 #        x <- self$dense1(inputs)
 #        if (use_dp)
 #          x <- self$dp(x)
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    })
 #  }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # create the model

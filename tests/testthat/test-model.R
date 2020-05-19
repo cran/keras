@@ -105,6 +105,33 @@ test_succeeds("can call model with R objects", {
   model(l)
 })
 
+test_succeeds("can call a model with additional arguments", {
+  
+  if (tensorflow::tf_version() < "2.0") skip("needs TF > 2")
+  
+  model <- keras_model_sequential() %>% 
+    layer_dropout(rate = 0.99999999)
+  expect_equivalent(as.numeric(model(1, training = TRUE)), 0)
+  expect_equivalent(as.numeric(model(1, training = FALSE)), 1)
+  
+})
+
+test_succeeds("pass validation_data to model fit", {
+  
+  model <- keras_model_sequential() %>% 
+    layer_dense(units =1, input_shape = 2)
+  
+  model %>% compile(loss = "mse", optimizer = "sgd")
+  
+  model %>% 
+    fit(
+      matrix(runif(100), ncol = 2), y = runif(50),
+      batch_size = 10,
+      validation_data = list(matrix(runif(100), ncol = 2), runif(50))
+    )
+  
+})
+
 
 
 

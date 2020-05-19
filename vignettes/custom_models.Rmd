@@ -11,8 +11,11 @@ menu:
   main:
     name: "Custom Models"
     identifier: "keras-custom-models"
-    parent: "keras-advanced"
-    weight: 60
+    parent: "keras-advanced-top"
+    weight: 20
+aliases:
+  - /keras/articles/about_keras_models.html
+  - /keras/articles/custom_models.html
 ---
 
 ```{r setup, include = FALSE}
@@ -51,7 +54,7 @@ keras_model_simple_mlp <- function(num_classes,
       self$bn <- layer_batch_normalization(axis = -1)
     
     # implement call (this code executes during training & inference)
-    function(inputs, mask = NULL) {
+    function(inputs, mask = NULL, training = FALSE) {
       x <- self$dense1(inputs)
       if (use_dp)
         x <- self$dp(x)

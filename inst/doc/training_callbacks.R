@@ -1,8 +1,8 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(comment = NA, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # generate dummy training data
@@ -30,7 +30,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    callback_reduce_lr_on_plateau(monitor = "val_loss", factor = 0.1)
 #  ))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # define custom callback class

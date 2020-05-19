@@ -1,8 +1,8 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(eval = FALSE)
 
-## ---- eval= FALSE--------------------------------------------------------
+## ---- eval= FALSE-------------------------------------------------------------
 #  # Replicates `model` on 8 GPUs.
 #  # This assumes that your machine has 8 available GPUs.
 #  parallel_model <- multi_gpu_model(model, gpus=8)
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # Since the batch size is 256, each GPU will process 32 samples.
 #  parallel_model %>% fit(x, y, epochs = 20, batch_size = 256)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # Model where a shared LSTM is used to encode two different sequences in parallel
 #  input_a <- layer_input(shape = c(140, 256))
 #  input_b <- layer_input(shape = c(140, 256))
@@ -38,38 +38,38 @@ knitr::opts_chunk$set(eval = FALSE)
 #    merged_vector <- layer_concatenate(list(encoded_a, encoded_b))
 #  }):
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>%
 #    layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>%
 #    layer_dense(units = 10, activation = 'softmax')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- model %>%
 #    layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>%
 #    layer_dense(units = 10, activation = 'softmax')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  save_model_hdf5(model, 'my_model.h5')
 #  model <- load_model_hdf5('my_model.h5')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  json_string <- model_to_json(model)
 #  yaml_string <- model_to_yaml(model)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- model_from_json(json_string)
 #  model <- model_from_yaml(yaml_string)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  save_model_weights_hdf5('my_model_weights.h5')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% load_model_weights_hdf5('my_model_weights.h5')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% load_model_weights_hdf5('my_model_weights.h5', by_name = TRUE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # assuming the original model looks like this:
 #  #   model <- keras_model_sequential()
 #  #   model %>%
@@ -87,7 +87,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # load weights from first model; will only affect the first layer, dense_1.
 #  load_model_weights(fname, by_name = TRUE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- ...  # create the original model
 #  
 #  layer_name <- 'my_layer'
@@ -95,7 +95,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #                                          outputs = get_layer(model, layer_name)$output)
 #  intermediate_output <- predict(intermediate_layer_model, data)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  sampling_generator <- function(X_data, Y_data, batch_size) {
 #    function() {
 #      rows <- sample(1:nrow(X_data), batch_size, replace = TRUE)
@@ -108,7 +108,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #                  steps_per_epoch = nrow(X_train) / 128, epochs = 10)
 #  
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  data_files_generator <- function(dir) {
 #  
 #    files < list.files(dir)
@@ -138,18 +138,18 @@ knitr::opts_chunk$set(eval = FALSE)
 #    }
 #  }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  early_stopping <- callback_early_stopping(monitor = 'val_loss', patience = 2)
 #  model %>% fit(X, y, validation_split = 0.2, callbacks = c(early_stopping))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  hist <- model %>% fit(X, y, validation_split=0.2)
 #  hist$history
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  frozen_layer <- layer_dense(units = 32, trainable = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  x <- layer_input(shape = c(32))
 #  layer <- layer_dense(units = 32)
 #  layer$trainable <- FALSE
@@ -168,7 +168,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  frozen_model %>% fit(data, labels)  # this does NOT update the weights of `layer`
 #  trainable_model %>% fit(data, labels)  # this updates the weights of `layer`
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # instantiate a VGG16 model
 #  conv_base <- application_vgg16(
 #    weights = "imagenet",
@@ -203,7 +203,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #    metrics = c("accuracy")
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_dense(units = 32, activation = 'relu', input_shape = c(784)) %>%
@@ -214,19 +214,19 @@ knitr::opts_chunk$set(eval = FALSE)
 #  model %>% pop_layer()
 #  length(model$layers)     # "2"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- application_vgg16(weights = 'imagenet', include_top = TRUE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  use_backend("plaidml")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  use_condaenv("plaidml")
 #  use_backend("plaidml")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # testthat utilty for skipping tests when Keras isn't available
 #  skip_if_no_keras <- function(version = NULL) {
 #    if (!is_keras_available(version))
@@ -239,7 +239,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #    # test code here
 #  })
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Keras python module
 #  keras <- NULL
 #  
@@ -248,14 +248,14 @@ knitr::opts_chunk$set(eval = FALSE)
 #    keras <<- keras::implementation()
 #  }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  use_session_with_seed(42)
 #  
 #  # ...rest of code follows...
 #  
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
 

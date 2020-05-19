@@ -1,8 +1,8 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(comment = NA, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # instantiate the model
 #  model <- application_resnet50(weights = 'imagenet')
 #  
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  preds <- model %>% predict(x)
 #  imagenet_decode_predictions(preds, top = 3)[[1]]
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- application_vgg16(weights = 'imagenet', include_top = FALSE)
 #  
 #  img_path <- "elephant.jpg"
@@ -31,7 +31,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  features <- model %>% predict(x)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  base_model <- application_vgg19(weights = 'imagenet')
 #  model <- keras_model(inputs = base_model$input,
 #                       outputs = get_layer(base_model, 'block4_pool')$output)
@@ -44,7 +44,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  block4_pool_features <- model %>% predict(x)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # create the base pre-trained model
 #  base_model <- application_inception_v3(weights = 'imagenet', include_top = FALSE)
 #  
@@ -93,7 +93,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  # alongside the top Dense layers
 #  model %>% fit_generator(...)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # this could also be the output a different Keras model or layer
 #  input_tensor <- layer_input(shape = c(224, 224, 3))
 #  

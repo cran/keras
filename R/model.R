@@ -180,15 +180,15 @@ multi_gpu_model <- function(model, gpus = NULL, cpu_merge = TRUE, cpu_relocation
     args$cpu_relocation <- cpu_relocation
   }
   
-  do.call(keras$utils$multi_gpu_model, args)
+  do.call(resolve_utils()$multi_gpu_model, args)
 }
 
 
 #' @importFrom reticulate py_to_r_wrapper
 #' @export
 py_to_r_wrapper.keras.engine.training.Model <- function(x) {
-  function(object) {
-    compose_layer(object, x)
+  function(object, ...) {
+    compose_layer(object, x, ...)
   }
 }
 
@@ -439,14 +439,25 @@ fit.keras.engine.training.Model <-
     dataset <- resolve_tensorflow_dataset(validation_data)
     if (!is.null(dataset))
       args$validation_data <- dataset
-    else
+    else {
       args$validation_data <- keras_array(validation_data)  
+      
+      if (tensorflow::tf_version() >="2.2")
+        args$validation_data <- do.call(reticulate::tuple, args$validation_data)
+      
+    }
+      
   }
     
   # resolve x and y (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
   if (inherits(dataset, "tensorflow.python.data.ops.dataset_ops.DatasetV2")) {
     args$x <- dataset
+    
+    if (!is.null(batch_size))
+      stop("You should not specify a `batch_size` if using a tfdataset.", 
+           call. = FALSE)
+    
   } else if (!is.null(dataset)) {
     args$x <- dataset[[1]]
     args$y <- dataset[[2]]
@@ -1078,7 +1089,7 @@ resolve_tensorflow_dataset <- function(x) {
 #'
 #' @param object Keras model object
 #' @param name String, name of layer.
-#' @param index Integer, index of layer (0-based)
+#' @param index Integer, index of layer (1-based)
 #'
 #' @return A layer instance.
 #'
@@ -1146,8 +1157,6 @@ py_str.keras.engine.training.Model <- function(object,  line_length = getOption(
 # determine whether to view metrics or not
 resolve_view_metrics <- function(verbose, epochs, metrics) {
   (epochs > 1)          &&            # more than 1 epoch
-  !is.null(metrics)     &&            # have metrics
-  (length(metrics) > 0) &&            # capturing at least one metric
   (verbose > 0) &&                    # verbose mode is on
   !is.null(getOption("viewer")) &&    # have an internal viewer available
   nzchar(Sys.getenv("RSTUDIO"))       # running under RStudio

@@ -1,8 +1,8 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 library(keras)
 knitr::opts_chunk$set(comment = NA, eval = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  # input layer
@@ -22,12 +22,12 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    metrics = c('accuracy')
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  x <- layer_input(shape = c(784))
 #  # This works, and returns the 10-way softmax we defined above.
 #  y <- x %>% model
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # Input tensor for sequences of 20 timesteps,
 #  # each containing a 784-dimensional vector
 #  input_sequences <- layer_input(shape = c(20, 784))
@@ -36,7 +36,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  processed_sequences <- input_sequences %>%
 #    time_distributed(model)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  main_input <- layer_input(shape = c(100), dtype = 'int32', name = 'main_input')
@@ -45,11 +45,11 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    layer_embedding(input_dim = 10000, output_dim = 512, input_length = 100) %>%
 #    layer_lstm(units = 32)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  auxiliary_output <- lstm_out %>%
 #    layer_dense(units = 1, activation = 'sigmoid', name = 'aux_output')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  auxiliary_input <- layer_input(shape = c(5), name = 'aux_input')
 #  
 #  main_output <- layer_concatenate(c(lstm_out, auxiliary_input)) %>%
@@ -58,23 +58,23 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    layer_dense(units = 64, activation = 'relu') %>%
 #    layer_dense(units = 1, activation = 'sigmoid', name = 'main_output')
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model <- keras_model(
 #    inputs = c(main_input, auxiliary_input),
 #    outputs = c(main_output, auxiliary_output)
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  summary(model)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = 'rmsprop',
 #    loss = 'binary_crossentropy',
 #    loss_weights = c(1.0, 0.2)
 #  )
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  model %>% fit(
 #    x = list(headline_data, additional_data),
 #    y = list(labels, labels),
@@ -82,7 +82,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    batch_size = 32
 #  )
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = 'rmsprop',
 #    loss = list(main_output = 'binary_crossentropy', aux_output = 'binary_crossentropy'),
@@ -97,13 +97,13 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    batch_size = 32
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  tweet_a <- layer_input(shape = c(280, 256))
 #  tweet_b <- layer_input(shape = c(280, 256))
 
-## ----eval=FALSE----------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # This layer can take as input a matrix and will return a vector of size 64
 #  shared_lstm <- layer_lstm(units = 64)
 #  
@@ -128,7 +128,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  model %>% fit(list(data_a, data_b), labels, epochs = 10)
 #  
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  a <- layer_input(shape = c(280, 256))
 #  
 #  lstm <- layer_lstm(units = 32)
@@ -137,7 +137,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  lstm$output
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  a <- layer_input(shape = c(280, 256))
 #  b <- layer_input(shape = c(280, 256))
 #  
@@ -148,11 +148,11 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  lstm$output
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  get_output_at(lstm, 1)
 #  get_output_at(lstm, 2)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  a <- layer_input(shape = c(32, 32, 3))
 #  b <- layer_input(shape = c(64, 64, 3))
 #  
@@ -168,7 +168,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  get_input_shape_at(conv, 1)
 #  get_input_shape_at(conv, 2)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  library(keras)
 #  
 #  input_img <- layer_input(shape = c(256, 256, 3))
@@ -188,7 +188,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  output <- layer_concatenate(c(tower_1, tower_2, tower_3), axis = 1)
 #  
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # input tensor for a 3-channel 256x256 image
 #  x <- layer_input(shape = c(256, 256, 3))
 #  # 3x3 conv with 3 output channels (same as input channels)
@@ -196,7 +196,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  # this returns x + y.
 #  z <- layer_add(c(x, y))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # First, define the vision model
 #  digit_input <- layer_input(shape = c(27, 27, 1))
 #  out <- digit_input %>%
@@ -220,7 +220,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  
 #  classification_model <- keras_model(inputs = c(digit_a, digit_b), out)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  # First, let's define a vision model using a Sequential model.
 #  # This model will encode an image into a vector.
 #  vision_model <- keras_model_sequential()
@@ -258,7 +258,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #  # This is our final model:
 #  vqa_model <- keras_model(inputs = c(image_input, question_input), outputs = output)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #  video_input <- layer_input(shape = c(100, 224, 224, 3))
 #  
 #  # This is our video encoded via the previously trained vision_model (weights are reused)
