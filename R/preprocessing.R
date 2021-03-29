@@ -61,7 +61,7 @@ pad_sequences <- function(sequences, maxlen = NULL, dtype = "int32", padding = "
 #' - (word, random word from the vocabulary), with label 0 (negative samples).
 #'
 #' Read more about Skipgram in this gnomic paper by Mikolov et al.:
-#' [Efficient Estimation of Word Representations in Vector Space](http://arxiv.org/pdf/1301.3781v3.pdf)
+#' [Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/pdf/1301.3781v3.pdf)
 #' 
 #' @param sequence A word sequence (sentence), encoded as a list of word indices
 #'   (integers). If using a `sampling_table`, word indices are expected to match
@@ -180,8 +180,9 @@ text_to_word_sequence <- function(text, filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{
 #' One-hot encode a text into a list of word indexes in a vocabulary of size n.
 #' 
 #' @param n Size of vocabulary (integer)
-#'   
+#' @param input_text Input text (string).
 #' @inheritParams text_to_word_sequence
+#' @param text for compatibility purpose. use `input_text` instead.
 #'   
 #' @return List of integers in `[1, n]`. Each integer encodes a word (unicity
 #'   non-guaranteed).
@@ -189,10 +190,18 @@ text_to_word_sequence <- function(text, filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{
 #' @family text preprocessing   
 #'   
 #' @export
-text_one_hot <- function(text, n, filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n',
-                         lower = TRUE, split = ' ') {
+text_one_hot <- function(input_text, n, filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n',
+                         lower = TRUE, split = ' ', text = NULL) {
+  
+  if (tensorflow::tf_version() >= "2.3" && !is.null(text)) {
+    warning("text is deprecated as of TF 2.3. use input_text instead")
+    if (!missing(input_text))
+      stop("input_text and text must not be bopth specified")
+    input_text <- text
+  }
+    
   keras$preprocessing$text$one_hot(
-    text = text,
+    input_text,
     n = as.integer(n),
     filters = filters,
     lower = lower,
@@ -226,6 +235,12 @@ text_hashing_trick <- function(text, n,
                                hash_function = NULL, 
                                filters = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', 
                                lower = TRUE, split = ' ') {
+  if (length(text) != 1) {
+    stop("`text` should be length 1.")
+  }
+  if (is.na(text)) {
+    return(NA_integer_)
+  }
   keras$preprocessing$text$hashing_trick(
     text = text,
     n = as.integer(n),
@@ -872,8 +887,8 @@ flow_images_from_directory <- function(
 #' @param y_col string or list, column/s in dataframe that has the target data.
 #' @param color_mode one of "grayscale", "rgb". Default: "rgb". Whether the 
 #'   images will be converted to have 1 or 3 color channels.
-#' @param drop_duplicates Boolean, whether to drop duplicate rows based on 
-#'   filename.
+#' @param drop_duplicates (deprecated in TF >= 2.3) Boolean, whether to drop 
+#'   duplicate rows based on filename. The default value is `TRUE`.
 #' @param classes optional list of classes (e.g. `c('dogs', 'cats')`. Default: 
 #'  `NULL` If not provided, the list of classes will be automatically inferred 
 #'  from the `y_col`, which will map to the label indices, will be alphanumeric). 
@@ -886,6 +901,7 @@ flow_images_from_directory <- function(
 #'   * "sparse": 1D array of integer labels,
 #'   * "input": images identical to input images (mainly used to work with autoencoders),
 #'   * "other": array of y_col data,
+#'   * "multi_output": allow to train a multi-output model. Y is a list or a vector. 
 #'   `NULL`, no targets are returned (the generator will only yield batches of 
 #'   image data, which is useful to use in  `predict_generator()`).
 #'   
@@ -909,7 +925,7 @@ flow_images_from_dataframe <- function(
   color_mode = "rgb", classes = NULL, class_mode = "categorical", 
   batch_size = 32, shuffle = TRUE, seed = NULL, save_to_dir = NULL, 
   save_prefix = "", save_format = "png", subset = NULL, 
-  interpolation = "nearest", drop_duplicates = TRUE) {
+  interpolation = "nearest", drop_duplicates = NULL) {
   
   if (!reticulate::py_module_available("pandas"))
     stop("Pandas (python module) must be installed in the same environment as Keras.", 
@@ -941,9 +957,99 @@ flow_images_from_dataframe <- function(
   if (keras_version() >= "2.1.5") 
     args$subset <- subset
   
+  if(!is.null(drop_duplicates) && tensorflow::tf_version() >= "2.3") {
+    warning("\'drop_duplicates\' is deprecated as of tensorflow 2.3 and will be ignored. Make sure the supplied dataframe does not contain duplicates.")
+    args$drop_duplicates <- NULL
+  }
+  
+  if (is.null(drop_duplicates) && tensorflow::tf_version() < "2.3")
+    args$drop_duplicates <- TRUE
+  
   do.call(generator$flow_from_dataframe, args)
 }
 
+#' Create a dataset from a directory
+#' 
+#' Generates a `tf.data.Dataset` from image files in a directory.
+#' If your directory structure is:
+#'
+#'
+#' @param directory Directory where the data is located. If labels is "inferred", 
+#'   it should contain subdirectories, each containing images for a class. 
+#'   Otherwise, the directory structure is ignored.
+#' @param labels Either "inferred" (labels are generated from the directory 
+#'   structure), or a list/tuple of integer labels of the same size as the number 
+#'   of image files found in the directory. Labels should be sorted according to 
+#'   the alphanumeric order of the image file paths (obtained via 
+#'   os.walk(directory) in Python).
+#' @param label_mode - 'int': means that the labels are encoded as integers 
+#'   (e.g. for sparse_categorical_crossentropy loss). - 'categorical' means that 
+#'   the labels are encoded as a categorical vector (e.g. for 
+#'   categorical_crossentropy loss). - 'binary' means that the labels (there can
+#'   be only 2) are encoded as float32 scalars with values 0 or 1 (e.g. for 
+#'   binary_crossentropy). - None (no labels).
+#' @param class_names Only valid if "labels" is "inferred". This is the explict 
+#'   list of class names (must match names of subdirectories). Used to control 
+#'   the order of the classes (otherwise alphanumerical order is used).
+#' @param color_mode One of "grayscale", "rgb", "rgba". Default: "rgb". Whether 
+#'   the images will be converted to have 1, 3, or 4 channels.
+#' @param batch_size Size of the batches of data. Default: 32.
+#' @param image_size Size to resize images to after they are read from disk. 
+#'   Defaults to (256, 256). Since the pipeline processes batches of images that 
+#'   must all have the same size, this must be provided.
+#' @param shuffle Whether to shuffle the data. Default: TRUE. If set to FALSE, 
+#'   sorts the data in alphanumeric order.
+#' @param seed Optional random seed for shuffling and transformations.
+#' @param validation_split Optional float between 0 and 1, fraction of data to 
+#'   reserve for validation.
+#' @param subset One of "training" or "validation". Only used if validation_split 
+#'   is set.
+#' @param interpolation String, the interpolation method used when resizing 
+#'   images. Defaults to bilinear. Supports bilinear, nearest, bicubic, area, 
+#'   lanczos3, lanczos5, gaussian, mitchellcubic.
+#' @param follow_links Whether to visits subdirectories pointed to by symlinks. 
+#'   Defaults to FALSE.
+#'   
+#' @export
+image_dataset_from_directory <- function(
+  directory,
+  labels="inferred",
+  label_mode="int",
+  class_names=NULL,
+  color_mode="rgb",
+  batch_size=32,
+  image_size=c(256, 256),
+  shuffle=TRUE,
+  seed=NULL,
+  validation_split=NULL,
+  subset=NULL,
+  interpolation="bilinear",
+  follow_links=FALSE
+) {
+  
+  if (!is.character(labels))
+    labels <- as.integer(labels)
+  
+  args <- list(
+    directory=normalizePath(directory, mustWork = FALSE),
+    labels=labels,
+    label_mode=label_mode,
+    class_names=class_names,
+    color_mode=color_mode,
+    batch_size=as.integer(batch_size),
+    image_size=as_integer_tuple(image_size),
+    shuffle=shuffle,
+    seed=as_nullable_integer(seed),
+    validation_split=validation_split,
+    subset=subset,
+    interpolation=interpolation,
+    follow_links=follow_links
+  )
+  
+  out <- do.call(keras$preprocessing$image_dataset_from_directory, args)
+  class(out) <- c("tf_dataset", class(out))
+  out
+}
 
 
 

@@ -1,7 +1,7 @@
 
 context("model")
 
-source("utils.R")
+
 
 test_succeeds("sequential models can be defined", {
   define_model()
@@ -16,7 +16,6 @@ test_succeeds(required_version = "2.0.7", "models can be cloned", {
   model <- define_model()
   model2 <- clone_model(model)
 })
-
 
 
 # generate dummy training data
@@ -133,6 +132,82 @@ test_succeeds("pass validation_data to model fit", {
 })
 
 
+test_succeeds("can pass name argument to 'keras_model'", {
+  
+  inputs <- layer_input(shape = c(1))
+  
+  predictions <- inputs %>%
+    layer_dense(units = 1)
+  
+  name = 'My_keras_model'
+  model <- keras_model(inputs = inputs, outputs = predictions, name = name)
+  expect_identical(model$name,name)
+})
+
+test_succeeds("can print a sequential model that is not built", {
+  
+  model <- keras_model_sequential()
+  
+  expect_error(
+    print(model),
+    regexp = NA
+  )
+  
+  expect_output(
+    print(model),
+    regexp = "no summary available"
+  )
+  
+})
+
+test_succeeds("can use a loss function defined in python", {
+  
+  model <- define_model()
+  pyfun <- reticulate::py_run_string("
+import tensorflow as tf
+def loss_fn (y_true, y_pred):
+  return tf.keras.losses.categorical_crossentropy(y_true, y_pred)
+
+")
+  
+  model %>% 
+    compile(
+      loss = pyfun$loss_fn,
+      optimizer = "adam"
+    )
+  
+  # generate dummy training data
+  data <- matrix(rexp(1000*784), nrow = 1000, ncol = 784)
+  labels <- matrix(round(runif(1000*10, min = 0, max = 9)), nrow = 1000, ncol = 10)
+  
+  
+  model %>% fit(x = data, y = labels)
+  
+})
+
+test_succeeds("regression test for https://github.com/rstudio/keras/issues/1201", {
+  
+  if (tensorflow::tf_version() == "2.1")
+    skip("don't work in tf2.1")
+  
+  model <- keras_model_sequential()
+  model %>% 
+    layer_dense(units = 1, activation = 'relu', input_shape = c(1)) %>% 
+    compile(
+      optimizer = 'sgd',
+      loss = 'binary_crossentropy'
+    )
+  
+  generator <- function() {
+    list(1, 2)
+  }
+  
+  expect_warning_if(tensorflow::tf_version() > "2.1", {
+    model %>% fit_generator(generator, steps_per_epoch = 1, epochs = 5,
+                            validation_data = generator, validation_steps = 1)
+  })
+  
+})
 
 
 

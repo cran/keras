@@ -130,12 +130,12 @@ if data_format='channels_first' or 4D tensor with shape: \verb{(batch, rows, col
 
 \itemize{
 \item \href{https://arxiv.org/abs/1603.07285v1}{A guide to convolution arithmetic for deep learning}
-\item \href{https://www.uoguelph.ca/~gwtaylor/publications/mattcvpr2010/deconvolutionalnets.pdf}{Deconvolutional Networks}
 }
 }
 
 \seealso{
 Other convolutional layers: 
+\code{\link{layer_conv_1d_transpose}()},
 \code{\link{layer_conv_1d}()},
 \code{\link{layer_conv_2d}()},
 \code{\link{layer_conv_3d_transpose}()},

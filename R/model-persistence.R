@@ -8,7 +8,8 @@
 #' @param include_optimizer If `TRUE`, save optimizer's state.
 #' @param custom_objects Mapping class names (or function names) of custom 
 #'   (non-Keras) objects to class/functions (for example, custom metrics
-#'   or custom loss functions).
+#'   or custom loss functions). This mapping can be done with the dict() 
+#'   function of reticulate.
 #' 
 #' @details The following components of the model are saved: 
 #' 
@@ -47,7 +48,7 @@ save_model_hdf5 <- function(object, filepath, overwrite = TRUE, include_optimize
     include_optimizer = include_optimizer
   )
   
-  if (tensorflow::tf_version() >= "1.14.0") {
+  if (tensorflow::tf_version() >= "1.14.0" && !is_backend("plaidml")) {
     args[["save_format"]] <- "h5"
   }
   

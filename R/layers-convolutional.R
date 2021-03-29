@@ -268,6 +268,76 @@ layer_conv_3d <- function(object, filters, kernel_size, strides = c(1L, 1L, 1L),
   
 }
 
+#' Transposed 1D convolution layer (sometimes called Deconvolution).
+#' 
+#' The need for transposed convolutions generally arises from the desire to use
+#' a transformation going in the opposite direction of a normal convolution,
+#' i.e., from something that has the shape of the output of some convolution to
+#' something that has the shape of its input while maintaining a connectivity
+#' pattern that is compatible with said convolution. 
+#' When using this layer as the first layer in a model,
+#' provide the keyword argument `input_shape`
+#' (tuple of integers, does not include the sample axis),
+#' e.g. `input_shape=(128, 3)` for data with 128 time steps and 3 channels.
+#' 
+#' @inheritParams layer_conv_1d
+#'
+#' @param padding one of `"valid"` or `"same"` (case-insensitive).
+#' @param output_padding An integer specifying the amount of padding along
+#' the time dimension of the output tensor. 
+#' The amount of output padding must be lower than the stride.
+#' If set to `NULL` (default), the output shape is inferred.
+#'  
+#' @section Input shape: 3D tensor with shape: `(batch, steps, channels)`
+#'   
+#' @section Output shape: 3D tensor with shape: `(batch, new_steps, filters)`
+#' If `output_padding` is specified:
+#' ```
+#' new_timesteps = ((timesteps - 1) * strides + kernel_size - 2 * padding + output_padding)
+#' ```
+#'   
+#' @section References: 
+#'   - [A guide to convolution arithmetic for deep learning](https://arxiv.org/abs/1603.07285v1) 
+#'   
+#' @family convolutional layers    
+#'   
+#' @export
+layer_conv_1d_transpose <- function(object, filters, kernel_size, strides = 1, padding = "valid", output_padding = NULL,
+                                    data_format = NULL, dilation_rate = 1, activation = NULL, use_bias = TRUE, 
+                                    kernel_initializer = "glorot_uniform", bias_initializer = "zeros", 
+                                    kernel_regularizer = NULL, bias_regularizer = NULL, activity_regularizer = NULL, 
+                                    kernel_constraint = NULL, bias_constraint = NULL, input_shape = NULL,
+                                    batch_input_shape = NULL, batch_size = NULL, dtype = NULL, 
+                                    name = NULL, trainable = NULL, weights = NULL) {
+  
+  create_layer(keras$layers$Conv1DTranspose, object, list(
+    filters = as.integer(filters),
+    kernel_size = as.integer(kernel_size),
+    strides = as.integer(strides),
+    padding = padding,
+    output_padding = as_nullable_integer(output_padding),
+    data_format = data_format,
+    dilation_rate= as.integer(dilation_rate),
+    activation = activation,
+    use_bias = use_bias,
+    kernel_initializer = kernel_initializer,
+    bias_initializer = bias_initializer,
+    kernel_regularizer = kernel_regularizer,
+    bias_regularizer = bias_regularizer,
+    activity_regularizer = activity_regularizer,
+    kernel_constraint = kernel_constraint,
+    bias_constraint = bias_constraint,
+    input_shape = normalize_shape(input_shape),
+    batch_input_shape = normalize_shape(batch_input_shape),
+    batch_size = as_nullable_integer(batch_size),
+    dtype = dtype,
+    name = name,
+    trainable = trainable,
+    weights = weights
+  ))
+}
+
+
 #' Transposed 2D convolution layer (sometimes called Deconvolution).
 #' 
 #' The need for transposed convolutions generally arises from the desire to use
@@ -310,7 +380,6 @@ layer_conv_3d <- function(object, filters, kernel_size, strides = c(1L, 1L, 1L),
 #'   
 #' @section References: 
 #'   - [A guide to convolution arithmetic for deep learning](https://arxiv.org/abs/1603.07285v1) 
-#'   - [Deconvolutional Networks](https://www.uoguelph.ca/~gwtaylor/publications/mattcvpr2010/deconvolutionalnets.pdf)
 #'   
 #' @family convolutional layers    
 #'   
@@ -410,7 +479,6 @@ layer_conv_2d_transpose <- function(object, filters, kernel_size, strides = c(1,
 #'
 #' @section References:
 #'   - [A guide to convolution arithmetic for deep learning](https://arxiv.org/abs/1603.07285v1)
-#'   - [Deconvolutional Networks](https://www.uoguelph.ca/~gwtaylor/publications/mattcvpr2010/deconvolutionalnets.pdf)
 #'
 #' @family convolutional layers 
 #'
@@ -1083,7 +1151,7 @@ layer_cropping_3d <- function(object, cropping = list(c(1L, 1L), c(1L, 1L), c(1L
 #' @param unit_forget_bias Boolean. If TRUE, add 1 to the bias of the forget
 #'   gate at initialization. Use in combination with `bias_initializer="zeros"`.
 #'   This is recommended in [Jozefowicz et
-#'   al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
+#'   al.](https://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
 #' @param kernel_regularizer Regularizer function applied to the `kernel`
 #'   weights matrix.
 #' @param recurrent_regularizer Regularizer function applied to the
@@ -1115,7 +1183,7 @@ layer_cropping_3d <- function(object, cropping = list(c(1L, 1L), c(1L, 1L), c(1L
 #'   tensor with shape: `(samples,time, rows, cols, channels)`
 #'   
 #' @section References: 
-#' - [Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting](http://arxiv.org/abs/1506.04214v1)
+#' - [Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting](https://arxiv.org/abs/1506.04214v1)
 #'   The current implementation does not include the feedback loop on the cells
 #'   output
 #' 

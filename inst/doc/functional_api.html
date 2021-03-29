@@ -27,6 +27,31 @@ document.addEventListener('DOMContentLoaded', function(e) {
   }
 });
 </script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -116,6 +141,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -530,7 +556,7 @@ ________________________________________________________________________________
 <p>Code examples are still the best way to get started, so here are a few more.</p>
 <div id="inception-module" class="section level3">
 <h3>Inception module</h3>
-<p>For more information about the Inception architecture, see <a href="http://arxiv.org/abs/1409.4842">Going Deeper with Convolutions</a>.</p>
+<p>For more information about the Inception architecture, see <a href="https://arxiv.org/abs/1409.4842">Going Deeper with Convolutions</a>.</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">library</span>(keras)</span>
 <span id="cb20-2"><a href="#cb20-2"></a></span>
 <span id="cb20-3"><a href="#cb20-3"></a>input_img &lt;-<span class="st"> </span><span class="kw">layer_input</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">256</span>, <span class="dv">256</span>, <span class="dv">3</span>))</span>
@@ -551,7 +577,7 @@ ________________________________________________________________________________
 </div>
 <div id="residual-connection-on-a-convolution-layer" class="section level3">
 <h3>Residual connection on a convolution layer</h3>
-<p>For more information about residual networks, see <a href="http://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a>.</p>
+<p>For more information about residual networks, see <a href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a>.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="co"># input tensor for a 3-channel 256x256 image</span></span>
 <span id="cb21-2"><a href="#cb21-2"></a>x &lt;-<span class="st"> </span><span class="kw">layer_input</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">256</span>, <span class="dv">256</span>, <span class="dv">3</span>))</span>
 <span id="cb21-3"><a href="#cb21-3"></a><span class="co"># 3x3 conv with 3 output channels (same as input channels)</span></span>

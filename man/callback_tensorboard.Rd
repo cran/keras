@@ -48,13 +48,13 @@ layers will be saved.}
 
 \item{embeddings_metadata}{a named list which maps layer name to a file name in
 which metadata for this embedding layer is saved. See the
-\href{https://www.tensorflow.org/how_tos/embedding_viz/#metadata_optional}{details}
+\href{https://www.tensorflow.org/tensorboard/tensorboard_projector_plugin#saving_data_for_tensorboard}{details}
 about the metadata file format. In case if the same metadata file is used
 for all embedding layers, string can be passed.}
 
 \item{embeddings_data}{Data to be embedded at layers specified in
 \code{embeddings_layer_names}. Array (if the model has a single input) or list
-of arrays (if the model has multiple inputs). Learn \href{https://www.tensorflow.org/programmers_guide/embedding}{more about embeddings}}
+of arrays (if the model has multiple inputs). Learn \href{https://www.tensorflow.org/tutorials/text/word_embeddings}{more about embeddings}}
 
 \item{update_freq}{\code{'batch'} or \code{'epoch'} or integer. When using \code{'batch'}, writes
 the losses and metrics to TensorBoard after each batch. The same
@@ -76,7 +76,7 @@ histograms for the different layers in your model.
 TensorBoard is a visualization tool provided with TensorFlow.
 
 You can find more information about TensorBoard
-\href{https://www.tensorflow.org/get_started/summaries_and_tensorboard}{here}.
+\href{https://www.tensorflow.org/tensorboard/get_started}{here}.
 
 When using a backend other than TensorFlow, TensorBoard will still work
 (if you have TensorFlow installed), but the only feature available will

@@ -27,6 +27,31 @@ document.addEventListener('DOMContentLoaded', function(e) {
   }
 });
 </script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -116,6 +141,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -316,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 <blockquote>
-<p>This tutorial is an R translation of <a href="https://www.tensorflow.org/alpha/guide/keras/saving_and_serializing">this page</a> available in the official TensorFlow documentation.</p>
+<p>This tutorial is an R translation of <a href="https://www.tensorflow.org/tutorials/keras/save_and_load">this page</a> available in the official TensorFlow documentation.</p>
 </blockquote>
 <p>The first part of this guide covers saving and serialization for Sequential models and models built using the Functional API. The saving and serialization APIs are the exact same for both of these types of models.</p>
 <p>Saving for custom subclasses of Model is covered in the section “Saving Subclassed Models”. The APIs in this case are slightly different than for Sequential or Functional models.</p>

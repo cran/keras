@@ -1,9 +1,39 @@
-## Development Version
+# keras 2.4.0
+
+- Use compat module when using `set_session` and `get_session`. (#1046)
+- Allows passing other arguments to `keras_model` eg `name`. (#1045)
+- Fixed bug when serializing models with the plaidml backends.(#1084)
+- Install keras no longer tries to install scipy because it's already installed by tensorflow (#1081)
+- Fixed bug with `layer_text_vectorization` with TensorFlow >= 2.3 (#1131)
+- Handle renamed argument `text` to `input_text` in `text_one_hot` (#1133)
+- Added TensorFlow 2.3 to the CI (#1102)
+- Fix C stack error when using Image Data Generators and Time Series generators with TensorFlow <= 2.0.1 (#1135)
+- Fixed warning raised in the initial epoch (@gsteinbu #1130)
+- Consistent result when using `text_hashing_trick` with missing values (@topepo #1048)
+- Added a custom error message for `k_logsumexp` as it was removed from Keras (#1137)
+- Fixed bug when printing models that are not built yet. (#1138)
+- Fix drop_duplicates DeprecationWarning with tf 2.3 (@gsteinbu #1139 #1141)
+- Fixed bug when plotting the model history if the model used an early stopping callback (#1140)
+- `install_keras` now installs a fixed version of h5py, because newer versions are backward incompatible. (#1142)
+- Simplify testing utilities by using a `helper-*` file. (#1173)
+- Deprecated `hdf5_matrix` if using TF >= 2.4 (#1175)
+- Fixed TensorFlow nightly installation on CI (#1176)
+- Support for TensorFlow v2.4: just small fixes for custom classes. (#1177)
+- Added `untar` argument to `get_file` as it seems to be slightly different from `extract` (#1179)
+- Warn when not using the tensorflow implementation of Keras (#1181)
+- Added `layer_layer_normalization` (#1183)
+- Added `layer_multihead_attention` (#1184)
+- Added `image_dataset_from_directory` (#1185)
+- Fixed bug when using a custom layer with a time distributed adverb. (#1188)
+- Added the `ragged` argument to `layer_input`. (#1193)
+- Fixed `*_generator` deadlocks with recent versions of TensorFlow (#1197)
+
+# Keras 2.2.3.0 (CRAN)
 
 - Added `layer_attention` (#1000) by @atroiano.
 - Fixed issue regarding the KerasMetricsCallback with TF v2.2 (#1020)
 
-## Keras 2.2.5.0 (CRAN)
+# Keras 2.2.5.0 (CRAN)
 
 - Added `layer_dense_features`.
 
@@ -47,7 +77,7 @@
 SavedModel format.
 
 
-## Keras 2.2.4 (CRAN)
+# Keras 2.2.4 (CRAN)
 
 - Improve handling of `timeseries_generator()` in calls to `fit_generator()`
 
@@ -85,7 +115,7 @@ SavedModel format.
 - Added `KerasWrapper` class and corresponding `create_wrapper` function.
 
 
-## Keras 2.2.0
+# Keras 2.2.0
 
 - Fix issue with serializing models that have constraint arguments
 
@@ -209,7 +239,7 @@ SavedModel format.
 - Various fixes for `use_implementation()` function
 
 
-## Keras 2.1.2 
+# Keras 2.1.2 
 
 - Added `theme_bw` option to plot method for training history 
 
@@ -237,7 +267,7 @@ SavedModel format.
 - Provide global `keras.fit_verbose` option (defaults to 1)
 
 
-## keras 2.0.9
+# keras 2.0.9
 
 - Added `multi_gpu_model()` function.
 
@@ -297,7 +327,7 @@ SavedModel format.
 - Expose `add_loss()` function for custom layers
 
 
-## keras 2.0.8
+# keras 2.0.8
 
 - Add `use_session_with_seed()` function that establishes a random seed for the Keras session.
   Note that this should not be used when training time is paramount, as it disables GPU
@@ -366,7 +396,7 @@ SavedModel format.
 - Provide hint to use r-tensorflow environment when importing keras
 
 
-## keras 2.0.5
+# keras 2.0.5
 
 - Initial CRAN release
 

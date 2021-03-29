@@ -79,7 +79,7 @@ matrix, used for the linear transformation of the recurrent state.}
 
 \item{unit_forget_bias}{Boolean. If TRUE, add 1 to the bias of the forget
 gate at initialization. Setting it to true will also force
-\code{bias_initializer="zeros"}. This is recommended in \href{http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz et al.}}
+\code{bias_initializer="zeros"}. This is recommended in \href{https://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf}{Jozefowicz et al.}}
 
 \item{kernel_regularizer}{Regularizer function applied to the \code{kernel}
 weights matrix.}
@@ -129,7 +129,7 @@ isn't provided.}
 \item{weights}{Initial weights for layer.}
 }
 \description{
-For a step-by-step description of the algorithm, see \href{http://deeplearning.net/tutorial/lstm.html}{this tutorial}.
+For a step-by-step description of the algorithm, see \href{https://colah.github.io/posts/2015-08-Understanding-LSTMs/}{this tutorial}.
 }
 \section{Input shapes}{
 
@@ -165,17 +165,21 @@ set to \code{TRUE}.
 You can set RNN layers to be 'stateful', which means that the states
 computed for the samples in one batch will be reused as initial states
 for the samples in the next batch. This assumes a one-to-one mapping
-between samples in different successive batches.
+between samples in different successive batches. For intuition behind
+statefulness, there is a helpful blog post here:
+\url{https://philipperemy.github.io/keras-stateful-lstm/}
 
 To enable statefulness:
 \itemize{
-\item Specify \code{stateful=TRUE} in the layer constructor.
+\item Specify \code{stateful = TRUE} in the layer constructor.
 \item Specify a fixed batch size for your model. For sequential models,
 pass \code{batch_input_shape = c(...)} to the first layer in your model.
 For functional models with 1 or more Input layers, pass
 \code{batch_shape = c(...)} to all the first layers in your model.
 This is the expected shape of your inputs \emph{including the batch size}.
 It should be a vector of integers, e.g. \code{c(32, 10, 100)}.
+For dimensions which can vary (are not known ahead of time),
+use \code{NULL} in place of an integer, e.g. \code{c(32, NULL, NULL)}.
 \item Specify \code{shuffle = FALSE} when calling fit().
 }
 
@@ -200,9 +204,9 @@ the initial state of the RNN layer.
 \section{References}{
 
 \itemize{
-\item \href{http://www.bioinf.jku.at/publications/older/2604.pdf}{Long short-term memory} (original 1997 paper)
-\item \href{http://www.cs.toronto.edu/~graves/preprint.pdf}{Supervised sequence labeling with recurrent neural networks}
-\item \href{http://arxiv.org/abs/1512.05287}{A Theoretically Grounded Application of Dropout in Recurrent Neural Networks}
+\item \href{https://www.bioinf.jku.at/publications/older/2604.pdf}{Long short-term memory} (original 1997 paper)
+\item \href{https://www.cs.toronto.edu/~graves/preprint.pdf}{Supervised sequence labeling with recurrent neural networks}
+\item \href{https://arxiv.org/abs/1512.05287}{A Theoretically Grounded Application of Dropout in Recurrent Neural Networks}
 }
 }
 
