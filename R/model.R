@@ -1,26 +1,26 @@
 
 #' Keras Model
-#' 
+#'
 #' A model is a directed acyclic graph of layers.
-#' 
+#'
 #' @param inputs Input layer
 #' @param outputs Output layer
 #' @param ... Any additional arguments
 #' @family model functions
 #'
-#' @examples 
+#' @examples
 #' \dontrun{
 #' library(keras)
-#' 
+#'
 #' # input layer
 #' inputs <- layer_input(shape = c(784))
-#' 
+#'
 #' # outputs compose input + dense layers
 #' predictions <- inputs %>%
-#'   layer_dense(units = 64, activation = 'relu') %>% 
-#'   layer_dense(units = 64, activation = 'relu') %>% 
+#'   layer_dense(units = 64, activation = 'relu') %>%
+#'   layer_dense(units = 64, activation = 'relu') %>%
 #'   layer_dense(units = 10, activation = 'softmax')
-#' 
+#'
 #' # create and compile model
 #' model <- keras_model(inputs = inputs, outputs = predictions)
 #' model %>% compile(
@@ -39,95 +39,165 @@ keras_model <- function(inputs, outputs = NULL, ...) {
 
 
 #' Keras Model composed of a linear stack of layers
-#' 
+#'
 #' @param layers List of layers to add to the model
 #' @param name Name of model
-#'   
+#' @inheritDotParams sequential_model_input_layer
+#'
 #' @note
-#' 
-#' The first layer passed to a Sequential model should have a defined input
-#' shape. What that means is that it should have received an `input_shape` or
-#' `batch_input_shape` argument, or for some type of layers (recurrent,
-#' Dense...) an `input_dim` argument.
-#' 
+#'
+#' If any arguments are provided to `...`, then the sequential model is
+#' initialized with a `InputLayer` instance. If not, then the first layer passed
+#' to a Sequential model should have a defined input shape. What that means is
+#' that it should have received an `input_shape` or `batch_input_shape`
+#' argument, or for some type of layers (recurrent, Dense...) an `input_dim`
+#' argument.
+#'
 #' @family model functions
-#' 
-#' @examples 
+#'
+#' @examples
 #' \dontrun{
-#'  
+#'
 #' library(keras)
-#' 
-#' model <- keras_model_sequential() 
-#' model %>% 
-#'   layer_dense(units = 32, input_shape = c(784)) %>% 
-#'   layer_activation('relu') %>% 
-#'   layer_dense(units = 10) %>% 
+#'
+#' model <- keras_model_sequential()
+#' model %>%
+#'   layer_dense(units = 32, input_shape = c(784)) %>%
+#'   layer_activation('relu') %>%
+#'   layer_dense(units = 10) %>%
 #'   layer_activation('softmax')
-#' 
+#'
 #' model %>% compile(
 #'   optimizer = 'rmsprop',
 #'   loss = 'categorical_crossentropy',
 #'   metrics = c('accuracy')
 #' )
+#'
+#' # alternative way to provide input shape
+#' model <- keras_model_sequential(input_shape = c(784)) %>%
+#'   layer_dense(units = 32) %>%
+#'   layer_activation('relu') %>%
+#'   layer_dense(units = 10) %>%
+#'   layer_activation('softmax')
+#'
 #' }
 #' @export
-keras_model_sequential <- function(layers = NULL, name = NULL) {
+keras_model_sequential <- function(layers = NULL, name = NULL, ...) {
+
+  if (length(list(...)))
+    layers <- c(sequential_model_input_layer(...), layers)
+
   keras$models$Sequential(layers = layers, name = name)
 }
 
+
+
+
+#' sequential_model_input_layer
+#'
+#' @param input_shape an integer vector of dimensions (not including the batch
+#'   axis), or a `tf$TensorShape` instance (also not including the batch axis).
+#' @param batch_size  Optional input batch size (integer or NULL).
+#' @param dtype Optional datatype of the input. When not provided, the Keras
+#'   default float type will be used.
+#' @param input_tensor Optional tensor to use as layer input. If set, the layer
+#'   will use the `tf$TypeSpec` of this tensor rather than creating a new
+#'   placeholder tensor.
+#' @param sparse Boolean, whether the placeholder created is meant to be sparse.
+#'   Default to `FALSE`.
+#' @param ragged Boolean, whether the placeholder created is meant to be ragged.
+#'   In this case, values of 'NULL' in the 'shape' argument represent ragged
+#'   dimensions. For more information about `RaggedTensors`, see this
+#'   [guide](https://www.tensorflow.org/guide/ragged_tensor). Default to
+#'   `FALSE`.
+#' @param type_spec A `tf$TypeSpec` object to create Input from. This
+#'   `tf$TypeSpec` represents the entire batch. When provided, all other args
+#'   except name must be `NULL`.
+#' @param ... additional arguments passed on to `keras$layers$InputLayer`.
+#' @param input_layer_name,name  Optional name of the input layer (string).
+#'
+sequential_model_input_layer <- function(input_shape = NULL,
+                                         batch_size = NULL,
+                                         dtype = NULL,
+                                         input_tensor = NULL,
+                                         sparse = NULL,
+                                         name = NULL,
+                                         ragged = NULL,
+                                         type_spec = NULL,
+                                         ...,
+                                         input_layer_name = NULL) {
+  # keras$layers$Input can't be used with a Sequential Model, have to use
+  # keras$layers$LayerInput instead.
+  args <- capture_args(match.call(),
+                       list(input_shape = as_shape,
+                            batch_size = as_nullable_integer))
+
+  if ("input_layer_name" %in% names(args)) {
+    # a bare `name` arg would normally belong to the model, not the input layer
+    if (!is.null(args[["input_layer_name"]]))
+      args[["name"]] <- args[["input_layer_name"]]
+
+    args[["input_layer_name"]] <- NULL
+  }
+
+  do.call(keras$layers$InputLayer, args)
+}
+
+
+
 #' Replicates a model on different GPUs.
-#' 
+#'
 #' @param model A Keras model instance. To avoid OOM errors,
 #'   this model could have been built on CPU, for instance
 #'    (see usage example below).
-#' @param gpus `NULL` to use all available GPUs (default). Integer >= 2 or 
-#'   list of integers, number of GPUs or list of GPU IDs on which to create 
+#' @param gpus `NULL` to use all available GPUs (default). Integer >= 2 or
+#'   list of integers, number of GPUs or list of GPU IDs on which to create
 #'   model replicas.
 #' @param cpu_merge A boolean value to identify whether to force
 #'   merging model weights under the scope of the CPU or not.
 #' @param cpu_relocation A boolean value to identify whether to
 #'   create the model's weights under the scope of the CPU.
 #'   If the model is not defined under any preceding device
-#'   scope, you can still rescue it by activating this option.   
-#'  
+#'   scope, you can still rescue it by activating this option.
+#'
 #' @return  A Keras model object which can be used just like the initial
 #'  `model` argument, but which distributes its workload on multiple GPUs.
-#' 
-#' @details 
+#'
+#' @details
 #' Specifically, this function implements single-machine
 #' multi-GPU data parallelism. It works in the following way:
 #'   - Divide the model's input(s) into multiple sub-batches.
 #'   - Apply a model copy on each sub-batch. Every model copy
 #'     is executed on a dedicated GPU.
 #'    - Concatenate the results (on CPU) into one big batch.
-#'    
+#'
 #' E.g. if your `batch_size` is 64 and you use `gpus=2`,
 #' then we will divide the input into 2 sub-batches of 32 samples,
 #' process each sub-batch on one GPU, then return the full
 #' batch of 64 processed samples.
-#' 
+#'
 #' This induces quasi-linear speedup on up to 8 GPUs.
-#' 
+#'
 #' This function is only available with the TensorFlow backend
 #' for the time being.
 #'
 #' @section Model Saving:
-#' 
-#' To save the multi-gpu model, use [save_model_hdf5()] or 
-#' [save_model_weights_hdf5()] with the template model (the argument you 
-#' passed to `multi_gpu_model`), rather than the model returned 
+#'
+#' To save the multi-gpu model, use [save_model_hdf5()] or
+#' [save_model_weights_hdf5()] with the template model (the argument you
+#' passed to `multi_gpu_model`), rather than the model returned
 #' by `multi_gpu_model`.
 #'
 #' @examples \dontrun{
-#' 
+#'
 #' library(keras)
 #' library(tensorflow)
-#' 
+#'
 #' num_samples <- 1000
 #' height <- 224
 #' width <- 224
 #' num_classes <- 1000
-#' 
+#'
 #' # Instantiate the base model (or "template" model).
 #' # We recommend doing this with under a CPU device scope,
 #' # so that the model's weights are hosted on CPU memory.
@@ -140,7 +210,7 @@ keras_model_sequential <- function(layers = NULL, name = NULL) {
 #'     classes = num_classes
 #'   )
 #' })
-#' 
+#'
 #' # Replicates the model on 8 GPUs.
 #' # This assumes that your machine has 8 available GPUs.
 #' parallel_model <- multi_gpu_model(model, gpus = 8)
@@ -148,23 +218,23 @@ keras_model_sequential <- function(layers = NULL, name = NULL) {
 #'   loss = "categorical_crossentropy",
 #'   optimizer = "rmsprop"
 #' )
-#' 
+#'
 #' # Generate dummy data.
-#' x <- array(runif(num_samples * height * width*3), 
+#' x <- array(runif(num_samples * height * width*3),
 #'            dim = c(num_samples, height, width, 3))
-#' y <- array(runif(num_samples * num_classes), 
+#' y <- array(runif(num_samples * num_classes),
 #'            dim = c(num_samples, num_classes))
-#' 
+#'
 #' # This `fit` call will be distributed on 8 GPUs.
 #' # Since the batch size is 256, each GPU will process 32 samples.
 #' parallel_model %>% fit(x, y, epochs = 20, batch_size = 256)
-#' 
+#'
 #' # Save model via the template model (which shares the same weights):
 #' model %>% save_model_hdf5("my_model.h5")
 #' }
 #'
 #' @family model functions
-#' @note This function is deprecated and has been removed from tensorflow on 
+#' @note This function is deprecated and has been removed from tensorflow on
 #' 2020-04-01. To distribute your training across all available GPUS,
 #' you can use `tensorflow::tf$distribute$MirroredStrategy()`
 #' by creating your model like this:
@@ -179,25 +249,25 @@ keras_model_sequential <- function(layers = NULL, name = NULL) {
 #' ```
 #' @export
 multi_gpu_model <- function(model, gpus = NULL, cpu_merge = TRUE, cpu_relocation = FALSE) {
-  
+
   if (is.null(gpus) && keras_version() < "2.1.4") {
     stop("You must provide an explicit gpus argument in Keras versions ",
          "prior to 2.1.4")
   }
-  
+
   if (tensorflow::tf_version() >= "2.2")
     stop("This function is deprecated as of TF version 2.2")
-  
+
   args <- list(
     model = model,
     gpus = as_nullable_integer(gpus)
   )
-  
+
   if (keras_version() >= "2.1.6") {
     args$cpu_merge <- cpu_merge
     args$cpu_relocation <- cpu_relocation
   }
-  
+
   do.call(resolve_utils()$multi_gpu_model, args)
 }
 
@@ -241,116 +311,184 @@ clone_model <- function(model, input_tensors = NULL) {
 #' Configure a Keras model for training
 #'
 #' @param object Model object to compile.
-#' @param optimizer Name of optimizer or optimizer instance.
-#' @param loss Name of objective function or objective function. If the model
-#'   has multiple outputs, you can use a different loss on each output by
-#'   passing a dictionary or a list of objectives. The loss value that will be
-#'   minimized by the model will then be the sum of all individual losses.
+#' @param optimizer String (name of optimizer) or optimizer instance. For most
+#'   models, this defaults to `"rmsprop"`
+#' @param loss String (name of objective function), objective function or a
+#'   `keras$losses$Loss` subclass instance. An objective function is any
+#'   callable with the signature `loss = fn(y_true, y_pred)`, where y_true =
+#'   ground truth values with shape = `[batch_size, d0, .. dN]`, except sparse
+#'   loss functions such as sparse categorical crossentropy where shape =
+#'   `[batch_size, d0, .. dN-1]`. y_pred = predicted values with shape =
+#'   `[batch_size, d0, .. dN]`. It returns a weighted loss float tensor. If a
+#'   custom `Loss` instance is used and reduction is set to `NULL`, return value
+#'   has the shape `[batch_size, d0, .. dN-1]` i.e. per-sample or per-timestep
+#'   loss values; otherwise, it is a scalar. If the model has multiple outputs,
+#'   you can use a different loss on each output by passing a dictionary or a
+#'   list of losses. The loss value that will be minimized by the model will
+#'   then be the sum of all individual losses, unless `loss_weights` is
+#'   specified.
 #' @param metrics List of metrics to be evaluated by the model during training
-#'   and testing. Typically you will use `metrics='accuracy'`. To specify
-#'   different metrics for different outputs of a multi-output model, you could
-#'   also pass a named list such as `metrics=list(output_a = 'accuracy')`.
-#' @param loss_weights Optional list specifying scalar coefficients to weight
-#'   the loss contributions of different model outputs. The loss value that will
-#'   be minimized by the model will then be the *weighted sum* of all indvidual
-#'   losses, weighted by the `loss_weights` coefficients.
+#'   and testing. Each of this can be a string (name of a built-in function),
+#'   function or a `keras$metrics$Metric` class instance. See
+#'   `?tf$keras$metrics`. Typically you will use `metrics=list('accuracy')`. A
+#'   function is any callable with the signature `result = fn(y_true, y_pred)`.
+#'   To specify different metrics for different outputs of a multi-output model,
+#'   you could also pass a dictionary, such as `metrics=list(output_a =
+#'   'accuracy', output_b = c('accuracy', 'mse'))`. You can also pass a list to
+#'   specify a metric or a list of metrics for each output, such as
+#'   `metrics=list(list('accuracy'), list('accuracy', 'mse'))` or
+#'   `metrics=list('accuracy', c('accuracy', 'mse'))`. When you pass the strings
+#'   `'accuracy'` or `'acc'`, this is converted to one of
+#'   `tf.keras.metrics.BinaryAccuracy`, `tf.keras.metrics.CategoricalAccuracy`,
+#'   `tf.keras.metrics.SparseCategoricalAccuracy` based on the loss function
+#'   used and the model output shape. A similar conversion is done for the
+#'   strings `'crossentropy'` and `'ce'`.
+#' @param loss_weights  Optional list, dictionary, or named vector specifying
+#'   scalar numeric coefficients to weight the loss contributions of different
+#'   model outputs. The loss value that will be minimized by the model will then
+#'   be the *weighted sum* of all individual losses, weighted by the
+#'   `loss_weights` coefficients. If a list, it is expected to have a 1:1
+#'   mapping to the model's outputs. If a dict, it is expected to map output
+#'   names (strings) to scalar coefficients.
+#' @param weighted_metrics List of metrics to be evaluated and weighted by
+#'   `sample_weight` or `class_weight` during training and testing.
+#' @param run_eagerly Bool. Defaults to `FALSE`. If `TRUE`, this Model's logic
+#'   will not be wrapped in a `tf.function`. Recommended to leave this as `NULL`
+#'   unless your Model cannot be run inside a `tf.function`. `run_eagerly=True`
+#'   is not supported when using
+#'   `tf.distribute.experimental.ParameterServerStrategy`. If the model's logic
+#'   uses tensors in R control flow expressions like `if` and `for`, the model
+#'   is still traceable with `tf.function`, but you will have to enter a
+#'   `tfautograph::autograph({})` directly.
+#' @param steps_per_execution Int. Defaults to 1. The number of batches to run
+#'   during each `tf.function` call. Running multiple batches inside a single
+#'   `tf.function` call can greatly improve performance on TPUs or small models
+#'   with a large Python/R overhead. At most, one full epoch will be run each
+#'   execution. If a number larger than the size of the epoch is passed, the
+#'   execution will be truncated to the size of the epoch. Note that if
+#'   `steps_per_execution` is set to `N`, `Callback.on_batch_begin` and
+#'   `Callback.on_batch_end` methods will only be called every `N` batches (i.e.
+#'   before/after each `tf.function` execution).
+#' @param ... Arguments supported for backwards compatibility only.
 #' @param sample_weight_mode If you need to do timestep-wise sample weighting
 #'   (2D weights), set this to "temporal". `NULL` defaults to sample-wise
 #'   weights (1D). If the model has multiple outputs, you can use a different
 #'   `sample_weight_mode` on each output by passing a list of modes.
 #' @param target_tensors By default, Keras will create a placeholder for the
-#'   model's target, which will be fed with the target data during
-#'   training. If instead you would like to use your own
-#'   target tensor (in turn, Keras will not expect external
-#'   data for these targets at training time), you
-#'   can specify them via the `target_tensors` argument. It should be
-#'   a single tensor (for a single-output sequential model),
-#' @param weighted_metrics List of metrics to be evaluated and weighted
-#'   by sample_weight or class_weight during training and testing
-#' @param ... When using the Theano/CNTK backends, these arguments
-#'   are passed into K.function. When using the TensorFlow backend,
-#'   these arguments are passed into `tf$Session()$run`.
+#'   model's target, which will be fed with the target data during training. If
+#'   instead you would like to use your own target tensor (in turn, Keras will
+#'   not expect external data for these targets at training time), you can
+#'   specify them via the `target_tensors` argument. It should be a single
+#'   tensor (for a single-output sequential model).
 #'
 #' @family model functions
 #'
 #' @export
 compile.keras.engine.training.Model <-
-  function(object, optimizer, loss, 
-           metrics = NULL, 
+  function(object,
+           optimizer = NULL,
+           loss = NULL,
+           metrics = NULL,
            loss_weights = NULL,
-           sample_weight_mode = NULL, 
            weighted_metrics = NULL,
+           run_eagerly = NULL,
+           steps_per_execution = NULL,
+           ...,
            target_tensors = NULL,
-           ...) {
-  
-  # give losses a name
-  loss_name <- deparse(substitute(loss))
-  if (is.function(loss) && !inherits(loss, "python.builtin.object"))
-    attr(loss, "py_function_name") <- loss_name
-  
-  # handle metrics
-  if (!is.null(metrics)) {
-    
-    # convert metrics to list if it isn't one
-    if (!is.list(metrics) && length(metrics) == 1)
-      metrics <- list(metrics)
-    
-    # get metric names (if any)
-    metric_names <- names(metrics)
-    if (is.null(metric_names))
-      metric_names <- rep_len("", length(metrics))
+           sample_weight_mode = NULL) {
 
-    # if all the metrics names are output names then leave them alone
-    # (just convert to a list with no special processing)
-    if (py_has_attr(object, "output_names") && all(metric_names %in% object$output_names)) {
-      metrics <- as.list(metrics)
-    } else {
-      # convert metrics to a list (adding names to any custom functions)
-      metrics <- lapply(1:length(metrics), function(i) {
-        metric <- metrics[[i]]
-        
-        if (is.function(metric) && nzchar(metric_names[[i]])) {
-          warning("Passing names for custom metrics is deprecated. Please use the ",
-                  "custom_metric() function to define custom metrics.")
-          attr(metric, "py_function_name") <- metric_names[[i]]
-        }
-        
-        metric
-      })
+    # give losses a name
+    loss_name <- deparse(substitute(loss))
+    if (is.function(loss) &&
+        !inherits(loss, "python.builtin.object"))
+      attr(loss, "py_function_name") <- loss_name
+
+    # handle metrics
+    if (!is.null(metrics)) {
+      # convert metrics to list if it isn't one
+      if (!is.list(metrics) && length(metrics) == 1)
+        metrics <- list(metrics)
+
+      # get metric names (if any)
+      metric_names <- names(metrics)
+      if (is.null(metric_names))
+        metric_names <- rep_len("", length(metrics))
+
+      # if all the metrics names are output names then leave them alone
+      # (just convert to a list with no special processing)
+      if (py_has_attr(object, "output_names") &&
+          all(metric_names %in% object$output_names)) {
+        metrics <- as.list(metrics)
+      } else {
+        # convert metrics to a list (adding names to any custom functions)
+        metrics <- lapply(1:length(metrics), function(i) {
+          metric <- metrics[[i]]
+
+          if (is.function(metric) && nzchar(metric_names[[i]])) {
+            warning(
+              "Passing names for custom metrics is deprecated. Please use the ",
+              "custom_metric() function to define custom metrics."
+            )
+            attr(metric, "py_function_name") <- metric_names[[i]]
+          }
+
+          metric
+        })
+      }
     }
-  }
-  
-  # args
-  args <- list(
-    optimizer = optimizer, 
-    loss = loss,
-    metrics = metrics,
-    loss_weights = loss_weights,
-    sample_weight_mode = sample_weight_mode
-  )
-  
-  # keras 2.07 args
-  if (keras_version() >= "2.0.7") {
-    # weighted metrics
-    if (!is.null(weighted_metrics) && !is.list(weighted_metrics))
-      weighted_metrics <- list(weighted_metrics)
-    args$weighted_metrics <- weighted_metrics
-    # target tensors
-    if (!is.null(target_tensors) && !is.list(target_tensors))
-      target_tensors <- list(target_tensors)
-    args$target_tensors <- target_tensors
-  }
-  
-  # var args
-  var_args <- list(...)
-  args <- append(args, var_args)
-  
-  # compile model
-  do.call(object$compile, args)
-  
-  # return model invisible (conventience for chaining)
-  invisible(object)
+
+    # keras 2.07 args
+    if (keras_version() >= "2.0.7") {
+      # weighted metrics
+      if (!is.null(weighted_metrics) && !is.list(weighted_metrics))
+        weighted_metrics <- list(weighted_metrics)
+
+      # target tensors
+      if (!is.null(target_tensors) && !is.list(target_tensors))
+        target_tensors <- list(target_tensors)
+    }
+
+    if (is.numeric(loss_weights))
+      storage.mode(loss_weights) <- "list"
+
+    args <- list(
+      optimizer = optimizer,
+      loss = loss,
+      metrics = metrics,
+      loss_weights = loss_weights,
+      weighted_metrics = weighted_metrics,
+      run_eagerly = run_eagerly,
+      steps_per_execution = steps_per_execution,
+      sample_weight_mode = sample_weight_mode,
+      target_tensors = target_tensors
+    )
+
+    # drop NULLs
+    for (nm in names(args))
+      args[[nm]] <- args[[nm]]
+
+    args <- c(list(), args, ...)
+
+    # compile model
+    do.call(object$compile, args)
+
+    # return model invisible (convenience for chaining)
+    invisible(object)
 }
+
+#drop_nulls <-
+function(x, ...) {
+  nms <- c(...)
+  nms <- if (length(nms))
+    intersect(names(x), nms)
+  else
+    names(args)
+
+  for (nm in nms)
+    x[[nm]] <- x[[nm]]
+  x
+}
+
 
 resolve_input_data <- function(x, y = NULL) {
   # resolve x and y (check for TF dataset)
@@ -371,7 +509,7 @@ resolve_input_data <- function(x, y = NULL) {
     if (!is.null(x))
       args$x <- keras_array(x)
     if (!is.null(y))
-      args$y <- keras_array(y) 
+      args$y <- keras_array(y)
   }
   args
 }
@@ -389,7 +527,7 @@ resolve_validation_data <- function(validation_data) {
     else if (inherits(validation_data, "keras.utils.data_utils.Sequence"))
       args$validation_data <- validation_data
     else {
-      args$validation_data <- keras_array(validation_data)  
+      args$validation_data <- keras_array(validation_data)
       if (tensorflow::tf_version() >="2.2")
         args$validation_data <- do.call(reticulate::tuple, args$validation_data)
     }
@@ -398,15 +536,15 @@ resolve_validation_data <- function(validation_data) {
 }
 
 resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_begin") {
-  
+
   if (tensorflow::tf_version() == "2.1")
     stop("Using generators that call R functions is not supported in TensorFlow 2.1 ",
          "Please upgrade your TF installation or downgrade to 2.0", call. = FALSE)
-  
+
   # we need a hack to make sure the generator is evaluated in the main thread.
   python_path <- system.file("python", package = "keras")
   tools <- reticulate::import_from_path("kerastools", path = python_path)
-  
+
   # as_generator will return a tuple with 2 elements.
   # (1) a python generator that just consumes
   # a queue.
@@ -415,19 +553,19 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
   # thread.
   # we add a `on_train_batch_begin` to call this function.
   o <- tools$model$as_generator(x)
-  
+
   callback <- list(function(batch, logs) {
     o[[2]]()
   })
   names(callback) <- callback_type
-  
+
   if (callback_type == "on_test_batch_begin") {
     callback[[2]] <- callback[[1]]
     names(callback)[[2]] <- "on_test_begin"
   }
-  
+
   callback <- do.call(callback_lambda, callback)
-  
+
   list(generator = o[[1]], callback = callback)
 }
 
@@ -438,13 +576,13 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #' @param object Model to train.
 #' @param x Vector, matrix, or array of training data (or list if the model has
 #'   multiple inputs). If all inputs in the model are named, you can also pass a
-#'   list mapping input names to data. `x` can be `NULL` (default) if feeding 
+#'   list mapping input names to data. `x` can be `NULL` (default) if feeding
 #'   from framework-native tensors (e.g. TensorFlow data tensors). You can also
-#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or 
+#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or
 #'   `(inputs, targets, sample_weights)`.
 #' @param y  Vector, matrix, or array of target (label) data (or list if the model has
 #'   multiple outputs). If all outputs in the model are named, you can also pass
-#'   a list mapping output names to data. `y` can be `NULL` (default) if feeding 
+#'   a list mapping output names to data. `y` can be `NULL` (default) if feeding
 #'   from framework-native tensors (e.g. TensorFlow data tensors).
 #' @param batch_size Integer or `NULL`. Number of samples per gradient update.
 #'   If unspecified, `batch_size` will default to 32.
@@ -465,7 +603,7 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #'   to be used as validation data. The model will set apart this fraction of
 #'   the training data, will not train on it, and will evaluate the loss and any
 #'   model metrics on this data at the end of each epoch. The validation data
-#'   is selected from the last samples in the `x` and `y` data provided, 
+#'   is selected from the last samples in the `x` and `y` data provided,
 #'   before shuffling.
 #' @param validation_data Data on which to evaluate the loss and any model
 #'   metrics at the end of each epoch. The model will not be trained on this
@@ -491,8 +629,8 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #'   declaring one epoch finished and starting the next epoch. When training
 #'   with input tensors such as TensorFlow data tensors, the default `NULL` is
 #'   equal to the number of samples in your dataset divided by the batch
-#'   size, or 1 if that cannot be determined. 
-#' @param  validation_steps Only relevant if `steps_per_epoch` is specified. 
+#'   size, or 1 if that cannot be determined.
+#' @param  validation_steps Only relevant if `steps_per_epoch` is specified.
 #'   Total number of steps (batches of samples) to validate before stopping.
 #' @param ... Unused
 #'
@@ -502,25 +640,25 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #' @family model functions
 #'
 #' @export
-fit.keras.engine.training.Model <- 
-  function(object, x = NULL, y = NULL, batch_size=NULL, epochs=10, 
+fit.keras.engine.training.Model <-
+  function(object, x = NULL, y = NULL, batch_size=NULL, epochs=10,
            verbose=getOption("keras.fit_verbose", default = 1), callbacks=NULL,
            view_metrics = getOption("keras.view_metrics", default = "auto"),
            validation_split=0.0, validation_data=NULL, shuffle=TRUE,
            class_weight=NULL, sample_weight=NULL, initial_epoch=0,
            steps_per_epoch=NULL, validation_steps=NULL, ...) {
-    
+
   if (!is.null(batch_size) && is_tensorflow_dataset(x))
     stop("Don't set batch_size with a tfdataset as input.", call. = FALSE)
-    
+
   # defaults
   if (is.null(batch_size) && is.null(steps_per_epoch) && !is_tensorflow_dataset(x))
     batch_size <- 32L
-  
+
   # resolve view_metrics
   if (identical(view_metrics, "auto"))
     view_metrics <- resolve_view_metrics(verbose, epochs, object$metrics)
-  
+
   # build args
   args <- list(
     batch_size = as_nullable_integer(batch_size),
@@ -532,45 +670,45 @@ fit.keras.engine.training.Model <-
     sample_weight = keras_array(sample_weight),
     initial_epoch = as.integer(initial_epoch)
   )
-  
+
   args <- append(args, resolve_input_data(x, y))
   args <- append(args, resolve_validation_data(validation_data))
-  
+
   if (keras_version() >= "2.0.7") {
     args$steps_per_epoch <- as_nullable_integer(steps_per_epoch)
     args$validation_steps <- as_nullable_integer(validation_steps)
   }
-  
+
   extra_callbacks <- list()
   if (is_main_thread_generator(x)) {
     main_thr <- resolve_main_thread_generators(args$x)
     args$x <- main_thr$generator
     extra_callbacks <- c(extra_callbacks, main_thr$callback)
   }
-  
+
   if (is_main_thread_generator(validation_data)) {
     main_thr <- resolve_main_thread_generators(args$validation_data, "on_test_batch_begin")
     args$validation_data <- main_thr$generator
     extra_callbacks <- c(extra_callbacks, main_thr$callback)
   }
-  
+
   if (length(extra_callbacks) > 0) {
-    callbacks <- c(callbacks, extra_callbacks)  
+    callbacks <- c(callbacks, extra_callbacks)
   }
-  
+
   args$callbacks <- normalize_callbacks_with_metrics(view_metrics, initial_epoch, callbacks)
   history <- do.call(object$fit, args)
-  
+
   # convert to a keras_training history object
   history <- to_keras_training_history(history)
-  
+
   # write metadata contained in history
   write_history_metadata(history)
-  
+
   # return the history invisibly
   invisible(history)
 }
-  
+
 #' Evaluate a Keras model
 
 #' @inheritParams fit.keras.engine.training.Model
@@ -578,68 +716,68 @@ fit.keras.engine.training.Model <-
 #' @param object Model object to evaluate
 #' @param x Vector, matrix, or array of test data (or list if the model has
 #'   multiple inputs). If all inputs in the model are named, you can also pass a
-#'   list mapping input names to data. `x` can be `NULL` (default) if feeding 
+#'   list mapping input names to data. `x` can be `NULL` (default) if feeding
 #'   from framework-native tensors (e.g. TensorFlow data tensors). You can also
-#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or 
+#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or
 #'   `(inputs, targets, sample_weights)`.
 #' @param y  Vector, matrix, or array of target (label) data (or list if the model has
 #'   multiple outputs). If all outputs in the model are named, you can also pass
-#'   a list mapping output names to data. `y` can be `NULL` (default) if feeding 
+#'   a list mapping output names to data. `y` can be `NULL` (default) if feeding
 #'   from framework-native tensors (e.g. TensorFlow data tensors).
 #' @param steps Total number of steps (batches of samples) before declaring the
 #'   evaluation round finished. Ignored with the default value of `NULL`.
 #' @param callbacks List of callbacks to apply during evaluation.
-#' @param ... Unused   
-#'   
-#'   
+#' @param ... Unused
+#'
+#'
 #' @return Named list of model test loss (or losses for models with multiple
 #'   outputs) and model metrics.
 #'
 #' @family model functions
 #'
 #' @export
-evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, batch_size = NULL, 
-                                                 verbose=1, sample_weight = NULL, steps = NULL, 
+evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, batch_size = NULL,
+                                                 verbose=1, sample_weight = NULL, steps = NULL,
                                                  callbacks = NULL, ...) {
-  
+
   # defaults
   if (is.null(batch_size) && is.null(steps) &&!is_tensorflow_dataset(x))
     batch_size <- 32L
-  
+
   # args
   args <- list(
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose),
     sample_weight = sample_weight
   )
-  
+
   args <- append(args, resolve_input_data(x, y))
-  
+
   extra_callbacks <- list()
   if (is_main_thread_generator(x)) {
     main_thr <- resolve_main_thread_generators(args$x, "on_test_batch_begin")
     args$x <- main_thr$generator
     extra_callbacks <- c(extra_callbacks, main_thr$callback)
   }
-  
+
   if (length(extra_callbacks) > 0) {
-    callbacks <- c(callbacks, extra_callbacks)  
+    callbacks <- c(callbacks, extra_callbacks)
   }
-  
+
   args <- resolve_callbacks(args, callbacks)
-  
+
   if (keras_version() >= "2.0.7")
     args$steps <- as_nullable_integer(steps)
-  
+
   # perform evaluation
   result <- do.call(object$evaluate, args)
-  
+
   # apply names
   names(result) <- object$metrics_names
-  
+
   # write run data
   tfruns::write_run_metadata("evaluation", result)
-  
+
   # return result
   result
 }
@@ -655,7 +793,7 @@ resolve_callbacks <- function(args, callbacks) {
 }
 
 #' Generate predictions from a Keras model
-#' 
+#'
 #' Generates output predictions for the input samples, processing the samples in
 #' a batched way.
 #'
@@ -663,77 +801,96 @@ resolve_callbacks <- function(args, callbacks) {
 #'
 #' @param object Keras model
 #' @param x Input data (vector, matrix, or array). You can also
-#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or 
+#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or
 #'   `(inputs, targets, sample_weights)`.
 #' @param batch_size Integer. If unspecified, it will default to 32.
 #' @param verbose Verbosity mode, 0 or 1.
-#' @param callbacks List of callbacks to apply during prediction. 
+#' @param callbacks List of callbacks to apply during prediction.
 #' @param ... Unused
-#' 
+#'
 #' @return vector, matrix, or array of predictions
-#' 
+#'
 #' @family model functions
-#' 
-#' 
+#'
+#'
 #' @importFrom stats predict
 #' @export
-predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verbose=0, steps=NULL, 
+predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verbose=0, steps=NULL,
                                                 callbacks = NULL,...) {
-  
+
   # defaults
   if (is.null(batch_size) && is.null(steps) &&!is_tensorflow_dataset(x))
     batch_size <- 32L
-  
+
   # args
   args <- list(
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
-  
+
   args <- append(args, resolve_input_data(x))
-  
+
   extra_callbacks <- list()
   if (is_main_thread_generator(x)) {
     main_thr <- resolve_main_thread_generators(args$x, "on_predict_batch_begin")
     args$x <- main_thr$generator
     extra_callbacks <- c(extra_callbacks, main_thr$callback)
   }
-  
+
   if (length(extra_callbacks) > 0) {
-    callbacks <- c(callbacks, extra_callbacks)  
+    callbacks <- c(callbacks, extra_callbacks)
   }
-  
+
   args <- resolve_callbacks(args, callbacks)
-  
+
   if (keras_version() >= "2.0.7")
     args$steps <- as_nullable_integer(steps)
-  
+
   # call predict
   do.call(object$predict, args)
 }
 
 
-#' Generates probability or class probability predictions for the input samples.
-#' 
+#' (Deprecated) Generates probability or class probability predictions for the input samples.
+#'
+#' These functions were removed in Tensorflow version 2.6. See details for how to update your code:
+#'
+#' @details How to update your code:
+#'
+#' `predict_proba()`: use `predict()` directly.
+#'
+#' `predict_classes()`:
+#'   * If your model does multi-class classification:
+#'     (e.g. if it uses a `softmax` last-layer activation).
+#'  ```r
+#'       model %>% predict(x) %>% k_argmax()
+#'  ```
+#'   * if your model does binary classification
+#'     (e.g. if it uses a `sigmoid` last-layer activation).
+#'  ```r
+#'       model %>% predict(x) %>% `>`(0.5) %>% k_cast("int32")
+#'  ```
+#'
 #' @inheritParams predict.keras.engine.training.Model
-#' 
+#'
 #' @param object Keras model object
 #' @param steps Total number of steps (batches of samples) before declaring the
-#'   evaluation round finished. The default `NULL` is equal to the number of 
+#'   evaluation round finished. The default `NULL` is equal to the number of
 #'   samples in your dataset divided by the batch size.
-#'   
+#'
 #' @details The input samples are processed batch by batch.
-#' 
+#'
 #' @family model functions
-#' 
+#'
 #' @export
 predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
-  
+  warning("`predict_proba()` is deprecated and was removed from tensorflow in version 2.6, ",
+          "please use `predict()` instead")
   args <- list(
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
-  
+
   # resolve x (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
   if (!is.null(dataset)) {
@@ -741,21 +898,35 @@ predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NUL
   } else {
     args$x <- keras_array(x)
   }
-  
+
   if (keras_version() >= "2.1.3")
     args$steps <- as_nullable_integer(steps)
-  
+
   do.call(object$predict_proba, args)
 }
 
 #' @rdname predict_proba
 #' @export
 predict_classes <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
+  warning(
+'`predict_classes()` is deprecated and and was removed from tensorflow in version 2.6.
+Please update your code:
+  * If your model does multi-class classification:
+    (e.g. if it uses a `softmax` last-layer activation).
+
+      model %>% predict(x) %>% k_argmax()
+
+  * if your model does binary classification
+    (e.g. if it uses a `sigmoid` last-layer activation).
+
+      model %>% predict(x) %>% `>`(0.5) %>% k_cast("int32")
+'
+  )
   args <- list(
     batch_size = as_nullable_integer(batch_size),
     verbose = as.integer(verbose)
   )
-  
+
   # resolve x (check for TF dataset)
   dataset <- resolve_tensorflow_dataset(x)
   if (!is.null(dataset)) {
@@ -763,23 +934,23 @@ predict_classes <- function(object, x, batch_size = NULL, verbose = 0, steps = N
   } else {
     args$x <- keras_array(x)
   }
-  
+
   if (keras_version() >= "2.1.3")
     args$steps <- as_nullable_integer(steps)
-  
+
   do.call(object$predict_classes, args)
 }
 
 #' Returns predictions for a single batch of samples.
-#' 
+#'
 #' @inheritParams predict.keras.engine.training.Model
-#' 
+#'
 #' @param object Keras model object
-#' 
+#'
 #' @return array of predictions.
-#' 
+#'
 #' @family model functions
-#' 
+#'
 #' @export
 predict_on_batch <- function(object, x) {
   object$predict_on_batch(
@@ -789,7 +960,7 @@ predict_on_batch <- function(object, x) {
 
 
 #' Single gradient update or model evaluation over one batch of samples.
-#' 
+#'
 #' @param object Keras model object
 #' @param x input data, as an array or list of arrays (if the model has multiple
 #'   inputs).
@@ -797,13 +968,13 @@ predict_on_batch <- function(object, x) {
 #' @param class_weight named list mapping classes to a weight value, used for
 #'   scaling the loss function (during training only).
 #' @param sample_weight sample weights, as an array.
-#'   
+#'
 #' @return Scalar training or test loss (if the model has no metrics) or list of scalars
 #' (if the model computes other metrics). The property `model$metrics_names`
 #' will give you the display labels for the scalar outputs.
-#' 
+#'
 #' @family model functions
-#'   
+#'
 #' @export
 train_on_batch <- function(object, x, y, class_weight = NULL, sample_weight = NULL) {
   object$train_on_batch(
@@ -814,7 +985,7 @@ train_on_batch <- function(object, x, y, class_weight = NULL, sample_weight = NU
   )
 }
 
-#' @rdname train_on_batch 
+#' @rdname train_on_batch
 #' @export
 test_on_batch <- function(object, x, y, sample_weight = NULL) {
   object$test_on_batch(
@@ -831,20 +1002,21 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #' The generator is run in parallel to the model, for efficiency. For instance,
 #' this allows you to do real-time data augmentation on images on CPU in
 #' parallel to training your model on GPU.
-#' 
-#' @inheritParams fit.keras.engine.training.Model 
+#'
+#' @inheritParams fit.keras.engine.training.Model
 #'
 #' @param object Keras model object
 #' @param generator A generator (e.g. like the one provided by
-#'   [flow_images_from_directory()] or a custom R [generator function](https://rstudio.github.io/reticulate/articles/introduction.html#generators)).
+#'   [flow_images_from_directory()] or a custom R
+#'   [generator function](https://rstudio.github.io/reticulate/articles/calling_python.html#generators-1)).
 #'
 #'   The output of the generator must be a list of one of these forms:
-#'      
+#'
 #'      - (inputs, targets)
 #'      - (inputs, targets, sample_weights)
-#'      
+#'
 #'   This list (a single output of the generator) makes a single batch.
-#'   Therefore, all arrays in this list must have the same length (equal to 
+#'   Therefore, all arrays in this list must have the same length (equal to
 #'   the size of this batch). Different batches may have different sizes.
 #'   For example, the last batch of the epoch is commonly smaller than the
 #'   others, if the size of the dataset is not divisible by the batch size.
@@ -855,15 +1027,15 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #'   epoch. It should typically be equal to the number of samples if your
 #'   dataset divided by the batch size.
 #' @param epochs Integer. Number of epochs to train the model.
-#'   An epoch is an iteration over the entire data provided, as defined by 
+#'   An epoch is an iteration over the entire data provided, as defined by
 #'   `steps_per_epoch`. Note that in conjunction with `initial_epoch`,
 #'   `epochs` is to be understood as "final epoch". The model is not trained
 #'    for a number of iterations given by `epochs`, but merely until the epoch
 #'    of index `epochs` is reached.
 #' @param callbacks List of callbacks to apply during training.
-#' @param validation_data this can be either: 
-#'    - a generator for the validation data 
-#'    - a list (inputs, targets) 
+#' @param validation_data this can be either:
+#'    - a generator for the validation data
+#'    - a list (inputs, targets)
 #'    - a list (inputs, targets, sample_weights).
 #'  on which to evaluate
 #'  the loss and any model metrics at the end of each epoch.
@@ -873,8 +1045,8 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #'   stopping at the end of every epoch. It should typically be equal to the number
 #'   of samples of your validation dataset divided by the batch size.
 #' @param class_weight Optional named list mapping class indices (integer) to a
-#'   weight (float) value, used for weighting the loss function (during 
-#'   training only). This can be useful to tell the model to "pay more 
+#'   weight (float) value, used for weighting the loss function (during
+#'   training only). This can be useful to tell the model to "pay more
 #'   attention" to samples from an under-represented class.
 #' @param max_queue_size Maximum size for the generator queue. If unspecified,
 #'   `max_queue_size` will default to 10.
@@ -889,17 +1061,17 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #' @family model functions
 #'
 #' @export
-fit_generator <- function(object, generator, steps_per_epoch, epochs = 1, 
-                          verbose=getOption("keras.fit_verbose", default = 1), callbacks = NULL, 
+fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
+                          verbose=getOption("keras.fit_verbose", default = 1), callbacks = NULL,
                           view_metrics = getOption("keras.view_metrics", default = "auto"),
-                          validation_data = NULL, validation_steps = NULL, 
+                          validation_data = NULL, validation_steps = NULL,
                           class_weight = NULL, max_queue_size = 10, workers = 1, initial_epoch = 0) {
-  
+
   if (tensorflow::tf_version() <= "2.0")
     return(fit_generator_legacy(
-      object = object, 
-      generator = generator, 
-      steps_per_epoch = steps_per_epoch, 
+      object = object,
+      generator = generator,
+      steps_per_epoch = steps_per_epoch,
       epochs = epochs,
       verbose=verbose,
       view_metrics = view_metrics,
@@ -910,9 +1082,9 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
       workers = workers,
       initial_epoch = initial_epoch
     ))
-  
+
   warning("`fit_generator` is deprecated. Use `fit` instead, it now accept generators.")
-  
+
   # redirect to `model.fit`
   args <- list(
     object = object,
@@ -928,39 +1100,39 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
     workers = workers,
     initial_epoch = initial_epoch
   )
-  
+
   do.call(fit, args)
 }
 
 #' Evaluates the model on a data generator.
-#' 
+#'
 #' The generator should return the same kind of data as accepted by
 #' `test_on_batch()`.
-#' 
+#'
 #' @inheritParams evaluate.keras.engine.training.Model
 #' @inheritParams fit_generator
-#' 
+#'
 #' @param generator Generator yielding lists (inputs, targets) or (inputs,
 #'   targets, sample_weights)
 #' @param steps Total number of steps (batches of samples) to yield from
 #'   `generator` before stopping.
-#'   
-#' @return Named list of model test loss (or losses for models with multiple outputs) 
+#'
+#' @return Named list of model test loss (or losses for models with multiple outputs)
 #'   and model metrics.
-#'  
-#' @family model functions   
-#'     
+#'
+#' @family model functions
+#'
 #' @export
 evaluate_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1,
                                callbacks = NULL) {
-  
+
   if (tensorflow::tf_version() <= "2.0")
     return(evaluate_generator_legacy(
       object, generator, steps, max_queue_size, workers,
       callbacks))
-  
+
   warning("`evaluate_generator` is deprecated. Use `evaluate` instead, it now accept generators.")
-  
+
   args <- list(
     object = object,
     x = generator,
@@ -969,42 +1141,42 @@ evaluate_generator <- function(object, generator, steps, max_queue_size = 10, wo
     workers = as.integer(workers),
     callbacks = callbacks
   )
-  
+
   do.call(evaluate, args)
 }
 
 
 #' Generates predictions for the input samples from a data generator.
-#' 
-#' The generator should return the same kind of data as accepted by 
+#'
+#' The generator should return the same kind of data as accepted by
 #' `predict_on_batch()`.
-#' 
+#'
 #' @inheritParams predict.keras.engine.training.Model
 #' @inheritParams fit_generator
-#' 
+#'
 #' @param object Keras model object
 #' @param generator Generator yielding batches of input samples.
 #' @param steps Total number of steps (batches of samples) to yield from
 #'   `generator` before stopping.
 #' @param verbose verbosity mode, 0 or 1.
-#'   
+#'
 #' @return Numpy array(s) of predictions.
-#'   
+#'
 #' @section Raises: ValueError: In case the generator yields data in an invalid
 #'   format.
-#'  
-#' @family model functions   
-#'     
+#'
+#' @family model functions
+#'
 #' @export
 predict_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1, verbose = 0,
                               callbacks = NULL) {
-  
+
   if (tensorflow::tf_version() <= "2.0")
-    return(predict_generator_legacy(object, generator, steps, max_queue_size, 
+    return(predict_generator_legacy(object, generator, steps, max_queue_size,
                              workers, verbose, callbacks))
-  
+
   warning("`predict_generator` is deprecated. Use `predict` instead, it now accept generators.")
-  
+
   args <- list(
     object = object,
     x = generator,
@@ -1014,7 +1186,7 @@ predict_generator <- function(object, generator, steps, max_queue_size = 10, wor
     verbose = as.integer(verbose),
     callbacks = callbacks
   )
-  
+
   do.call(predict, args)
 }
 
@@ -1033,25 +1205,25 @@ as_generator.tensorflow.python.data.ops.dataset_ops.Dataset <- function(x) {
 }
 
 as_generator.tensorflow.python.data.ops.dataset_ops.DatasetV2 <- function(x) {
-   
+
   if (tensorflow::tf_version() >= "2.0")
     x
   else
-    as_generator.tensorflow.python.data.ops.dataset_ops.Dataset(x)  
-  
+    as_generator.tensorflow.python.data.ops.dataset_ops.Dataset(x)
+
 }
-  
+
 as_generator.function <- function(x) {
   python_path <- system.file("python", package = "keras")
   tools <- reticulate::import_from_path("kerastools", path = python_path)
   iter <- reticulate::py_iterator(function() {
     elem <- keras_array(x())
-    
+
     # deals with the case where the generator is used for prediction and only
     # yields x's values.
     if (length(elem) == 1)
       elem[[2]] <- list()
-    
+
     do.call(reticulate::tuple, elem)
   })
   tools$generator$iter_generator(iter)
@@ -1087,10 +1259,10 @@ is_main_thread_generator.keras.preprocessing.image.Iterator <- function(x) {
 }
 
 is_main_thread_generator.keras_preprocessing.image.Iterator <- function(x) {
-  
+
   if (tensorflow::tf_version() <= "2.0.1")
     return(TRUE)
-  
+
   if (py_has_attr(x, "image_data_generator")) {
     generator <- x$image_data_generator
     !is.null(generator$preprocessing_function)
@@ -1099,13 +1271,13 @@ is_main_thread_generator.keras_preprocessing.image.Iterator <- function(x) {
   }
 }
 
-is_main_thread_generator.keras_preprocessing.image.iterator.Iterator <- 
+is_main_thread_generator.keras_preprocessing.image.iterator.Iterator <-
   is_main_thread_generator.keras_preprocessing.image.Iterator
 
 is_main_thread_generator.keras_preprocessing.sequence.TimeseriesGenerator <- function(x) {
   if (tensorflow::tf_version() <= "2.0.1")
     return(TRUE)
-  
+
   FALSE
 }
 
@@ -1115,11 +1287,11 @@ is_tensorflow_dataset <- function(x) {
 }
 
 resolve_tensorflow_dataset <- function(x) {
-  
+
   if (is_tensorflow_dataset(x)) {
-    
+
     # check version compatibility
-    
+
     if (is_tensorflow_implementation()) {
       if (tensorflow::tf_version() < "1.9")
         stop("TensorFlow v1.9 or higher is required for direct tensor input to models", call. = FALSE)
@@ -1131,16 +1303,16 @@ resolve_tensorflow_dataset <- function(x) {
       if (tensorflow::tf_version() < "1.8")
         stop("TensorFlow v1.8 or higher is required for direct tensor input to models", call. = FALSE)
     }
-    
-    
+
+
     if (tensorflow::tf_version() < "1.14.0") {
       # yield iterators
       iter = x$make_one_shot_iterator()
-      iter$get_next()  
+      iter$get_next()
     } else {
       x
     }
-    
+
   } else {
     NULL
   }
@@ -1148,7 +1320,7 @@ resolve_tensorflow_dataset <- function(x) {
 
 
 
-  
+
 #' Retrieves a layer based on either its name (unique) or index.
 #'
 #' Indices are based on order of horizontal graph traversal (bottom-up) and are
@@ -1165,14 +1337,14 @@ resolve_tensorflow_dataset <- function(x) {
 #'
 #' @export
 get_layer <- function(object, name = NULL, index = NULL) {
-  
+
   # convert to layer index
   index <- as_layer_index(index)
-  
+
   # check for 0
   if (identical(index, -1L))
     stop("Indexes for get_layer() are 1-based (0 was passed as the index)")
-  
+
   # call get_layer
   object$get_layer(
     name = name,
@@ -1182,11 +1354,11 @@ get_layer <- function(object, name = NULL, index = NULL) {
 
 
 #' Remove the last layer in a model
-#' 
+#'
 #' @param object Keras model object
-#' 
+#'
 #' @family model functions
-#' 
+#'
 #' @export
 pop_layer <- function(object) {
   object$pop()
@@ -1194,15 +1366,15 @@ pop_layer <- function(object) {
 
 
 #' Print a summary of a Keras model
-#' 
+#'
 #' @param object Keras model instance
 #' @param line_length Total length of printed lines
 #' @param positions Relative or absolute positions of log elements in each line.
 #'   If not provided, defaults to `c(0.33, 0.55, 0.67, 1.0)`.
 #' @param ... Unused
-#' 
+#'
 #' @family model functions
-#' 
+#'
 #' @export
 summary.keras.engine.training.Model <- function(object, line_length = getOption("width"), positions = NULL, ...) {
   if (py_is_null_xptr(object))
@@ -1221,7 +1393,7 @@ py_str.keras.engine.training.Model <- function(object,  line_length = getOption(
   if (!object$built) {
     cat("Model\n<no summary available, model was not built>\n")
   } else {
-    paste0("Model\n", py_capture_output(object$summary(line_length = line_length, positions = positions), type = "stdout"))  
+    paste0("Model\n", py_capture_output(object$summary(line_length = line_length, positions = positions), type = "stdout"))
   }
 }
 
@@ -1274,21 +1446,18 @@ have_pillow <- function() {
 
 confirm_overwrite <- function(filepath, overwrite) {
   if (overwrite)
-    TRUE 
+    TRUE
   else {
     if (file.exists(filepath)) {
       if (interactive()) {
         prompt <- readline(sprintf("[WARNING] %s already exists - overwrite? [y/n] ", filepath))
         tolower(prompt) == 'y'
       } else {
-        stop("File '", filepath, "' already exists (pass overwrite = TRUE to force save).", 
+        stop("File '", filepath, "' already exists (pass overwrite = TRUE to force save).",
              call. = FALSE)
       }
     } else {
       TRUE
     }
   }
-} 
-
-
-
+}

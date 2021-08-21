@@ -8,10 +8,18 @@ import concurrent.futures
 if (os.getenv('KERAS_IMPLEMENTATION', 'tensorflow') == 'keras'):
   from keras.engine import Model
 else:
-  try:
-    from tensorflow.python.keras.engine import Model
-  except:
-    from tensorflow.python.keras.engine.training import Model
+  import tensorflow as tf
+  from distutils.version import LooseVersion
+  tf_version = LooseVersion(tf.version.VERSION)
+
+  if tf_version >= "2.6":
+    from tensorflow.keras import Model
+  else:
+    try:
+      from tensorflow.python.keras.engine import Model
+    except:
+      from tensorflow.python.keras.engine.training import Model
+
 
 class RModel(Model):
 
@@ -23,7 +31,7 @@ class RModel(Model):
 
 
 def as_generator (r_generator):
-  
+
   q = queue.Queue(maxsize = 10)
   it = iter(r_generator)
 
@@ -35,17 +43,15 @@ def as_generator (r_generator):
       if e == '__FINISH__':
           break
       yield e
-  
+
   def eval_loop ():
     try:
       el = next(it)
     except StopIteration:
       el = "__FINISH__"
-    
+
     q.put(el)
 
   eval_loop()
-  
-  return keras_generator(), eval_loop
 
-    
+  return keras_generator(), eval_loop

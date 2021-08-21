@@ -1,5 +1,18 @@
 Sys.setenv(TF_CPP_MIN_LOG_LEVEL = 1)
 
+
+if (reticulate::py_module_available("tensorflow")) {
+  if (!exists(".DID_EMIT_TF_VERSION", envir = .GlobalEnv)) {
+    message("Testing Against Tensorflow Version: ",
+            tensorflow::tf$version$VERSION)
+    .GlobalEnv$.DID_EMIT_TF_VERSION <- TRUE
+    tensorflow::tf$`function`(function(x) tensorflow::tf$abs(x))(-1) # force tf init verbose messages early
+  }
+} else
+  message("TensorFlow not available for testing")
+
+tf_version <- tensorflow::tf_version
+
 skip_if_no_keras <- function(required_version = NULL) {
   if (!is_keras_available(required_version))
     skip("required keras version not available for testing")
@@ -12,15 +25,16 @@ expect_warning_if <- function(cond, expr) {
   )
 }
 
-py_capture_output <- reticulate::import("IPython")$utils$capture$capture_output
+py_capture_output <- reticulate::py_capture_output #import("IPython")$utils$capture$capture_output
+
 
 test_succeeds <- function(desc, expr, required_version = NULL) {
-  
+
   invisible(
     capture.output({
       test_that(desc, {
         skip_if_no_keras(required_version)
-        with(py_capture_output(), {
+        py_capture_output({
           expect_error(force(expr), NA)
         })
       })
@@ -52,7 +66,7 @@ skip_if_tensorflow_implementation <- function() {
 }
 
 define_model <- function() {
-  model <- keras_model_sequential() 
+  model <- keras_model_sequential()
   model %>%
     layer_dense(32, input_shape = 784, kernel_initializer = initializer_ones()) %>%
     layer_activation('relu') %>%
@@ -63,7 +77,7 @@ define_model <- function() {
 
 define_and_compile_model <- function() {
   model <- define_model()
-  model %>% 
+  model %>%
     compile(
       loss='binary_crossentropy',
       optimizer = optimizer_sgd(),
@@ -78,3 +92,39 @@ random_array <- function(dim) {
 
 
 
+
+expect_tensor <- function(x, shape=NULL, shaped_as=NULL) {
+  x_lbl <- quasi_label(rlang::enquo(x), arg = 'x')$lab
+  expect(is_keras_tensor(x),
+         paste(x_lbl, "was wrong S3 class, expected 'tensorflow.tensor', actual", class(x)))
+
+  x_shape <- x$shape$as_list()
+
+  chk_expr <- quote(expect(
+    identical(x_shape, shape),
+    sprintf("%s was wrong shape, expected: %s, actual: %s", x_lbl, x_shape, shape)
+  ))
+
+  if(!is.null(shape)) {
+    eval(chk_expr)
+  }
+
+  if(!is.null(shaped_as)) {
+    shape <- shaped_as$shape$as_list()
+    eval(chk_expr)
+  }
+  invisible(x)
+}
+
+
+expect_same_pyobj <- function(x, y) {
+  eval.parent(bquote(expect_identical(
+    get("pyobj", as.environment(.(x))),
+    get("pyobj", as.environment(.(y)))
+  )))
+}
+
+
+repl_python <- reticulate::repl_python
+py_last_error <- reticulate::py_last_error
+tf <- tensorflow::tf

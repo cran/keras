@@ -15,38 +15,46 @@ test_succeeds("model can be saved and loaded", {
 })
 
 test_succeeds("model with custom loss and metrics can be saved and loaded", {
-  
+
   if (!keras:::have_h5py())
     skip("h5py not available for testing")
-  
+
   model <- define_model()
-  
+
   metric_mean_pred <- custom_metric("mean_pred", function(y_true, y_pred) {
-    k_mean(y_pred) 
+    k_mean(y_pred)
   })
-  
+
   custom_loss <- function(y_pred, y_true) {
     loss_categorical_crossentropy(y_pred, y_true)
   }
-  
+
+  #TODO: /home/tomasz/.virtualenvs/tf-2.5-cpu/lib/python3.8/site-packages/tensorflow/python/keras/optimizer_v2/optimizer_v2.py:374: UserWarning: The `lr` argument is deprecated, use `learning_rate` instead.
   model %>% compile(
     loss = custom_loss,
     optimizer = optimizer_nadam(),
     metrics = metric_mean_pred
   )
-  
+
   tmp <- tempfile("model", fileext = ".hdf5")
   save_model_hdf5(model, tmp)
   model <- load_model_hdf5(tmp, custom_objects = c(mean_pred = metric_mean_pred,
                                                    custom_loss = custom_loss))
-  
+
+  # https://github.com/tensorflow/tensorflow/issues/45903#issuecomment-804973541
+  # broken in tf 2.4 and 2.5, fixed in nightly already
+  if (tf_version() == "2.5")
+    model$compile(optimizer=model$optimizer,
+                  loss = custom_loss,
+                  metrics = metric_mean_pred)
+
   # generate dummy training data
   data <- matrix(rexp(1000*784), nrow = 1000, ncol = 784)
   labels <- matrix(round(runif(1000*10, min = 0, max = 9)), nrow = 1000, ncol = 10)
-  
-  
+
+
   model %>% fit(data, labels, epochs = 2, verbose = 0)
-  
+
 })
 
 test_succeeds("model weights can be saved and loaded", {
@@ -67,16 +75,22 @@ test_succeeds("model can be saved and loaded from json", {
   expect_equal(json, model_to_json(model_from))
 })
 
-test_succeeds("model can be saved and loaded from yaml", {
+## patch releases removed ability to serialize to/from yaml in all the version
+## going back to 2.2
 
-  if (!keras:::have_pyyaml())
-    skip("yaml not available for testing")
-
-  model <- define_model()
-  yaml <- model_to_yaml(model)
-  model_from <- model_from_yaml(yaml)
-  expect_equal(yaml, model_to_yaml(model_from))
-})
+# test_succeeds("model can be saved and loaded from yaml", {
+#
+#   if (!keras:::have_pyyaml())
+#     skip("yaml not available for testing")
+#
+#   if(tf_version() >= "2.5.1")
+#     skip("model$to_yaml() removed in 2.6")
+#
+#   model <- define_model()
+#   yaml <- model_to_yaml(model)
+#   model_from <- model_from_yaml(yaml)
+#   expect_equal(yaml, model_to_yaml(model_from))
+# })
 
 test_succeeds("model can be saved and loaded from R 'raw' object", {
 
@@ -108,12 +122,12 @@ test_succeeds("callback output is redirected to run_dir", {
 
 test_succeeds("model can be exported to TensorFlow", {
   if (!is_backend("tensorflow")) skip("not a tensorflow backend")
-  
+
   model <- define_and_compile_model()
   model_dir <- tempfile()
-  
+
   export <- function() tensorflow::export_savedmodel(model, model_dir)
-  
+
   export()
   model_files <- dir(model_dir, recursive = TRUE)
   expect_true(any(grepl("saved_model\\.pb", model_files)))
@@ -124,27 +138,27 @@ test_succeeds("model can be exported to saved model format", {
   if (!is_backend("tensorflow")) skip("not a tensorflow backend")
   if (!tensorflow::tf_version() >= "1.14") skip("Needs TF >= 1.14")
   if (tensorflow::tf_version() > "2.0") skip("Is deprecated in TF 2.1")
-  
+
   model <- define_and_compile_model()
   data <- matrix(rexp(1000*784), nrow = 1000, ncol = 784)
   labels <- matrix(round(runif(1000*10, min = 0, max = 9)), nrow = 1000, ncol = 10)
-  
+
   model %>% fit(data, labels, epochs = 2, verbose = 0)
-  
+
   model_dir <- tempfile()
   dir.create(model_dir)
-  
+
   if (tensorflow::tf_version() == "2.0") {
     expect_warning({
       model_to_saved_model(model, model_dir)
-      loaded <- model_from_saved_model(model_dir)    
+      loaded <- model_from_saved_model(model_dir)
     })
   } else {
     model_to_saved_model(model, model_dir)
-    loaded <- model_from_saved_model(model_dir)  
+    loaded <- model_from_saved_model(model_dir)
   }
-  
-  
+
+
   expect_equal(
     predict(model, matrix(rep(1, 784), nrow = 1)),
     predict(loaded, matrix(rep(1, 784), nrow = 1))
@@ -152,21 +166,18 @@ test_succeeds("model can be exported to saved model format", {
 })
 
 test_succeeds("model can be exported to saved model format using save_model_tf", {
-  
+
   if (!is_backend("tensorflow")) skip("not a tensorflow backend")
   if (!tensorflow::tf_version() >= "2.0.0") skip("Needs TF >= 2.0")
-  
+
   model <- define_and_compile_model()
   model_dir <- tempfile()
-  
+
   s <- save_model_tf(model, model_dir)
   loaded <- load_model_tf(model_dir)
-  
+
   expect_equal(
     predict(model, matrix(rep(1, 784), nrow = 1)),
     predict(loaded, matrix(rep(1, 784), nrow = 1))
   )
 })
-
-
-

@@ -2,131 +2,91 @@
 % Please edit documentation in R/metrics.R
 \name{metric_binary_accuracy}
 \alias{metric_binary_accuracy}
-\alias{metric_binary_crossentropy}
-\alias{metric_categorical_accuracy}
-\alias{metric_categorical_crossentropy}
-\alias{metric_cosine_proximity}
-\alias{metric_hinge}
-\alias{metric_kullback_leibler_divergence}
-\alias{metric_mean_absolute_error}
-\alias{metric_mean_absolute_percentage_error}
-\alias{metric_mean_squared_error}
-\alias{metric_mean_squared_logarithmic_error}
-\alias{metric_poisson}
-\alias{metric_sparse_categorical_crossentropy}
-\alias{metric_squared_hinge}
-\alias{metric_top_k_categorical_accuracy}
-\alias{metric_sparse_top_k_categorical_accuracy}
-\alias{custom_metric}
-\title{Model performance metrics}
+\title{Calculates how often predictions match binary labels}
 \usage{
-metric_binary_accuracy(y_true, y_pred)
-
-metric_binary_crossentropy(y_true, y_pred)
-
-metric_categorical_accuracy(y_true, y_pred)
-
-metric_categorical_crossentropy(y_true, y_pred)
-
-metric_cosine_proximity(y_true, y_pred)
-
-metric_hinge(y_true, y_pred)
-
-metric_kullback_leibler_divergence(y_true, y_pred)
-
-metric_mean_absolute_error(y_true, y_pred)
-
-metric_mean_absolute_percentage_error(y_true, y_pred)
-
-metric_mean_squared_error(y_true, y_pred)
-
-metric_mean_squared_logarithmic_error(y_true, y_pred)
-
-metric_poisson(y_true, y_pred)
-
-metric_sparse_categorical_crossentropy(y_true, y_pred)
-
-metric_squared_hinge(y_true, y_pred)
-
-metric_top_k_categorical_accuracy(y_true, y_pred, k = 5)
-
-metric_sparse_top_k_categorical_accuracy(y_true, y_pred, k = 5)
-
-custom_metric(name, metric_fn)
+metric_binary_accuracy(
+  y_true,
+  y_pred,
+  threshold = 0.5,
+  ...,
+  name = "binary_accuracy",
+  dtype = NULL
+)
 }
 \arguments{
-\item{y_true}{True labels (tensor)}
+\item{y_true}{Tensor of true targets.}
 
-\item{y_pred}{Predictions (tensor of the same shape as y_true).}
+\item{y_pred}{Tensor of predicted targets.}
 
-\item{k}{An integer, number of top elements to consider.}
+\item{threshold}{(Optional) Float representing the threshold for deciding
+whether prediction values are 1 or 0.}
 
-\item{name}{Name of custom metric}
+\item{...}{Passed on to the underlying metric. Used for forwards and backwards compatibility.}
 
-\item{metric_fn}{Custom metric function}
+\item{name}{(Optional) string name of the metric instance.}
+
+\item{dtype}{(Optional) data type of the metric result.}
+}
+\value{
+If \code{y_true} and \code{y_pred} are missing, a (subclassed) \code{Metric}
+instance is returned. The \code{Metric} object can be passed directly to
+\code{compile(metrics = )} or used as a standalone object. See \code{?Metric} for
+example usage.
+
+Alternatively, if called with \code{y_true} and \code{y_pred} arguments, then the
+computed case-wise values for the mini-batch are returned directly.
 }
 \description{
-Model performance metrics
+Calculates how often predictions match binary labels
 }
-\note{
-Metric functions are to be supplied in the \code{metrics} parameter of the
-\code{\link[=compile.keras.engine.training.Model]{compile.keras.engine.training.Model()}} function.
+\details{
+This metric creates two local variables, \code{total} and \code{count} that are used to
+compute the frequency with which \code{y_pred} matches \code{y_true}. This frequency is
+ultimately returned as \verb{binary accuracy}: an idempotent operation that simply
+divides \code{total} by \code{count}.
+
+If \code{sample_weight} is \code{NULL}, weights default to 1.
+Use \code{sample_weight} of 0 to mask values.
 }
-\section{Custom Metrics}{
-
-You can provide an arbitrary R function as a custom metric. Note that
-the \code{y_true} and \code{y_pred} parameters are tensors, so computations on
-them should use backend tensor functions.
-
-Use the \code{custom_metric()} function to define a custom metric.
-Note that a name ('mean_pred') is provided for the custom metric
-function: this name is used within training progress output.
-See below for an example.
-
-If you want to save and load a model with custom metrics, you should
-also specify the metric in the call the \code{\link[=load_model_hdf5]{load_model_hdf5()}}. For example:
-\code{load_model_hdf5("my_model.h5", c('mean_pred' = metric_mean_pred))}.
-
-Alternatively, you can wrap all of your code in a call to
-\code{\link[=with_custom_object_scope]{with_custom_object_scope()}} which will allow you to refer to the
-metric by name just like you do with built in keras metrics.
-
-Documentation on the available backend tensor functions can be
-found at \url{https://keras.rstudio.com/articles/backend.html#backend-functions}.
+\seealso{
+Other metrics: 
+\code{\link{custom_metric}()},
+\code{\link{metric_accuracy}()},
+\code{\link{metric_auc}()},
+\code{\link{metric_binary_crossentropy}()},
+\code{\link{metric_categorical_accuracy}()},
+\code{\link{metric_categorical_crossentropy}()},
+\code{\link{metric_categorical_hinge}()},
+\code{\link{metric_cosine_similarity}()},
+\code{\link{metric_false_negatives}()},
+\code{\link{metric_false_positives}()},
+\code{\link{metric_hinge}()},
+\code{\link{metric_kullback_leibler_divergence}()},
+\code{\link{metric_logcosh_error}()},
+\code{\link{metric_mean_absolute_error}()},
+\code{\link{metric_mean_absolute_percentage_error}()},
+\code{\link{metric_mean_iou}()},
+\code{\link{metric_mean_relative_error}()},
+\code{\link{metric_mean_squared_error}()},
+\code{\link{metric_mean_squared_logarithmic_error}()},
+\code{\link{metric_mean_tensor}()},
+\code{\link{metric_mean_wrapper}()},
+\code{\link{metric_mean}()},
+\code{\link{metric_poisson}()},
+\code{\link{metric_precision_at_recall}()},
+\code{\link{metric_precision}()},
+\code{\link{metric_recall_at_precision}()},
+\code{\link{metric_recall}()},
+\code{\link{metric_root_mean_squared_error}()},
+\code{\link{metric_sensitivity_at_specificity}()},
+\code{\link{metric_sparse_categorical_accuracy}()},
+\code{\link{metric_sparse_categorical_crossentropy}()},
+\code{\link{metric_sparse_top_k_categorical_accuracy}()},
+\code{\link{metric_specificity_at_sensitivity}()},
+\code{\link{metric_squared_hinge}()},
+\code{\link{metric_sum}()},
+\code{\link{metric_top_k_categorical_accuracy}()},
+\code{\link{metric_true_negatives}()},
+\code{\link{metric_true_positives}()}
 }
-
-\section{Metrics with Parameters}{
-
-
-To use metrics with parameters (e.g. \code{metric_top_k_categorical_accurary()})
-you should create a custom metric that wraps the call with the parameter.
-See below for an example.
-}
-
-\examples{
-\dontrun{
-
-# create metric using backend tensor functions
-metric_mean_pred <- custom_metric("mean_pred", function(y_true, y_pred) {
-  k_mean(y_pred) 
-})
-
-model \%>\% compile(
-  optimizer = optimizer_rmsprop(),
-  loss = loss_binary_crossentropy,
-  metrics = c('accuracy', metric_mean_pred)
-)
-
-# create custom metric to wrap metric with parameter
-metric_top_3_categorical_accuracy <- 
-  custom_metric("top_3_categorical_accuracy", function(y_true, y_pred) {
-    metric_top_k_categorical_accuracy(y_true, y_pred, k = 3) 
-  })
-
-model \%>\% compile(
-  loss = 'categorical_crossentropy',
-  optimizer = optimizer_rmsprop(),
-  metrics = metric_top_3_categorical_accuracy
-)
-}
-}
+\concept{metrics}
