@@ -556,9 +556,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="keras-module" class="section level3">
 <h3>Keras Module</h3>
-<p>Another consideration is gaining access to the underlying Keras python module. You might need to do this if you require lower level access to Keras than is provided for by the Keras R package.</p>
+<p>Another consideration is gaining access to the underlying Keras Python module. You might need to do this if you require lower level access to Keras than is provided for by the Keras R package.</p>
 <p>Since the Keras R package can bind to multiple different implementations of Keras (either the original Keras or the TensorFlow implementation of Keras), you should use the <code>keras::implementation()</code> function to obtain access to the correct python module. You can use this function within the <code>.onLoad</code> function of a package to provide global access to the module within your package. For example:</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keras python module</span></span>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keras Python module</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>keras <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain a reference to the module from the keras R package</span></span>

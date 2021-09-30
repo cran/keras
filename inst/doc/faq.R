@@ -240,7 +240,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  })
 
 ## -----------------------------------------------------------------------------
-#  # Keras python module
+#  # Keras Python module
 #  keras <- NULL
 #  
 #  # Obtain a reference to the module from the keras R package

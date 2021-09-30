@@ -275,6 +275,7 @@ multi_gpu_model <- function(model, gpus = NULL, cpu_merge = TRUE, cpu_relocation
 #' @importFrom reticulate py_to_r_wrapper
 #' @export
 py_to_r_wrapper.keras.engine.training.Model <- function(x) {
+  force(x)
   function(object, ...) {
     compose_layer(object, x, ...)
   }
@@ -282,10 +283,38 @@ py_to_r_wrapper.keras.engine.training.Model <- function(x) {
 
 #' @export
 py_to_r_wrapper.kerastools.model.RModel <- function(x) {
+  force(x)
   function(...) {
     x$call(...)
   }
 }
+
+
+#' @export
+py_to_r_wrapper.keras.engine.base_layer.Layer <- function(x) {
+  force(x)
+  function(object, ...) {
+    if(missing(object))
+      x(...)
+    else
+      compose_layer(object, x, ...)
+  }
+}
+
+
+#  py_to_r_wrapper.keras.engine.base_layer.Layer <- function(x) {
+#    force(x)
+#    function(...) {
+#      if(!missing(..1) && inherits(..1, "keras.engine.sequential.Sequential")) {
+#        if(length(list(...)) > 1)
+#          warning("Other arguments to ... are ignored because layer instance already created")
+#        model <- ..1
+#        model$add(x)
+#        model
+#      } else
+#        x(...)
+#    }
+#  }
 
 
 #' Clone a model instance.
@@ -298,13 +327,23 @@ py_to_r_wrapper.kerastools.model.RModel <- function(x) {
 #'   Sequential model).
 #' @param input_tensors Optional list of input tensors to build the model upon.
 #'   If not provided, placeholders will be created.
+#' @param clone_function Callable to be used to clone each layer in the target
+#'   model (except `InputLayer` instances). It takes as argument the layer
+#'   instance to be cloned, and returns the corresponding layer instance to be
+#'   used in the model copy. If unspecified, this callable defaults to the
+#'   following serialization/deserialization function:
+#'
+#'   ```function(layer) layer$`__class__`$from_config(layer$get_config())```
+#'
+#'   By passing a custom callable, you can customize your copy of the model,
+#'   e.g. by wrapping certain layers of interest (you might want to replace all
+#'   LSTM instances with equivalent `Bidirectional(LSTM(...))` instances, for
+#'   example).
 #'
 #' @export
-clone_model <- function(model, input_tensors = NULL) {
-  keras$models$clone_model(
-    model = model,
-    input_tensors = input_tensors
-  )
+clone_model <- function(model, input_tensors = NULL, clone_function = NULL) {
+  args <- capture_args(match.call())
+  do.call(keras$models$clone_model, args)
 }
 
 
@@ -398,10 +437,11 @@ compile.keras.engine.training.Model <-
            sample_weight_mode = NULL) {
 
     # give losses a name
-    loss_name <- deparse(substitute(loss))
+    loss_name <- substitute(loss)
     if (is.function(loss) &&
-        !inherits(loss, "python.builtin.object"))
-      attr(loss, "py_function_name") <- loss_name
+        !inherits(loss, "python.builtin.object") &&
+        is.null(attr(loss, "py_function_name", TRUE)))
+      attr(loss, "py_function_name") <- as_py_name(loss_name)
 
     # handle metrics
     if (!is.null(metrics)) {
@@ -474,6 +514,14 @@ compile.keras.engine.training.Model <-
 
     # return model invisible (convenience for chaining)
     invisible(object)
+  }
+
+as_py_name <- function(x) {
+  if(is.language(x))
+    x <- deparse(x, width.cutoff = 500L)[1]
+  x <- make.names(as.character(x))
+  x <- gsub(".", "_", x, fixed = TRUE)
+  x
 }
 
 #drop_nulls <-

@@ -104,6 +104,12 @@ NULL
 NULL
 
 
+# if(!exists("isFALSE"))
+if(getRversion() < "3.5")
+  isFALSE <- function(x) {
+    is.logical(x) && length(x) == 1L && !is.na(x) && !x
+  }
+
 py_metric_wrapper <- function(py_fn, py_cls, formals=NULL, modifiers=NULL,
                            py_fn_name = TRUE) {
   modifiers <- substitute(modifiers)

@@ -28,9 +28,10 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   # we need a __module__ because python-keras introspects to see if a layer is
   # subclassed by consulting layer.__module__
   # (not sure why builtins.issubclass() doesn't work over there)
+  # `__module__` is used to construct the S3 class() of py_class instances,
+  # it needs to be stable (e.g, can't use format(x$parent_env))
   if(!"__module__" %in% names(namespace))
-    namespace$`__module__` <- "<R6type>"
-    # sprintf("<R6type.%s.%s>", format(x$parent_env), x$classname)
+    namespace$`__module__` <- "R6type"
 
 
   new_exec_body <- py_eval("lambda ns_entries: (lambda ns: ns.update(ns_entries))",
@@ -38,7 +39,7 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   exec_body <- py_call(new_exec_body,
                        py_dict(names(namespace), unname(namespace), convert))
 
-  py_cls <- py_call(import("types", convert=convert)$new_class,
+  py_class <- py_call(import("types", convert=convert)$new_class,
     name = x$classname,
     bases = inherit$bases,
     kwds = inherit$keywords,
@@ -46,11 +47,11 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   )
 
   # https://github.com/rstudio/reticulate/issues/1024
-  py_cls <- py_to_r(py_cls)
-  assign("convert", convert, as.environment(py_cls))
+  py_class <- py_to_r(py_class)
+  assign("convert", convert, as.environment(py_class))
 
-  env$`__class__` <- py_cls
-  env[[x$classname]] <- py_cls
+  env$`__class__` <- py_class
+  env[[x$classname]] <- py_class
 
   eval(quote({
     super <- base::structure(
@@ -63,7 +64,10 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
       class = "python_class_super")
   }), env)
 
-  py_cls
+  attr(py_class, "r6_class") <- x
+  class(py_class) <- c("py_R6ClassGenerator", class(py_class))
+
+  py_class
 }
 
 
@@ -107,6 +111,9 @@ resolve_py_type_inherits <- function(inherit, convert=FALSE) {
           stop(e, "Supplied superclasses must be python objects, not: ",
                paste(class(cls), collapse = ", "))
       )
+
+    if(inherits(cls, "python.builtin.type") && is.function(cls))
+      force(environment(cls)$callable)
 
     cls
   })
@@ -291,17 +298,24 @@ r_formals_to_py__signature__ <- function(fn) {
 
   inherit <- NULL
   convert <- TRUE
+  delay_load <- !identical(topenv(parent_env), globalenv()) # likely in a package
 
   if (is.call(spec)) {
     classname <- as.character(spec[[1L]])
 
-    # `convert` keyword argument is intercepted here, all other keyword args are
-    # passed on to __builtin__.type() (e.g, metaclass=)
+    # `convert` keyword argument is intercepted here
     if(!is.null(spec$convert)) {
       convert <- eval(spec$convert, parent_env)
       spec$convert <- NULL
     }
 
+    # `delay_load` keyword argument is intercepted here
+    if(!is.null(spec$delay_load)) {
+      delay_load <- eval(spec$delay_load, parent_env)
+      spec$delay_load <- NULL
+    }
+
+    # all other keyword args are passed on to __builtin__.type() (e.g, metaclass=)
     if(length(spec) <= 2) {
       spec <- spec[[length(spec)]]
     } else {
@@ -331,8 +345,9 @@ r_formals_to_py__signature__ <- function(fn) {
       public[[nm]] <- env[[nm]]
   }
 
+
   # R6Class() calls substitute() on inherit;
-  r_cls <- eval(as.call(list(
+  r6_class <- eval(as.call(list(
     quote(R6::R6Class),
     classname = classname,
     public = public,
@@ -342,14 +357,83 @@ r_formals_to_py__signature__ <- function(fn) {
     parent_env = parent_env
   )))
 
-  # TODO: think about best practice for how to delay creating this
-  # if defined in a package.
-  py_cls <- r_to_py.R6ClassGenerator(r_cls, convert)
-  assign(classname, py_cls, envir = parent_env)
-  invisible(py_cls)
+
+  if (delay_load)
+    py_class <- delayed_r_to_py_R6ClassGenerator(r6_class, convert)
+  else
+    py_class <- r_to_py.R6ClassGenerator(r6_class, convert)
+
+  attr(py_class, "r6_class") <- r6_class
+  class(py_class) <- c("py_converted_R6_class_generator", class(py_class))
+
+  assign(classname, py_class, envir = parent_env)
+  invisible(py_class)
 }
 
 if (getRversion() < "4.0")
   activeBindingFunction <- function(nm, env) {
     as.list.environment(env, all.names = TRUE)[[nm]]
   }
+
+#' @importFrom reticulate py_call py_to_r
+py_callable_as_function2 <- function(callable, convert) {
+  force(callable)
+  force(convert)
+
+  function(...) {
+    result <- py_call(callable, ...)
+
+    if (convert)
+      result <- py_to_r(result)
+
+    if (is.null(result))
+      invisible(result)
+    else
+      result
+  }
+}
+
+
+delayed_r_to_py_R6ClassGenerator <- function(r6_class, convert) {
+  force(r6_class)
+  force(convert)
+
+  py_object <- new.env(parent = emptyenv())
+  py_object$delayed <- TRUE
+  attr(py_object, "class") <- c("py_R6ClassGenerator",
+                                "python.builtin.type",
+                                "python.builtin.object")
+  attr(py_object, "r6_class") <- r6_class
+
+  force_py_object <- function(nm) {
+    o <- attr(r_to_py.R6ClassGenerator(r6_class, convert), "py_object")
+    list2env(as.list.environment(o, all.names = TRUE), py_object)
+    rm("delayed", envir = py_object)
+    if(missing(nm))
+      o
+    else
+      get(nm, envir = py_object)
+  }
+
+  delayedAssign("pyobj", force_py_object("pyobj"), assign.env = py_object)
+  delayedAssign("convert", force_py_object("convert"), assign.env = py_object)
+
+  fn <- py_callable_as_function2(NULL, convert)
+  attributes(fn) <- attributes(py_object)
+  attr(fn, "py_object") <- py_object
+
+  delayedAssign("callable", force_py_object(), assign.env = environment(fn))
+
+  fn
+}
+
+#' @export
+print.py_R6ClassGenerator <- function(x, ...) {
+  r6_class <- attr(x, "r6_class")
+  if (isTRUE(get0("delayed", attr(x, "py_object"))))
+    cat(sprintf("<R6type.%s> (delayed)\n", r6_class$classname))
+  else
+    NextMethod()
+
+  print(r6_class)
+}

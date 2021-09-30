@@ -283,7 +283,7 @@ keras_array <- function(x, dtype = NULL) {
 
 #' Check if Keras is Available
 #'
-#' Probe to see whether the Keras python package is available in the current
+#' Probe to see whether the Keras Python package is available in the current
 #' system environment.
 #'
 #' @param version Minimum required version of Keras (defaults to `NULL`, no
@@ -382,15 +382,6 @@ relative_to <- function(dir, file) {
 }
 
 
-as_shape <- function(x) {
-  lapply(x, function(d) {
-    if (is.null(d))
-      NULL
-    else
-      as.integer(d)
-  })
-}
-
 is_keras_tensor <- function(x) {
   if (is_tensorflow_implementation()) {
     if (tensorflow::tf_version() >= "2.0") tensorflow::tf$is_tensor(x) else tensorflow::tf$contrib$framework$is_tensor(x)
@@ -416,27 +407,36 @@ assert_all_dots_named <- function(envir = parent.frame(), cl) {
        paste(deparse(cl, 500L), collapse = "\n"))
 }
 
-capture_args <- function(cl, modifiers = NULL,
-                         envir = parent.frame(),
-                         fn = sys.function(-1)) {
+capture_args <- function(cl, modifiers = NULL, ignore = NULL,
+                         envir = parent.frame(), fn = sys.function(-1)) {
+
   ## bug: match.call() resolves incorrectly if dots are from not the default sys.parent()
   ## e.g, this fails if dots originate from the callers caller:
   #    cl <- eval(quote(match.call()), parent.frame())
   ## workaround: caller must call match.call() from the correct frame
 
+  ## note: capture_args() must always be called at the top level of the intended function body.
+  ## sys.function(-1) resolves to the incorrect function if the  capture_args()
+  ## call is itself a promise in another call. E.g.,:
+  ##   do.call(foo, capture_args(match.call())) fails because fn resolves to do.call()
+
   fn_arg_nms <- names(formals(fn))
   known_args <- intersect(names(cl), fn_arg_nms)
+  known_args <- setdiff(known_args, ignore)
   names(known_args) <- known_args
   cl2 <- c(quote(list), lapply(known_args, as.symbol))
 
-  if("..." %in% fn_arg_nms) {
+  if("..." %in% fn_arg_nms && !"..." %in% ignore) {
     assert_all_dots_named(envir, cl)
     # this might reorder args by assuming ... are last, but it doesn't matter
-    # since everything is supplied as a keyword arg to the python side anyway
+    # since everything is supplied as a keyword arg to the Python side anyway
     cl2 <- c(cl2, quote(...))
   }
 
   args <- eval(as.call(cl2), envir)
+
+  for(nm in intersect(names(args), ignore))
+    args[[nm]] <- NULL
 
   nms_to_modify <- intersect(names(args), names(modifiers))
   for (nm in nms_to_modify)
@@ -445,3 +445,6 @@ capture_args <- function(cl, modifiers = NULL,
 
   args
 }
+
+# TODO
+plot_model <- function(...) {}
