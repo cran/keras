@@ -407,6 +407,9 @@ assert_all_dots_named <- function(envir = parent.frame(), cl) {
        paste(deparse(cl, 500L), collapse = "\n"))
 }
 
+# TODO: should there be some default modifiers in capture_args() for standard layer args
+# like, input_shape, batch_input_shape, etc.
+
 capture_args <- function(cl, modifiers = NULL, ignore = NULL,
                          envir = parent.frame(), fn = sys.function(-1)) {
 
@@ -446,5 +449,5 @@ capture_args <- function(cl, modifiers = NULL, ignore = NULL,
   args
 }
 
-# TODO
-plot_model <- function(...) {}
+
+is_scalar <- function(x) identical(length(x), 1L)

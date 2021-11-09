@@ -1,3 +1,82 @@
+# keras 2.7.0
+
+- Default Tensorflow + Keras version is now 2.7.
+
+- New API for constructing RNN (Recurrent Neural Network) layers. This is a
+  flexible interface that complements the existing RNN layers. It is primarily
+  intended for advanced / research applications, e.g, prototyping novel
+  architectures. It allows you to compose a RNN with a custom "cell", a Keras layer that
+  processes one step of a sequence.
+  New symbols:
+    - `layer_rnn()`, which can compose with builtin cells:
+    - `layer_gru_cell()`
+    - `layer_lstm_cell()`
+    - `layer_simple_rnn_cell()`
+    - `layer_stacked_rnn_cells()`
+  To learn more, including how to make a custom cell layer, see the new vignette:
+  "Working with RNNs".
+
+- New dataset functions:
+  - `text_dataset_from_directory()`
+  - `timeseries_dataset_from_array()`
+
+- New layers:
+  - `layer_additive_attention()`
+  - `layer_conv_lstm_1d()`
+  - `layer_conv_lstm_3d()`
+
+- `layer_cudnn_gru()` and `layer_cudnn_lstm()` are deprecated.
+  `layer_gru()` and `layer_lstm()` will automatically use CuDNN if it is available.
+
+- `layer_lstm()` and `layer_gru()`:
+  default value for `recurrent_activation` changed
+  from `"hard_sigmoid"` to `"sigmoid"`.
+
+- `layer_gru()`: default value `reset_after` changed from `FALSE` to `TRUE`
+
+- New vignette: "Transfer learning and fine-tuning".
+
+- New applications:
+  - MobileNet V3: `application_mobilenet_v3_large()`, `application_mobilenet_v3_small()`
+  - ResNet: `application_resnet101()`, `application_resnet152()`, `resnet_preprocess_input()`
+  - ResNet V2:`application_resnet50_v2()`, `application_resnet101_v2()`,
+              `application_resnet152_v2()` and `resnet_v2_preprocess_input()`
+  - EfficientNet: `application_efficientnet_b{0,1,2,3,4,5,6,7}()`
+
+- Many existing `application_*()`'s gain argument `classifier_activation`,
+  with default `'softmax'`.
+  Affected: `application_{xception, inception_resnet_v2, inception_v3, mobilenet, vgg16, vgg19}()`
+
+- New function `%<-active%`, a ergonomic wrapper around `makeActiveBinding()`
+  for constructing Python `@property` decorated methods in `%py_class%`.
+
+- `bidirectional()` sequence processing layer wrapper gains a `backwards_layer` arguments.
+
+- Global pooling layers `layer_global_{max,average}_pooling_{1,2,3}d()` gain a
+  `keepdims` argument with default value `FALSE`.
+
+- Signatures for layer functions are in the process of being simplified.
+  Standard layer arguments are moving to `...` where appropriate
+  (and will need to be provided as named arguments).
+  Standard layer arguments include:
+    `input_shape`, `batch_input_shape`, `batch_size`, `dtype`,
+    `name`, `trainable`, `weights`.
+  Layers updated:
+    `layer_global_{max,average}_pooling_{1,2,3}d()`,
+    `time_distributed()`, `bidirectional()`,
+    `layer_gru()`, `layer_lstm()`, `layer_simple_rnn()`
+
+- All the backend function with a shape argument `k_*(shape =)` that now accept a
+  a mix of integer tensors and R numerics in the supplied list.
+
+- All layer functions now accept `NA` as a synonym for `NULL` in arguments
+  that specify shape as a vector of dimension values,
+  e.g., `input_shape`, `batch_input_shape`.
+
+- `k_random_uniform()` now automatically casts `minval` and `maxval` to the output dtype.
+
+- `install_keras()` gains arg with default `pip_ignore_installed = TRUE`.
+
 # keras 2.6.1
 
 - New family of *preprocessing* layers. These are the spiritual successor to the `tfdatasets::step_*` family of data transformers (to be deprecated in a future release).
@@ -52,7 +131,7 @@
     `"tf-idf"` is renamed to `"tf_idf"` (backwards compatibility is preserved).
   - Fixed an issue where valid values of `output_mode = "int"` would incorrectly
     return a ragged tensor output shape.
-    
+
 
 - Existing layer instances gain the ability to be added to sequential models via a call. E.g.:
   ```r

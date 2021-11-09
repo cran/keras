@@ -1050,3 +1050,264 @@ image_dataset_from_directory <- function(
   class(out) <- c("tf_dataset", class(out))
   out
 }
+
+#' Generate a `tf.data.Dataset` from text files in a directory
+#'
+#' @details
+#' If your directory structure is:
+#'
+#' ```
+#' main_directory/
+#' ...class_a/
+#' ......a_text_1.txt
+#' ......a_text_2.txt
+#' ...class_b/
+#' ......b_text_1.txt
+#' ......b_text_2.txt
+#' ```
+#'
+#' Then calling `text_dataset_from_directory(main_directory, labels = 'inferred')`
+#' will return a `tf.data.Dataset` that yields batches of texts from
+#' the subdirectories `class_a` and `class_b`, together with labels
+#' 0 and 1 (0 corresponding to `class_a` and 1 corresponding to `class_b`).
+#'
+#' Only `.txt` files are supported at this time.
+#'
+#' @param directory Directory where the data is located.
+#' If `labels` is "inferred", it should contain
+#' subdirectories, each containing text files for a class.
+#' Otherwise, the directory structure is ignored.
+#'
+#' @param labels Either "inferred"
+#' (labels are generated from the directory structure),
+#' NULL (no labels),
+#' or a list of integer labels of the same size as the number of
+#' text files found in the directory. Labels should be sorted according
+#' to the alphanumeric order of the text file paths
+#' (obtained via `os.walk(directory)` in Python).
+#'
+#' @param label_mode - `'int'`: means that the labels are encoded as integers
+#'     (e.g. for `sparse_categorical_crossentropy` loss).
+#' - `'categorical'` means that the labels are
+#'     encoded as a categorical vector
+#'     (e.g. for `categorical_crossentropy` loss).
+#' - `'binary'` means that the labels (there can be only 2)
+#'     are encoded as `float32` scalars with values 0 or 1
+#'     (e.g. for `binary_crossentropy`).
+#' - `NULL` (no labels).
+#'
+#' @param class_names Only valid if `labels` is `"inferred"`. This is the explicit
+#' list of class names (must match names of subdirectories). Used
+#' to control the order of the classes
+#' (otherwise alphanumerical order is used).
+#'
+#' @param batch_size Size of the batches of data. Default: `32`.
+#'
+#' @param max_length Maximum size of a text string. Texts longer than this will
+#' be truncated to `max_length`.
+#'
+#' @param shuffle Whether to shuffle the data. Default: `TRUE`.
+#' If set to `FALSE`, sorts the data in alphanumeric order.
+#'
+#' @param seed Optional random seed for shuffling and transformations.
+#'
+#' @param validation_split Optional float between 0 and 1,
+#' fraction of data to reserve for validation.
+#'
+#' @param subset One of "training" or "validation".
+#' Only used if `validation_split` is set.
+#'
+#' @param follow_links Whether to visits subdirectories pointed to by symlinks.
+#' Defaults to `FALSE`.
+#'
+#' @param ... For future compatibility (unused presently).
+#'
+#' @seealso
+#'   +  <https://www.tensorflow.org/api_docs/python/tf/keras/utils/text_dataset_from_directory>
+#'
+#' @export
+text_dataset_from_directory <-
+function(directory,
+         labels = "inferred",
+         label_mode = "int",
+         class_names = NULL,
+         batch_size = 32L,
+         max_length = NULL,
+         shuffle = TRUE,
+         seed = NULL,
+         validation_split = NULL,
+         subset = NULL,
+         follow_links = FALSE,
+         ...
+)
+{
+  args <- capture_args(match.call(),
+                       list(batch_size = as.integer,
+                            max_length = as_nullable_integer,
+                            seed = as_nullable_integer))
+  do.call(keras$preprocessing$text_dataset_from_directory, args)
+}
+
+
+#' Creates a dataset of sliding windows over a timeseries provided as array
+#'
+#' @details
+#' This function takes in a sequence of data-points gathered at
+#' equal intervals, along with time series parameters such as
+#' length of the sequences/windows, spacing between two sequence/windows, etc.,
+#' to produce batches of timeseries inputs and targets.
+#'
+#' @section Example 1:
+#'
+#' Consider indices `0:99`. With `sequence_length=10`, `sampling_rate=2`,
+#' `sequence_stride=3`, `shuffle=FALSE`, the dataset will yield batches of
+#' sequences composed of the following indices:
+#'
+#' ```
+#' First sequence:  0  2  4  6  8 10 12 14 16 18
+#' Second sequence: 3  5  7  9 11 13 15 17 19 21
+#' Third sequence:  6  8 10 12 14 16 18 20 22 24
+#' ...
+#' Last sequence:   78 80 82 84 86 88 90 92 94 96
+#' ```
+#'
+#' In this case the last 3 data points are discarded since no full sequence
+#' can be generated to include them (the next sequence would have started
+#' at index 81, and thus its last step would have gone over 99).
+#'
+#' @section Example 2: Temporal regression.
+#'
+#' Consider an array `data` of scalar values, of shape `(steps)`.
+#' To generate a dataset that uses the past 10
+#' timesteps to predict the next timestep, you would use:
+#'
+#' ``` R
+#' steps <- 100
+#' # data is integer seq with some noise
+#' data <- array(1:steps + abs(rnorm(steps, sd = .25)))
+#' inputs_data <- head(data, -10) # drop last 10
+#' targets <- tail(data, -10)    # drop first 10
+#' dataset <- timeseries_dataset_from_array(
+#'   inputs_data, targets, sequence_length=10)
+#' library(tfdatasets)
+#' dataset_iterator <- as_iterator(dataset)
+#' repeat {
+#'   batch <- iter_next(dataset_iterator)
+#'   if(is.null(batch)) break
+#'   c(input, target) %<-% batch
+#'   stopifnot(exprs = {
+#'     # First sequence: steps [1-10]
+#'     # Corresponding target: step 11
+#'     all.equal(as.array(input[1, ]), data[1:10])
+#'     all.equal(as.array(target[1]), data[11])
+#'
+#'     all.equal(as.array(input[2, ]), data[2:11])
+#'     all.equal(as.array(target[2]), data[12])
+#'
+#'     all.equal(as.array(input[3, ]), data[3:12])
+#'     all.equal(as.array(target[3]), data[13])
+#'   })
+#' }
+#' ```
+#'
+#' @section Example 3: Temporal regression for many-to-many architectures.
+#'
+#' Consider two arrays of scalar values `X` and `Y`,
+#' both of shape `(100)`. The resulting dataset should consist of samples with
+#' 20 timestamps each. The samples should not overlap.
+#' To generate a dataset that uses the current timestamp
+#' to predict the corresponding target timestep, you would use:
+#'
+#' ``` R
+#' X <- seq(100)
+#' Y <- X*2
+#'
+#' sample_length <- 20
+#' input_dataset <- timeseries_dataset_from_array(
+#'   X, NULL, sequence_length=sample_length, sequence_stride=sample_length)
+#' target_dataset <- timeseries_dataset_from_array(
+#'   Y, NULL, sequence_length=sample_length, sequence_stride=sample_length)
+#'
+#' library(tfdatasets)
+#' dataset_iterator <-
+#'   zip_datasets(input_dataset, target_dataset) %>%
+#'   as_array_iterator()
+#' while(!is.null(batch <- iter_next(dataset_iterator))) {
+#'   c(inputs, targets) %<-% batch
+#'   stopifnot(
+#'     all.equal(inputs[1,], X[1:sample_length]),
+#'     all.equal(targets[1,], Y[1:sample_length]),
+#'     # second sample equals output timestamps 20-40
+#'     all.equal(inputs[2,], X[(1:sample_length) + sample_length]),
+#'     all.equal(targets[2,], Y[(1:sample_length) + sample_length])
+#'   )
+#' }
+#' ```
+#'
+#' @param data array or eager tensor
+#' containing consecutive data points (timesteps).
+#' The first axis is expected to be the time dimension.
+#'
+#' @param targets Targets corresponding to timesteps in `data`.
+#' `targets[i]` should be the target
+#' corresponding to the window that starts at index `i`
+#' (see example 2 below).
+#' Pass NULL if you don't have target data (in this case the dataset will
+#' only yield the input data).
+#'
+#' @param sequence_length Length of the output sequences (in number of timesteps).
+#'
+#' @param sequence_stride Period between successive output sequences.
+#' For stride `s`, output samples would
+#' start at index `data[i]`, `data[i + s]`, `data[i + (2 * s)]`, etc.
+#'
+#' @param sampling_rate Period between successive individual timesteps
+#' within sequences. For rate `r`, timesteps
+#' `data[i], data[i + r], ... data[i + sequence_length]`
+#' are used for create a sample sequence.
+#'
+#' @param batch_size Number of timeseries samples in each batch
+#' (except maybe the last one).
+#'
+#' @param shuffle Whether to shuffle output samples,
+#' or instead draw them in chronological order.
+#'
+#' @param seed Optional int; random seed for shuffling.
+#'
+#' @param start_index Optional int; data points earlier (exclusive)
+#' than `start_index` will not be used
+#' in the output sequences. This is useful to reserve part of the
+#' data for test or validation.
+#'
+#' @param end_index Optional int; data points later (exclusive) than `end_index`
+#' will not be used in the output sequences.
+#' This is useful to reserve part of the data for test or validation.
+#'
+#' @param ... For backwards and forwards compatibility, ignored presently.
+#'
+#' @seealso
+#'   +  <https://www.tensorflow.org/api_docs/python/tf/keras/utils/timeseries_dataset_from_array>
+#'
+#' @returns A `tf.data.Dataset` instance. If `targets` was passed, the
+#'   dataset yields batches of two items: `(batch_of_sequences,
+#'   batch_of_targets)`. If not, the dataset yields only
+#'   `batch_of_sequences`.
+#'
+#' @export
+timeseries_dataset_from_array <-
+function(data, targets, sequence_length, sequence_stride = 1L,
+         sampling_rate = 1L, batch_size = 128L, shuffle = FALSE, ...,
+         seed = NULL, start_index = NULL, end_index = NULL)
+{
+  require_tf_version("2.6", "timeseries_dataset_from_array")
+  args <- capture_args(match.call(), list(
+    sequence_length = as.integer,
+    sequence_stride = as.integer,
+    sampling_rate = as.integer,
+    batch_size = as.integer,
+    seed = as_nullable_integer,
+    start_index = as_nullable_integer,
+    end_index = as_nullable_integer
+    ))
+  do.call(keras$preprocessing$timeseries_dataset_from_array, args)
+}

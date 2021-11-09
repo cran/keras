@@ -3,14 +3,16 @@ library(purrr)
 library(dplyr, warn.conflicts = FALSE)
 library(reticulate)
 library(envir)
+library(tidyr, include.only = "unchop")
+# attach_eval({
+#   import_from(tidyr, unchop)
+# })
+
+# Sys.setenv(RETICULATE_PYTHON = "~/.local/share/r-miniconda/envs/tf-2.7-cpu/bin/python")
+Sys.setenv(RETICULATE_PYTHON = conda_python("tf-2.7-cpu"))
+
 
 options(tibble.print_min = 200)
-# py_to_r.python.builtin.dict_items <- function(x) {
-#   x <- py_eval("lambda x: [(k, v) for k, v in x]")(x)
-#   out <- lapply(x, `[[`, 2L)
-#   names(out) <- lapply(x, `[[`, 1L)
-#   out
-# }
 
 
 attach_eval({
@@ -93,12 +95,14 @@ py_df <-
 
 
 r_df <- tibble(
-  r_name = ls(pattern = "^layer_", envir = asNamespace("keras")),
+  r_name = c(ls(pattern = "^layer_", envir = asNamespace("keras")),
+             "bidirectional", "time_distributed"),
   r_fn = map(r_name, get, envir = asNamespace("keras")),
-  r_formals = map(r_fn, ~ as.list(formals)),
+  r_formals = map(r_fn, ~ as.list(formals(.x))),
   r_args = map(r_formals, names),
   r_py_layer_expr = map(r_fn, ~ (find_keras_layer_dollar_call(body(.x))))
   ) %>%
+  # filter(r_name == "layer_text_vectorization") %>%
   mutate_at("r_py_layer_expr", function(col)
             map(col, ~ { if (is.list(.x)) .x else list(.x) })) %>%
   unchop(r_py_layer_expr) %>%
@@ -113,11 +117,6 @@ r_df <- tibble(
     )
 
 
-# Error in py_get_attr_impl(x, name, silent) :
-#   AttributeError: module 'keras.api._v2.keras.layers' has no attribute 'CuDNNGRU'
-# Error in py_get_attr_impl(x, name, silent) :
-#   AttributeError: module 'keras.api._v2.keras.layers' has no attribute 'CuDNNLSTM'
-
 
 
 # df <- full_join(r_df, py_df, c("r_py_layer_name" = "py_name"))
@@ -130,58 +129,53 @@ missing_layers_df <- df %>%
                          "Wrapper", "TimeDistributed", "Bidirectional",
                          "InputLayer", "Layer", "InputSpec"))
 
-source("tools/make-wrapper2.R")
 
 missing_layers_df %>%
   select(py_name)
-# # A tibble: 37 × 1
-#    py_name
-#    <chr>
-#    image preprocessing
-# 12 Resizing
-# 13 CenterCrop
-# 15 Rescaling
-#
-#    # image augmentation
-# 14 RandomCrop
-# 16 RandomFlip
-# 17 RandomTranslation
-# 18 RandomRotation
-# 19 RandomZoom
-# 21 RandomHeight
-# 22 RandomWidth
-# 20 RandomContrast
-#
-# # categorical features preprocessing
-# 23 CategoryEncoding
-# 25 Hashing
-# 28 StringLookup
-# 26 IntegerLookup
-#
-# # numerical features preprocessing
-# 24 Discretization
-# 27 Normalization
-#
-# # Text preprocessing
-# 29 TextVectorization
-#
-#
-# 30 StackedRNNCells
-# 31 RNN
-# 32 AbstractRNNCell
-# 33 SimpleRNNCell
-# 34 GRUCell
-# 35 LSTMCell
-# 36 ConvLSTM1D
-# 37 ConvLSTM3D
 
 
+# Tensorflow version 2.7.0-rc0
+# # A tibble: 1 × 1
+#   py_name
+#   <chr>
+# 1 AbstractRNNCell
 
+# # A tibble: 6 × 1
+#   py_name
+#   <chr>
+# 1 RNN
+# 2 AbstractRNNCell
+# 3 SimpleRNNCell
+# 4 GRUCell
+# 5 StackedRNNCells
+# 6 LSTMCell
+
+
+if(FALSE) {
+
+source("tools/make-wrapper2.R")
 missing_layers_df$py_obj %>%
-  .[1:18] %>%
   lapply(new_layer_wrapper) %>%
   unlist() %>% str_flatten("\n\n\n") %>%
   {
     clipr::write_clip(.)
     cat(.)
   }
+}
+
+
+row2list <- function(x) lapply(x, \(col) if(is.list(col) && length(col) == 1) col[[1]] else col)
+
+# r wrapper missing args
+df %>%
+  # filter(r_name == "layer_conv_1d") %>%
+  # row2list()
+  mutate(missing_in_r = map2(py_args, r_args, ~ setdiff(.x, c("self", .y)))) %>%
+  relocate(missing_in_r) %>%
+  mutate(across(c(missing_in_r, py_args, r_args), ~map_chr(.x, yasp::pcc))) %>%
+  select(r_name, py_name, missing_in_r, r_args, py_args) %>%
+  filter(missing_in_r != "...") %>%
+  filter(missing_in_r != "") %>%
+  identity()
+
+# TODO: backend, applications

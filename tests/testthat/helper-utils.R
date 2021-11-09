@@ -1,16 +1,15 @@
-Sys.setenv(TF_CPP_MIN_LOG_LEVEL = 1)
+# Sys.setenv(TF_CPP_MIN_LOG_LEVEL = 1)
 
 
+# Sys.setenv(RETICULATE_PYTHON = "~/.local/share/r-miniconda/envs/tf-2.7-cpu/bin/python")
+# Sys.setenv(RETICULATE_PYTHON = "~/.local/share/r-miniconda/envs/tf-nightly-cpu/bin/python")
 # reticulate::use_condaenv("tf-2.5-cpu", required = TRUE)
-# reticulate::use_condaenv("tf-2.1-cpu", required = TRUE)
+# reticulate::use_condaenv("tf-nightly-cpu", required = TRUE)
 
 if (reticulate::py_module_available("tensorflow")) {
-  if (!exists(".DID_EMIT_TF_VERSION", envir = .GlobalEnv)) {
-    message("Testing Against Tensorflow Version: ",
-            tensorflow::tf$version$VERSION)
-    .GlobalEnv$.DID_EMIT_TF_VERSION <- TRUE
-    tensorflow::tf$`function`(function(x) tensorflow::tf$abs(x))(-1) # force tf init verbose messages early
-  }
+  # force verbose tf init messages early
+  tensorflow::tf$`function`(function(x) tensorflow::tf$abs(x))(-1)
+
 } else
   message("TensorFlow not available for testing")
 
