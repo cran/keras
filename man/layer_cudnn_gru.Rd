@@ -2,7 +2,7 @@
 % Please edit documentation in R/layers-recurrent.R
 \name{layer_cudnn_gru}
 \alias{layer_cudnn_gru}
-\title{Fast GRU implementation backed by \href{https://developer.nvidia.com/cudnn}{CuDNN}.}
+\title{(Deprecated) Fast GRU implementation backed by \href{https://developer.nvidia.com/cudnn}{CuDNN}.}
 \usage{
 layer_cudnn_gru(
   object,
@@ -30,10 +30,14 @@ layer_cudnn_gru(
 )
 }
 \arguments{
-\item{object}{What to call the new \code{Layer} instance with. Typically a keras
-\code{Model}, another \code{Layer}, or a \code{tf.Tensor}/\code{KerasTensor}. If \code{object} is
-missing, the \code{Layer} instance is returned, otherwise, \code{layer(object)} is
-returned.}
+\item{object}{What to compose the new \code{Layer} instance with. Typically a
+Sequential model or a Tensor (e.g., as returned by \code{layer_input()}).
+The return value depends on \code{object}. If \code{object} is:
+\itemize{
+\item missing or \code{NULL}, the \code{Layer} instance is returned.
+\item a \code{Sequential} model, the model with an additional layer is returned.
+\item a Tensor, the output tensor from \code{layer_instance(object)} is returned.
+}}
 
 \item{units}{Positive integer, dimensionality of the output space.}
 
@@ -117,3 +121,4 @@ Other recurrent layers:
 \code{\link{layer_simple_rnn}()}
 }
 \concept{recurrent layers}
+\keyword{internal}

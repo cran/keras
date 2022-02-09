@@ -88,7 +88,7 @@ define_and_compile_model <- function() {
   model
 }
 
-random_array <- function(dim) {
+random_array <- function(..., dim = unlist(c(...))) {
   array(runif(prod(dim)), dim = dim)
 }
 
@@ -134,3 +134,11 @@ as_iterator <- reticulate::as_iterator
 
 tf <- tensorflow::tf
 as_tensor <- tensorflow::as_tensor
+
+# modeled after withr::local_
+local_tf_device <- function(device_name = "CPU") {
+  device <- tf$device(device_name)
+  device$`__enter__`()
+  withr::defer_parent(device$`__exit__`())
+  invisible(device)
+}

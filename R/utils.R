@@ -438,6 +438,7 @@ capture_args <- function(cl, modifiers = NULL, ignore = NULL,
 
   args <- eval(as.call(cl2), envir)
 
+  # check `ignore` again, since arg might have been in `...`
   for(nm in intersect(names(args), ignore))
     args[[nm]] <- NULL
 
@@ -451,3 +452,9 @@ capture_args <- function(cl, modifiers = NULL, ignore = NULL,
 
 
 is_scalar <- function(x) identical(length(x), 1L)
+
+is_mac_arm64 <- function() {
+  sys_info <- Sys.info()
+  sys_info[["sysname"]] == "Darwin" &&
+  sys_info[["machine"]] == "arm64"
+}

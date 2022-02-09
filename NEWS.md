@@ -1,3 +1,59 @@
+# keras 2.8.0
+
+- Breaking change: The semantics of passing a named list to `keras_model()` have changed.
+
+  Previously, `keras_model()` would `unname()` supplied `inputs` and `outputs`.
+  Then, if a named list was passed to subsequent
+  `fit()`/`evaluate()`/`call()`/`predict()` invocations,
+  matching of `x` and `y` was done to the model's input and outpt `tensor$name`'s.
+  Now, matching is done to `names()` of `inputs` and/or `outputs` supplied to `keras_model()`.
+  Call `unname()` on `inputs` and `outputs` to restore the old behavior, e.g.:
+    ```
+    keras_model(unname(inputs), unname(outputs))
+    ```
+
+  `keras_model()` can now accept a named list for multi-input and/or multi-output
+  models. The named list is converted to a `dict` in python.
+   (Requires Tensorflow >= 2.4, Python >= 3.7).
+
+  If `inputs` is a named list:
+    - `call()`, `fit()`, `evaluate()`, and `predict()` methods can also
+    accept a named list for `x`, with names matching to the
+    names of `inputs` when the model was constructed.
+    Positional matching of `x` is still also supported (requires python 3.7+).
+
+  If `outputs` is a named list:
+    - `fit()` and `evaluate()` methods can *only*
+    accept a named list for `y`, with names matching to the
+    names of `outputs` when the model was constructed.
+
+- New layer `layer_depthwise_conv_1d()`.
+
+- Models gain `format()` and `print()` S3 methods for compatibility
+  with the latest reticulate. Both are powered by `model$summary()`.
+
+- `summary()` method for Models gains arguments `expand_nested` and `show_trainable`,
+  both default to `FALSE`.
+
+- `keras_model_custom()` is soft deprecated. Please define custom models by
+  subclassing `keras$Model` directly using `%py_class%` or `R6::R6Class()`.
+
+- Fixed warning issued by `k_random_binomial()`.
+
+- Fixed error raised when `k_random_binomial()` was passed a non-floating dtype.
+
+- Added `k_random_bernouli()` as an alias for `k_random_binomial()`.
+
+- `image_load()` gains a `color_mode` argument.
+
+- Fixed issue where `create_layer_wrapper()` would not include arguments
+  with a `NULL` default value in the returned wrapper.
+
+- Fixed issue in `r_to_py.R6ClassGenerator` (and `%py_class%`) where
+  single-expression `initialize` functions defined without `{` would error.
+
+- Deprecated functions are no longer included in the package documentation index.
+
 # keras 2.7.0
 
 - Default Tensorflow + Keras version is now 2.7.

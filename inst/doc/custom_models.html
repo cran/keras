@@ -14,6 +14,19 @@
 
 <title>Writing Custom Keras Models</title>
 
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -34,26 +47,28 @@
   }
 </style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(title);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -62,9 +77,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -320,69 +335,88 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>In addition to <a href="sequential_model.html">sequential models</a> and models created with the <a href="functional_api.html">functional API</a>, you may also define models by defining a custom <code>call()</code> (forward pass) operation.</p>
-<p>To create a custom Keras model, you call the <code>keras_model_custom()</code> function, passing it an R function which in turn returns another R function that implements the custom <code>call()</code> (forward pass) operation. The R function you pass takes a <code>model</code> argument, which provides access to the underlying Keras model object should you need it.</p>
-<p>Typically, you’ll wrap your call to <code>keras_model_custom()</code> in yet another function that enables callers to easily instantiate your custom model.</p>
+<p>In addition to <a href="sequential_model.html">sequential models</a>
+and models created with the <a href="functional_api.html">functional
+API</a>, you may also define models by defining a custom
+<code>call()</code> (forward pass) operation.</p>
+<p>To create a custom Keras model, you call the
+<code>keras_model_custom()</code> function, passing it an R function
+which in turn returns another R function that implements the custom
+<code>call()</code> (forward pass) operation. The R function you pass
+takes a <code>model</code> argument, which provides access to the
+underlying Keras model object should you need it.</p>
+<p>Typically, you’ll wrap your call to <code>keras_model_custom()</code>
+in yet another function that enables callers to easily instantiate your
+custom model.</p>
 </div>
 <div id="creating-a-custom-model" class="section level2">
 <h2>Creating a Custom Model</h2>
-<p>This example demonstrates the implementation of a simple custom model that implements a multi-layer-perceptron with optional dropout and batch normalization:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(keras)</a>
-<a class="sourceLine" id="cb1-2" title="2"></a>
-<a class="sourceLine" id="cb1-3" title="3">keras_model_simple_mlp &lt;-<span class="st"> </span><span class="cf">function</span>(num_classes, </a>
-<a class="sourceLine" id="cb1-4" title="4">                                   <span class="dt">use_bn =</span> <span class="ot">FALSE</span>, <span class="dt">use_dp =</span> <span class="ot">FALSE</span>, </a>
-<a class="sourceLine" id="cb1-5" title="5">                                   <span class="dt">name =</span> <span class="ot">NULL</span>) {</a>
-<a class="sourceLine" id="cb1-6" title="6">  </a>
-<a class="sourceLine" id="cb1-7" title="7">  <span class="co"># define and return a custom model</span></a>
-<a class="sourceLine" id="cb1-8" title="8">  <span class="kw">keras_model_custom</span>(<span class="dt">name =</span> name, <span class="cf">function</span>(self) {</a>
-<a class="sourceLine" id="cb1-9" title="9">    </a>
-<a class="sourceLine" id="cb1-10" title="10">    <span class="co"># create layers we&#39;ll need for the call (this code executes once)</span></a>
-<a class="sourceLine" id="cb1-11" title="11">    self<span class="op">$</span>dense1 &lt;-<span class="st"> </span><span class="kw">layer_dense</span>(<span class="dt">units =</span> <span class="dv">32</span>, <span class="dt">activation =</span> <span class="st">&quot;relu&quot;</span>)</a>
-<a class="sourceLine" id="cb1-12" title="12">    self<span class="op">$</span>dense2 &lt;-<span class="st"> </span><span class="kw">layer_dense</span>(<span class="dt">units =</span> num_classes, <span class="dt">activation =</span> <span class="st">&quot;softmax&quot;</span>)</a>
-<a class="sourceLine" id="cb1-13" title="13">    <span class="cf">if</span> (use_dp)</a>
-<a class="sourceLine" id="cb1-14" title="14">      self<span class="op">$</span>dp &lt;-<span class="st"> </span><span class="kw">layer_dropout</span>(<span class="dt">rate =</span> <span class="fl">0.5</span>)</a>
-<a class="sourceLine" id="cb1-15" title="15">    <span class="cf">if</span> (use_bn)</a>
-<a class="sourceLine" id="cb1-16" title="16">      self<span class="op">$</span>bn &lt;-<span class="st"> </span><span class="kw">layer_batch_normalization</span>(<span class="dt">axis =</span> <span class="dv">-1</span>)</a>
-<a class="sourceLine" id="cb1-17" title="17">    </a>
-<a class="sourceLine" id="cb1-18" title="18">    <span class="co"># implement call (this code executes during training &amp; inference)</span></a>
-<a class="sourceLine" id="cb1-19" title="19">    <span class="cf">function</span>(inputs, <span class="dt">mask =</span> <span class="ot">NULL</span>, <span class="dt">training =</span> <span class="ot">FALSE</span>) {</a>
-<a class="sourceLine" id="cb1-20" title="20">      x &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">dense1</span>(inputs)</a>
-<a class="sourceLine" id="cb1-21" title="21">      <span class="cf">if</span> (use_dp)</a>
-<a class="sourceLine" id="cb1-22" title="22">        x &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">dp</span>(x)</a>
-<a class="sourceLine" id="cb1-23" title="23">      <span class="cf">if</span> (use_bn)</a>
-<a class="sourceLine" id="cb1-24" title="24">        x &lt;-<span class="st"> </span>self<span class="op">$</span><span class="kw">bn</span>(x)</a>
-<a class="sourceLine" id="cb1-25" title="25">      self<span class="op">$</span><span class="kw">dense2</span>(x)</a>
-<a class="sourceLine" id="cb1-26" title="26">    }</a>
-<a class="sourceLine" id="cb1-27" title="27">  })</a>
-<a class="sourceLine" id="cb1-28" title="28">}</a></code></pre></div>
-<p>Note that we include a <code>name</code> parameter so that users can optionally provide a human readable name for the model.</p>
-<p>Note also that when we create layers to be used in our forward pass we set them onto the <code>self</code> object so they are tracked appropriately by Keras.</p>
-<p>In <code>call()</code>, you may specify custom losses by calling <code>self$add_loss()</code>. You can also access any other members of the Keras model you need (or even add fields to the model) by using <code>self$</code>.</p>
+<p>This example demonstrates the implementation of a simple custom model
+that implements a multi-layer-perceptron with optional dropout and batch
+normalization:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>keras_model_simple_mlp <span class="ot">&lt;-</span> <span class="cf">function</span>(num_classes, </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">use_bn =</span> <span class="cn">FALSE</span>, <span class="at">use_dp =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">name =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># define and return a custom model</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">keras_model_custom</span>(<span class="at">name =</span> name, <span class="cf">function</span>(self) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create layers we&#39;ll need for the call (this code executes once)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dense1 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">32</span>, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dense2 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> num_classes, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (use_dp)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>dp <span class="ot">&lt;-</span> <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (use_bn)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>bn <span class="ot">&lt;-</span> <span class="fu">layer_batch_normalization</span>(<span class="at">axis =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># implement call (this code executes during training &amp; inference)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(inputs, <span class="at">mask =</span> <span class="cn">NULL</span>, <span class="at">training =</span> <span class="cn">FALSE</span>) {</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dense1</span>(inputs)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (use_dp)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dp</span>(x)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (use_bn)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">bn</span>(x)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">dense2</span>(x)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Note that we include a <code>name</code> parameter so that users can
+optionally provide a human readable name for the model.</p>
+<p>Note also that when we create layers to be used in our forward pass
+we set them onto the <code>self</code> object so they are tracked
+appropriately by Keras.</p>
+<p>In <code>call()</code>, you may specify custom losses by calling
+<code>self$add_loss()</code>. You can also access any other members of
+the Keras model you need (or even add fields to the model) by using
+<code>self$</code>.</p>
 </div>
 <div id="using-a-custom-model" class="section level2">
 <h2>Using a Custom Model</h2>
-<p>To use a custom model, just call your model’s high-level wrapper function. For example:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(keras)</a>
-<a class="sourceLine" id="cb2-2" title="2"></a>
-<a class="sourceLine" id="cb2-3" title="3"><span class="co"># create the model </span></a>
-<a class="sourceLine" id="cb2-4" title="4">model &lt;-<span class="st"> </span><span class="kw">keras_model_simple_mlp</span>(<span class="dt">num_classes =</span> <span class="dv">10</span>, <span class="dt">use_dp =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb2-5" title="5"></a>
-<a class="sourceLine" id="cb2-6" title="6"><span class="co"># compile graph</span></a>
-<a class="sourceLine" id="cb2-7" title="7">model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">compile</span>(</a>
-<a class="sourceLine" id="cb2-8" title="8">  <span class="dt">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>,</a>
-<a class="sourceLine" id="cb2-9" title="9">  <span class="dt">optimizer =</span> <span class="kw">optimizer_rmsprop</span>(),</a>
-<a class="sourceLine" id="cb2-10" title="10">  <span class="dt">metrics =</span> <span class="kw">c</span>(<span class="st">&#39;accuracy&#39;</span>)</a>
-<a class="sourceLine" id="cb2-11" title="11">)</a>
-<a class="sourceLine" id="cb2-12" title="12"></a>
-<a class="sourceLine" id="cb2-13" title="13"><span class="co"># Generate dummy data</span></a>
-<a class="sourceLine" id="cb2-14" title="14">data &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(<span class="dv">1000</span><span class="op">*</span><span class="dv">100</span>), <span class="dt">nrow =</span> <span class="dv">1000</span>, <span class="dt">ncol =</span> <span class="dv">100</span>)</a>
-<a class="sourceLine" id="cb2-15" title="15">labels &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">round</span>(<span class="kw">runif</span>(<span class="dv">1000</span>, <span class="dt">min =</span> <span class="dv">0</span>, <span class="dt">max =</span> <span class="dv">9</span>)), <span class="dt">nrow =</span> <span class="dv">1000</span>, <span class="dt">ncol =</span> <span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb2-16" title="16"></a>
-<a class="sourceLine" id="cb2-17" title="17"><span class="co"># Convert labels to categorical one-hot encoding</span></a>
-<a class="sourceLine" id="cb2-18" title="18">one_hot_labels &lt;-<span class="st"> </span><span class="kw">to_categorical</span>(labels, <span class="dt">num_classes =</span> <span class="dv">10</span>)</a>
-<a class="sourceLine" id="cb2-19" title="19"></a>
-<a class="sourceLine" id="cb2-20" title="20"><span class="co"># Train the model</span></a>
-<a class="sourceLine" id="cb2-21" title="21">model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">fit</span>(data, one_hot_labels, <span class="dt">epochs=</span><span class="dv">10</span>, <span class="dt">batch_size=</span><span class="dv">32</span>)</a></code></pre></div>
+<p>To use a custom model, just call your model’s high-level wrapper
+function. For example:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create the model </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model_simple_mlp</span>(<span class="at">num_classes =</span> <span class="dv">10</span>, <span class="at">use_dp =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># compile graph</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="fu">optimizer_rmsprop</span>(),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">c</span>(<span class="st">&#39;accuracy&#39;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate dummy data</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(<span class="dv">1000</span><span class="sc">*</span><span class="dv">100</span>), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">100</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">1000</span>, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">9</span>)), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">1</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert labels to categorical one-hot encoding</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>one_hot_labels <span class="ot">&lt;-</span> <span class="fu">to_categorical</span>(labels, <span class="at">num_classes =</span> <span class="dv">10</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Train the model</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit</span>(data, one_hot_labels, <span class="at">epochs=</span><span class="dv">10</span>, <span class="at">batch_size=</span><span class="dv">32</span>)</span></code></pre></div>
 </div>
 
 

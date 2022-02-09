@@ -26,6 +26,19 @@ install_keras <- function(method = c("auto", "virtualenv", "conda"),
                           extra_packages = NULL,
                           ...,
                           pip_ignore_installed = TRUE) {
+  method <- match.arg(method)
+
+  if(is_mac_arm64()) {
+    return(tensorflow::install_tensorflow(
+      method = method,
+      conda = conda,
+      version = version,
+      extra_packages = c("pandas", "Pillow",
+                         "tensorflow-hub",
+                         "tensorflow-datasets",
+                         extra_packages),
+      ...))
+  }
 
   pkgs <- default_extra_packages(tensorflow)
   if(!is.null(extra_packages)) # user supplied package version constraints take precedence
@@ -47,7 +60,7 @@ install_keras <- function(method = c("auto", "virtualenv", "conda"),
   )
 }
 
-default_version <- numeric_version("2.7")
+default_version <- numeric_version("2.8")
 
 default_extra_packages <- function(tensorflow_version) {
   pkgs <- c("tensorflow-hub", "scipy", "requests", "pyyaml", "Pillow", "h5py", "pandas")

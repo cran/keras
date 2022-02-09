@@ -82,7 +82,7 @@ resolve_py_type_inherits <- function(inherit, convert=FALSE) {
   # returns: list(tuple_of_'python.builtin.type's, r_named_list_of_kwds)
   # (both potentially of length 0)
 
-  if(!length(inherit))
+  if(is.null(inherit) || identical(inherit, list()))
     return(list(bases = tuple(), keywords = list()))
 
   bases <-
@@ -163,14 +163,19 @@ as_py_method <- function(fn, name, env, convert) {
 
     doc <- NULL
     if (body(fn)[[1]] == quote(`{`) &&
+        length(body(fn)) > 1 &&
         typeof(body(fn)[[2]]) == "character") {
       doc <- glue::trim(body(fn)[[2]])
       body(fn)[[2]] <- NULL
     }
 
     # __init__ must return NULL
-    if (name == "__init__")
-      body(fn)[[length(body(fn)) + 1L]] <- quote(invisible(NULL))
+    if (name == "__init__") {
+      body(fn) <- substitute({
+        body
+        invisible(NULL)
+      }, list(body = body(fn)))
+    }
 
     # python tensorflow does quite a bit of introspection on user-supplied
     # functions e.g., as part of determining which of the optional arguments

@@ -2,7 +2,7 @@
 % Please edit documentation in R/layers-recurrent.R
 \name{layer_cudnn_lstm}
 \alias{layer_cudnn_lstm}
-\title{Fast LSTM implementation backed by \href{https://developer.nvidia.com/cudnn}{CuDNN}.}
+\title{(Deprecated) Fast LSTM implementation backed by \href{https://developer.nvidia.com/cudnn}{CuDNN}.}
 \usage{
 layer_cudnn_lstm(
   object,
@@ -31,10 +31,14 @@ layer_cudnn_lstm(
 )
 }
 \arguments{
-\item{object}{What to call the new \code{Layer} instance with. Typically a keras
-\code{Model}, another \code{Layer}, or a \code{tf.Tensor}/\code{KerasTensor}. If \code{object} is
-missing, the \code{Layer} instance is returned, otherwise, \code{layer(object)} is
-returned.}
+\item{object}{What to compose the new \code{Layer} instance with. Typically a
+Sequential model or a Tensor (e.g., as returned by \code{layer_input()}).
+The return value depends on \code{object}. If \code{object} is:
+\itemize{
+\item missing or \code{NULL}, the \code{Layer} instance is returned.
+\item a \code{Sequential} model, the model with an additional layer is returned.
+\item a Tensor, the output tensor from \code{layer_instance(object)} is returned.
+}}
 
 \item{units}{Positive integer, dimensionality of the output space.}
 
@@ -107,7 +111,7 @@ Can only be run on GPU, with the TensorFlow backend.
 \section{References}{
 
 \itemize{
-\item \href{https://www.bioinf.jku.at/publications/older/2604.pdf}{Long short-term memory} (original 1997 paper)
+\item \href{http://www.bioinf.jku.at/publications/older/2604.pdf}{Long short-term memory} (original 1997 paper)
 \item \href{https://www.cs.toronto.edu/~graves/preprint.pdf}{Supervised sequence labeling with recurrent neural networks}
 \item \href{https://arxiv.org/abs/1512.05287}{A Theoretically Grounded Application of Dropout in Recurrent Neural Networks}
 }
@@ -122,3 +126,4 @@ Other recurrent layers:
 \code{\link{layer_simple_rnn}()}
 }
 \concept{recurrent layers}
+\keyword{internal}

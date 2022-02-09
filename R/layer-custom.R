@@ -6,7 +6,7 @@
 #'
 #' @docType class
 #'
-#' @format An [R6Class] generator object #'
+#' @format An [R6Class] generator object
 #' @section Methods: \describe{ \item{\code{build(input_shape)}}{Creates the
 #'   layer weights (must be implemented by all layers that have weights)}
 #'   \item{\code{call(inputs,mask)}}{Call the layer on an input tensor.}
@@ -17,6 +17,8 @@
 #'   a weight variable to the layer.} }
 #'
 #' @return [KerasLayer].
+#'
+#' @keywords internal
 #'
 #' @export
 KerasLayer <- R6Class("KerasLayer",
@@ -122,8 +124,8 @@ compat_custom_KerasLayer_handler <- function(layer_class, args) {
 
 
 py_formals <- function(py_obj) {
-  # returns python fn formals as a list (formals(),
-  # but for py functions/methods
+  # returns python fn formals as a list
+  # like base::formals(), but for py functions/methods
   inspect <- reticulate::import("inspect")
   sig <- if (inspect$isclass(py_obj)) {
     inspect$signature(py_obj$`__init__`)
@@ -155,11 +157,11 @@ py_formals <- function(py_obj) {
         warning(glue::glue(
           "Failed to convert default arg {param} for {name} in {py_obj_expr}"
         ))
-      args[[name]] <- quote(expr = )
+      args[name] <- list(quote(expr = ))
       next
     }
 
-    args[[name]] <- default
+    args[name] <- list(default) # default can be NULL
   }
   args
 }

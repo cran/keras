@@ -31,14 +31,12 @@
 #' }
 #' @export
 keras_model <- function(inputs, outputs = NULL, ...) {
-  args <- list(inputs = unname(inputs),
-               outputs = unname(outputs),
-               ...)
-  do.call(keras$models$Model, args)
+  if (tf_version() < "2.4")
+    names(inputs) <- names(outputs) <- NULL
+
+  keras$models$Model(inputs = inputs, outputs = outputs, ...)
 }
 
-# TODO: maybe warn if names are being ignored in keras_model(named_list)?
-# NOTE: keras now accepts a dict here, but it's a footgun since it doesn't check tensor.name.
 
 #' Keras Model composed of a linear stack of layers
 #'
@@ -147,7 +145,7 @@ sequential_model_input_layer <- function(input_shape = NULL,
 
 
 
-#' Replicates a model on different GPUs.
+#' (Deprecated) Replicates a model on different GPUs.
 #'
 #' @param model A Keras model instance. To avoid OOM errors,
 #'   this model could have been built on CPU, for instance
@@ -249,6 +247,7 @@ sequential_model_input_layer <- function(input_shape = NULL,
 #'     classes = num_classes
 #' })
 #' ```
+#' @keywords internal
 #' @export
 multi_gpu_model <- function(model, gpus = NULL, cpu_merge = TRUE, cpu_relocation = FALSE) {
 
@@ -447,9 +446,12 @@ compile.keras.engine.training.Model <-
 
     # handle metrics
     if (!is.null(metrics)) {
-      # convert metrics to list if it isn't one
-      if (!is.list(metrics) && length(metrics) == 1)
+      if(inherits(metrics, "python.builtin.object") ||
+         is.function(metrics))
         metrics <- list(metrics)
+      # convert metrics to list if it isn't one
+      if(is.character(metrics))
+        metrics <- as.list(metrics)
 
       # get metric names (if any)
       metric_names <- names(metrics)
@@ -932,6 +934,7 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verb
 #'
 #' @family model functions
 #'
+#' @keywords internal
 #' @export
 predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
   warning("`predict_proba()` is deprecated and was removed from tensorflow in version 2.6, ",
@@ -956,6 +959,7 @@ predict_proba <- function(object, x, batch_size = NULL, verbose = 0, steps = NUL
 }
 
 #' @rdname predict_proba
+#' @keywords internal
 #' @export
 predict_classes <- function(object, x, batch_size = NULL, verbose = 0, steps = NULL) {
   warning(
@@ -1047,7 +1051,7 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 
 
 
-#' Fits the model on data yielded batch-by-batch by a generator.
+#' (Deprecated) Fits the model on data yielded batch-by-batch by a generator.
 #'
 #' The generator is run in parallel to the model, for efficiency. For instance,
 #' this allows you to do real-time data augmentation on images on CPU in
@@ -1110,6 +1114,7 @@ test_on_batch <- function(object, x, y, sample_weight = NULL) {
 #'
 #' @family model functions
 #'
+#' @keywords internal
 #' @export
 fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
                           verbose=getOption("keras.fit_verbose", default = 1), callbacks = NULL,
@@ -1154,7 +1159,7 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
   do.call(fit, args)
 }
 
-#' Evaluates the model on a data generator.
+#' (Deprecated) Evaluates the model on a data generator.
 #'
 #' The generator should return the same kind of data as accepted by
 #' `test_on_batch()`.
@@ -1172,6 +1177,7 @@ fit_generator <- function(object, generator, steps_per_epoch, epochs = 1,
 #'
 #' @family model functions
 #'
+#' @keywords internal
 #' @export
 evaluate_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1,
                                callbacks = NULL) {
@@ -1196,7 +1202,7 @@ evaluate_generator <- function(object, generator, steps, max_queue_size = 10, wo
 }
 
 
-#' Generates predictions for the input samples from a data generator.
+#' (Deprecated) Generates predictions for the input samples from a data generator.
 #'
 #' The generator should return the same kind of data as accepted by
 #' `predict_on_batch()`.
@@ -1217,6 +1223,7 @@ evaluate_generator <- function(object, generator, steps, max_queue_size = 10, wo
 #'
 #' @family model functions
 #'
+#' @keywords internal
 #' @export
 predict_generator <- function(object, generator, steps, max_queue_size = 10, workers = 1, verbose = 0,
                               callbacks = NULL) {
@@ -1417,34 +1424,67 @@ pop_layer <- function(object) {
 
 #' Print a summary of a Keras model
 #'
-#' @param object Keras model instance
+#' @param object,x Keras model instance
 #' @param line_length Total length of printed lines
 #' @param positions Relative or absolute positions of log elements in each line.
 #'   If not provided, defaults to `c(0.33, 0.55, 0.67, 1.0)`.
-#' @param ... Unused
+#' @param expand_nested Whether to expand the nested models. If not provided,
+#'   defaults to `FALSE`.
+#' @param show_trainable Whether to show if a layer is trainable. If not
+#'   provided, defaults to `FALSE`.
+#' @param ... for `summary()` and `print()`, passed on to `format()`. For
+#'   `format()`, passed on to `model$summary()`.
 #'
 #' @family model functions
 #'
+#' @return `format()` returns a length 1 character vector. `print()` returns the
+#'   model object invisibly. `summary()` returns the output of `format()`
+#'   invisibly after printing it.
+#'
 #' @export
-summary.keras.engine.training.Model <- function(object, line_length = getOption("width"), positions = NULL, ...) {
-  if (py_is_null_xptr(object))
-    cat("<pointer: 0x0>\n")
-  else {
-    if (keras_version() >= "2.0.6")
-      object$summary(line_length = getOption("width"), print_fn = function(object) cat(object, "\n", sep = ""))
-    else
-      cat(py_str(object, line_length = line_length, positions = positions), "\n")
-  }
+summary.keras.engine.training.Model <- function(object, ...) {
+  writeLines(f <- format.keras.engine.training.Model(object, ...))
+  invisible(f)
+}
+
+#' @rdname summary.keras.engine.training.Model
+#' @export
+format.keras.engine.training.Model <-
+  function(x,
+           line_length = getOption("width"),
+           positions = NULL,
+           expand_nested = FALSE,
+           show_trainable = FALSE,
+           ...) {
+    if (py_is_null_xptr(x))
+      return("<pointer: 0x0>")
+
+    args <- capture_args(match.call(), ignore = "x")
+
+    # ensure `line_length` in args, even if not passed by user
+    args$line_length <- as_nullable_integer(line_length)
+
+    if (x$built)
+      trimws(py_capture_output(do.call(x$summary, args),
+                               type = "stdout"))
+     else
+      "Model: <no summary available, model was not built>"
+}
+
+#
+#' @rdname summary.keras.engine.training.Model
+#' @export
+print.keras.engine.training.Model <- function(x, ...) {
+  writeLines(format.keras.engine.training.Model(x, ...))
+  invisible(x)
 }
 
 #' @importFrom reticulate py_str
 #' @export
-py_str.keras.engine.training.Model <- function(object,  line_length = getOption("width"), positions = NULL, ...) {
-  if (!object$built) {
-    cat("Model\n<no summary available, model was not built>\n")
-  } else {
-    paste0("Model\n", py_capture_output(object$summary(line_length = line_length, positions = positions), type = "stdout"))
-  }
+py_str.keras.engine.training.Model <- function(object, line_length = getOption("width"), positions = NULL, ...) {
+  # still invoked by utils::str()
+  # warning("`py_str()` generic is deprecated")
+  format.keras.engine.training.Model(object, line_length = line_length, positions = positions, ...)
 }
 
 

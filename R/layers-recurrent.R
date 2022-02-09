@@ -165,7 +165,7 @@ function(object,
 
 
 
-#' Fast GRU implementation backed by [CuDNN](https://developer.nvidia.com/cudnn).
+#' (Deprecated) Fast GRU implementation backed by [CuDNN](https://developer.nvidia.com/cudnn).
 #'
 #' Can only be run on GPU, with the TensorFlow backend.
 #'
@@ -184,6 +184,7 @@ function(object,
 #'   Application of Dropout in Recurrent Neural
 #'   Networks](https://arxiv.org/abs/1512.05287)
 #'
+#' @keywords internal
 #' @export
 layer_cudnn_gru <- function(object, units,
                             kernel_initializer = "glorot_uniform", recurrent_initializer = "orthogonal", bias_initializer = "zeros",
@@ -238,7 +239,7 @@ layer_cudnn_gru <- function(object, units,
 #' @template roxlate-recurrent-layer
 #'
 #' @section References:
-#' - [Long short-term memory](https://www.bioinf.jku.at/publications/older/2604.pdf) (original 1997 paper)
+#' - [Long short-term memory](http://www.bioinf.jku.at/publications/older/2604.pdf) (original 1997 paper)
 #' - [Supervised sequence labeling with recurrent neural networks](https://www.cs.toronto.edu/~graves/preprint.pdf)
 #' - [A Theoretically Grounded Application of Dropout in Recurrent Neural Networks](https://arxiv.org/abs/1512.05287)
 #'
@@ -282,7 +283,7 @@ function(object,
   create_layer(keras$layers$LSTM, object, args)
 }
 
-#' Fast LSTM implementation backed by [CuDNN](https://developer.nvidia.com/cudnn).
+#' (Deprecated) Fast LSTM implementation backed by [CuDNN](https://developer.nvidia.com/cudnn).
 #'
 #' Can only be run on GPU, with the TensorFlow backend.
 #'
@@ -290,12 +291,13 @@ function(object,
 #' @inheritParams layer_dense
 #'
 #' @section References:
-#' - [Long short-term memory](https://www.bioinf.jku.at/publications/older/2604.pdf) (original 1997 paper)
+#' - [Long short-term memory](http://www.bioinf.jku.at/publications/older/2604.pdf) (original 1997 paper)
 #' - [Supervised sequence labeling with recurrent neural networks](https://www.cs.toronto.edu/~graves/preprint.pdf)
 #' - [A Theoretically Grounded Application of Dropout in Recurrent Neural Networks](https://arxiv.org/abs/1512.05287)
 #'
 #' @family recurrent layers
 #'
+#' @keywords internal
 #' @export
 layer_cudnn_lstm <- function(object, units,
                              kernel_initializer = "glorot_uniform",  recurrent_initializer = "orthogonal",
