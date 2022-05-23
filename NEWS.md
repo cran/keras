@@ -1,3 +1,107 @@
+# keras 2.9.0
+
+- New functions for constructing custom keras subclasses:
+  - `new_model_class()`
+  - `new_layer_class()`
+  - `new_callback_class()`
+  - `new_metric_class()`
+  - `new_loss_class()`
+  - `new_learning_rate_schedule_class()`.
+
+  Also provided is `mark_active()`, a decorator for indicating a class method
+  should be an active binding (i.e., decorated with Python's `@property`).
+  `mark_active()` can be used in the `new_*_class` family of class constructors
+  as well as `%py_class%`.
+  
+-  `r_to_py()` method for R6 classes and `%py_class%` gain support for
+  `private` fields and methods. Any R objects stored in `private` will only be
+  available to methods, and will not be converted to Python.
+
+- New family of functions for controlling optimizer learning rates during training:
+  -  `learning_rate_schedule_cosine_decay()`
+  -  `learning_rate_schedule_cosine_decay_restarts()`
+  -  `learning_rate_schedule_exponential_decay()`
+  -  `learning_rate_schedule_inverse_time_decay()`
+  -  `learning_rate_schedule_piecewise_constant_decay()`
+  -  `learning_rate_schedule_polynomial_decay()`
+
+  Also, a function for constructing custom learning rate schedules:
+  `new_learning_rate_schedule_class()`.
+
+- New L2 unit normilization layer: `layer_unit_normalization()`.
+
+- New `regularizer_orthogonal`, a regularizer that encourages 
+  orthogonality between the rows (or columns) or a weight matrix.
+
+- New `zip_lists()` function for transposing lists, optionally matching by name.
+
+- New `plot()` S3 method for models.
+- `pydot` is now included in the packages installed by `install_keras()`.
+- The `png` package is now listed under Suggests.
+
+- The `%<>%` assignment pipe from magrittr is exported.
+
+- `format()` method for keras models (and derivative methods `print()`, `summary()`,
+  `str()`, and `py_str()`):
+    - gain a new arg `compact`. If `TRUE` (the default) white-space only
+      lines are stripped out of `model.summary()`.
+    - If any layers are marked non-trainable or frozen, the model summary
+      now includes a "Trainable" column, indicating if a layer is frozen.
+
+- `freeze_weights()` and `unfreeze_weights()`:
+  - gain a flexible `which` argument that can accept layer names (as character strings),
+    an integer vector, a boolean vector, or a function that returns a boolean
+    when called with a layer. (see updated examples in `?freeze_weights`
+  - `from` and `to` arguments gain the ability to accept negative integers,
+     to specify layers counting from the end of the layers list.
+
+- `get_weights()` gains a `trainable` argument that can accept `TRUE` or `FALSE`,
+  allowing for returning only the unfrozen or frozen weights, respectively.
+
+- `timeseries_dataset_from_array()`:
+    - R arrays are now cast to the floatx dtype ("float32" by default)
+    - `start_index` and `end_index` now are 1-based.
+
+- `image_dataset_from_directory()` gains a `crop_to_aspect_ratio` argument which
+  can be used to prevent distorting images when resizing to a new aspect ratio.
+
+- `Layer` is deprecated, superseded by `new_layer_class()`.
+
+- `load_model_tf()` argument `custom_objects` gains the ability to accept an
+  unnamed list (e.g, of objects returned by `new_layer_class()` or similar).
+  Appropriate names for the supplied objects are automatically inferred.
+
+- Fixed an issue where negative values less than -1 supplied to `axis`
+  arguments were selecting the wrong axis.
+
+- `get_layer()` gains the ability to accept negative values for the `index` argument.
+
+- Fixed warning from `create_layer_wrapper()` when the custom layer didn't have
+  an overridden `initialize` or `__init__` method.
+
+- Backend functions:
+  - k_clip() `min_value` and `max_value` gain default values of `NULL`,
+    can be omitted. `NULL` is taken as -Inf or Inf, respectively.
+  - k_squeeze(): `axis` argument can be omitted, in which case all axes of size 1 are dropped.
+  - k_tile(): `n` argument can now be supplied as a tensor.
+  - New function `k_unstack()`.
+
+- KerasTensor objects (e.g, returned by `layer_input()`) now inherit S3 methods
+  for `"tensorflow.tensor"`.
+  
+- `plot.keras_training_history()` no longer issues message 
+  ``` `geom_smooth()` using formula 'y ~ x' ``` when `method = "ggplot2"`.
+  
+- `print` and related methods for models (`format`, `summary`) now accept 
+   a `width` argument.
+
+- `evaluate()`, `fit()`, and `predict()` methods for keras Models now default 
+  to `verbose = "auto"`, with verbosity adjusted appropriately based on calls to 
+  `keras$utils$disable_interactive_logging()`, and contexts like 
+  `ParameterServerStrategy`.
+
+- `install_keras()` now accepts `version = "release-cpu"` as a valid specification.
+
 # keras 2.8.0
 
 - Breaking change: The semantics of passing a named list to `keras_model()` have changed.

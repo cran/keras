@@ -2,19 +2,17 @@
 #' @export
 r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
 
-  if(!is.null(x$private_fields) || !is.null(x$private_methods))
-    stop("Python classes do not support private attributes")
-
   inherit <- resolve_py_type_inherits(x$get_inherit(), convert)
 
-  env <- new.env(parent = x$parent_env) # mask that will contain `__class__`
+  mask_env <- new.env(parent = x$parent_env)
+  # common-mask-env: `super`, `__class__`, classname
 
   # R6 by default includes this in public methods list, not applicable here.
   methods <- x$public_methods
   methods$clone <- NULL
 
-  methods <- as_py_methods(methods, env, convert)
-  active <- as_py_methods(x$active, env, convert)
+  methods <- as_py_methods(methods, mask_env, convert)
+  active <- as_py_methods(x$active, mask_env, convert)
 
   # having convert=FALSE here means py callables are not wrapped in R functions
   # https://github.com/rstudio/reticulate/issues/1024
@@ -33,7 +31,6 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   if(!"__module__" %in% names(namespace))
     namespace$`__module__` <- "R6type"
 
-
   new_exec_body <- py_eval("lambda ns_entries: (lambda ns: ns.update(ns_entries))",
                            convert=convert)
   exec_body <- py_call(new_exec_body,
@@ -50,8 +47,10 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   py_class <- py_to_r(py_class)
   assign("convert", convert, as.environment(py_class))
 
-  env$`__class__` <- py_class
-  env[[x$classname]] <- py_class
+  mask_env$`__class__` <- py_class
+  mask_env[[x$classname]] <- py_class
+  attr(mask_env, "get_private") <-
+    new_get_private(r6_class = x, shared_mask_env = mask_env)
 
   eval(quote({
     super <- base::structure(
@@ -62,13 +61,68 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
         reticulate::py_call(bt$super, type, object)
       },
       class = "python_class_super")
-  }), env)
+  }), mask_env)
+
 
   attr(py_class, "r6_class") <- x
   class(py_class) <- c("py_R6ClassGenerator", class(py_class))
 
   py_class
 }
+
+#' @importFrom reticulate py_id
+new_get_private <- function(r6_class, shared_mask_env) {
+  force(r6_class); force(shared_mask_env)
+
+  privates <- list()
+
+  new_instance_private <- function(self, key) {
+
+    private <- new.env(parent = emptyenv())
+    privates[[key]] <<- private
+
+    reticulate::import("weakref")$finalize(
+      self, finalize_instance_private, key)
+
+    if (length(r6_class$private_fields))
+      list2env(r6_class$private_fields, envir = private)
+
+    if (length(r6_class$private_methods)) {
+      instance_mask_env <- new.env(parent = shared_mask_env)
+      instance_mask_env$self <- self
+      instance_mask_env$private <- private
+
+      for (nm in names(r6_class$private_methods)) {
+        method <- r6_class$private_methods[[nm]]
+        environment(method) <- instance_mask_env
+        private[[nm]] <- method
+      }
+    }
+
+    private
+  }
+
+  finalize_instance_private <- function(key) {
+    privates[[key]] <<- NULL
+  }
+
+  function(self) {
+    key <- py_id2(self)
+    .subset2(privates, key) %||% new_instance_private(self, key)
+  }
+}
+
+
+py_id2 <- local({
+  # temporary workaround py_id() overflowing and returning -1L in R 4.2 on windows
+  .id <- function(x) {
+    .id <- py_eval("lambda x: str(id(x))")
+    assign(".id", .id, envir = environment(sys.function()))
+    .id(x)
+  }
+  function(x) .id(x)
+})
+
 
 
 resolve_py_type_inherits <- function(inherit, convert=FALSE) {
@@ -177,6 +231,15 @@ as_py_method <- function(fn, name, env, convert) {
       }, list(body = body(fn)))
     }
 
+    if (!"private" %in% names(formals(fn)) &&
+        "private" %in% all.names(body(fn))) {
+      # any benefit to using delayedAssign here?
+      body(fn) <- substitute({
+        private <- attr(env, "get_private", TRUE)(self)
+        body
+      }, list(body = body(fn), env = env))
+    }
+
     # python tensorflow does quite a bit of introspection on user-supplied
     # functions e.g., as part of determining which of the optional arguments
     # should be passed to layer.call(,training=,mask=). Here, we try to make
@@ -266,6 +329,8 @@ r_formals_to_py__signature__ <- function(fn) {
 #' @export
 #' @aliases py_class
 #'
+#' @seealso <https://keras.rstudio.com/articles/new-guides/python_subclasses.html>
+#'
 #' @examples
 #' \dontrun{
 #' MyClass %py_class% {
@@ -295,6 +360,39 @@ r_formals_to_py__signature__ <- function(fn) {
 #' my_class_instance2$my_method()
 #'
 #' reticulate::py_help(MyClass2) # see the __doc__ strings and more!
+#'
+#' # In addition to `self`, there is also `private` available.
+#' # This is an R environment unique to each class instance, where you can
+#' # store objects that you don't want converted to Python, but still want
+#' # available from methods. You can also assign methods to private, and
+#' # `self` and `private` will be available in private methods.
+#'
+#' MyClass %py_class% {
+#'
+#'   initialize <- function(x) {
+#'     print("Hi from MyClass$initialize()!")
+#'     private$y <- paste("A Private field:", x)
+#'   }
+#'
+#'   get_private_field <- function() {
+#'     private$y
+#'   }
+#'
+#'   private$a_private_method <- function() {
+#'     cat("a_private_method() was called.\n")
+#'     cat("private$y is ", sQuote(private$y), "\n")
+#'   }
+#'
+#'   call_private_method <- function()
+#'     private$a_private_method()
+#' }
+#'
+#' inst1 <- MyClass(1)
+#' inst2 <- MyClass(2)
+#' inst1$get_private_field()
+#' inst2$get_private_field()
+#' inst1$call_private_method()
+#' inst2$call_private_method()
 #' }
 `%py_class%` <- function(spec, body) {
   spec <- substitute(spec)
@@ -335,18 +433,25 @@ r_formals_to_py__signature__ <- function(fn) {
   }
 
   env <- new.env(parent = parent_env)
+  env$private <- new.env(parent = emptyenv())
+
   eval(body, env)
+
   if (!"__doc__" %in% names(env) &&
       body[[1]] == quote(`{`) &&
       typeof(body[[2]]) == "character")
     env$`__doc__` <- glue::trim(body[[2]])
 
+  private <- as.list.environment(env$private, all.names = TRUE)
+  rm(list = "private", envir = env)
+
   public <- active <- list()
-  for(nm in names(env)) {
-    if(bindingIsActive(nm, env)) {
-      # requires R >= 4.0
+  for (nm in names(env)) {
+    if (bindingIsActive(nm, env))
       active[[nm]] <- activeBindingFunction(nm, env)
-    } else
+    else if (is_marked_active(env[[nm]]))
+      active[[nm]] <- env[[nm]]
+    else
       public[[nm]] <- env[[nm]]
   }
 
@@ -356,6 +461,7 @@ r_formals_to_py__signature__ <- function(fn) {
     quote(R6::R6Class),
     classname = classname,
     public = public,
+    private = private,
     active = active,
     inherit = inherit,
     cloneable = FALSE,
@@ -409,13 +515,20 @@ delayed_r_to_py_R6ClassGenerator <- function(r6_class, convert) {
                                 "python.builtin.type",
                                 "python.builtin.object")
   attr(py_object, "r6_class") <- r6_class
-
+  py_object_real <- NULL
+  # keep a reference alive here, since this object
+  # has the C finalizer registered
   force_py_object <- function(nm) {
-    o <- attr(r_to_py.R6ClassGenerator(r6_class, convert), "py_object")
-    list2env(as.list.environment(o, all.names = TRUE), py_object)
-    rm("delayed", envir = py_object)
+    if (exists("delayed", envir = py_object, inherits = FALSE)) {
+      py_object_real <<-
+        attr(r_to_py.R6ClassGenerator(r6_class, convert), "py_object")
+      list2env(as.list.environment(py_object_real, all.names = TRUE),
+               py_object)
+      rm(list = "delayed", envir = py_object)
+    }
+
     if(missing(nm))
-      o
+      py_object
     else
       get(nm, envir = py_object)
   }
@@ -457,6 +570,7 @@ print.py_R6ClassGenerator <- function(x, ...) {
 #' @seealso [`makeActiveBinding()`]
 #'
 #' @examples
+#' set.seed(1234)
 #' x %<-active% function(value) {
 #'   message("Evaluating function of active binding")
 #'   if(missing(value))
@@ -474,3 +588,15 @@ print.py_R6ClassGenerator <- function(x, ...) {
   makeActiveBinding(substitute(sym), value, parent.frame())
   invisible(value)
 }
+
+
+
+maybe_delayed_r_to_py_R6ClassGenerator <-
+  function(x, convert = FALSE,
+           parent_env = parent.frame()) {
+    if (identical(topenv(parent_env), globalenv()))
+      # not in a package
+      r_to_py.R6ClassGenerator(x, convert)
+    else
+      delayed_r_to_py_R6ClassGenerator(x, convert)
+  }

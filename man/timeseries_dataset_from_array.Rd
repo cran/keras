@@ -51,14 +51,10 @@ or instead draw them in chronological order.}
 
 \item{seed}{Optional int; random seed for shuffling.}
 
-\item{start_index}{Optional int; data points earlier (exclusive)
-than \code{start_index} will not be used
+\item{start_index, end_index}{Optional int (1 based); data points earlier
+than \code{start_index} or later then \code{end_index} will not be used
 in the output sequences. This is useful to reserve part of the
 data for test or validation.}
-
-\item{end_index}{Optional int; data points later (exclusive) than \code{end_index}
-will not be used in the output sequences.
-This is useful to reserve part of the data for test or validation.}
 }
 \value{
 A \code{tf.data.Dataset} instance. If \code{targets} was passed, the
@@ -79,12 +75,14 @@ to produce batches of timeseries inputs and targets.
 
 Consider indices \code{0:99}. With \code{sequence_length=10}, \code{sampling_rate=2},
 \code{sequence_stride=3}, \code{shuffle=FALSE}, the dataset will yield batches of
-sequences composed of the following indices:\preformatted{First sequence:  0  2  4  6  8 10 12 14 16 18
+sequences composed of the following indices:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{First sequence:  0  2  4  6  8 10 12 14 16 18
 Second sequence: 3  5  7  9 11 13 15 17 19 21
 Third sequence:  6  8 10 12 14 16 18 20 22 24
 ...
 Last sequence:   78 80 82 84 86 88 90 92 94 96
-}
+}\if{html}{\out{</div>}}
 
 In this case the last 3 data points are discarded since no full sequence
 can be generated to include them (the next sequence would have started
@@ -96,7 +94,9 @@ at index 81, and thus its last step would have gone over 99).
 
 Consider an array \code{data} of scalar values, of shape \code{(steps)}.
 To generate a dataset that uses the past 10
-timesteps to predict the next timestep, you would use:\if{html}{\out{<div class="sourceCode R">}}\preformatted{steps <- 100
+timesteps to predict the next timestep, you would use:
+
+\if{html}{\out{<div class="sourceCode R">}}\preformatted{steps <- 100
 # data is integer seq with some noise
 data <- array(1:steps + abs(rnorm(steps, sd = .25)))
 inputs_data <- head(data, -10) # drop last 10
@@ -132,7 +132,9 @@ Consider two arrays of scalar values \code{X} and \code{Y},
 both of shape \code{(100)}. The resulting dataset should consist of samples with
 20 timestamps each. The samples should not overlap.
 To generate a dataset that uses the current timestamp
-to predict the corresponding target timestep, you would use:\if{html}{\out{<div class="sourceCode R">}}\preformatted{X <- seq(100)
+to predict the corresponding target timestep, you would use:
+
+\if{html}{\out{<div class="sourceCode R">}}\preformatted{X <- seq(100)
 Y <- X*2
 
 sample_length <- 20
@@ -155,6 +157,47 @@ while(!is.null(batch <- iter_next(dataset_iterator))) \{
     all.equal(targets[2,], Y[(1:sample_length) + sample_length])
   )
 \}
+}\if{html}{\out{</div>}}
+}
+
+\section{Example}{
+
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{int_sequence <- seq(20)
+
+dummy_dataset <- timeseries_dataset_from_array(
+  data = head(int_sequence, -3), # drop last 3
+  targets = tail(int_sequence, -3), # drop first 3
+  sequence_length = 3,
+  start_index = 3,
+  end_index = 9,
+  batch_size = 2
+)
+
+library(tfdatasets)
+dummy_dataset_iterator <- as_array_iterator(dummy_dataset)
+
+repeat \{
+  batch <- iter_next(dummy_dataset_iterator)
+  if (is.null(batch)) # iterator exhausted
+    break
+  c(inputs, targets) \%<-\% batch
+  for (r in 1:nrow(inputs))
+    cat(sprintf("input: [ \%s ]  target: \%s\\n",
+                paste(inputs[r,], collapse = " "), targets[r]))
+  cat("---------------------------\\n") # demark batchs
+\}
+}\if{html}{\out{</div>}}
+
+Will give output like:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{input: [ 3 4 5 ]  target: 6
+input: [ 4 5 6 ]  target: 7
+---------------------------
+input: [ 5 6 7 ]  target: 8
+input: [ 6 7 8 ]  target: 9
+---------------------------
+input: [ 7 8 9 ]  target: 10
 }\if{html}{\out{</div>}}
 }
 

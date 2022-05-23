@@ -88,6 +88,7 @@ layer_gaussian_dropout <- function(object, rate, input_shape = NULL,
 #'   rate))`.
 #' @param noise_shape Noise shape
 #' @param seed An integer to use as random seed.
+#' @param ... standard layer arguments.
 #'
 #' @section Input shape: Arbitrary. Use the keyword argument `input_shape` (list
 #'   of integers, does not include the samples axis) when using this layer as
@@ -98,22 +99,21 @@ layer_gaussian_dropout <- function(object, rate, input_shape = NULL,
 #' @section References:
 #'   - [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
 #'
+#' @seealso <https://www.tensorflow.org/api_docs/python/tf/keras/layers/AlphaDropout>
+#'
 #' @family noise layers
 #'
 #' @export
-layer_alpha_dropout <- function(object, rate, noise_shape = NULL, seed = NULL, input_shape = NULL,
-                                batch_input_shape = NULL, batch_size = NULL, dtype = NULL,
-                                name = NULL, trainable = NULL, weights = NULL) {
-  create_layer(keras$layers$AlphaDropout, object, list(
-    rate = rate,
-    noise_shape = noise_shape,
-    seed = as_nullable_integer(seed),
-    input_shape = normalize_shape(input_shape),
-    batch_input_shape = normalize_shape(batch_input_shape),
-    batch_size = as_nullable_integer(batch_size),
-    dtype = dtype,
-    name = name,
-    trainable = trainable,
-    weights = weights
-  ))
+layer_alpha_dropout <-
+function(object, rate, noise_shape = NULL, seed = NULL, ...) {
+  args <- capture_args(match.call(),
+    modifiers = list(
+      seed = as_nullable_integer,
+      input_shape = normalize_shape,
+      batch_input_shape = normalize_shape,
+      batch_size = as_nullable_integer
+    ),
+    ignore = "object"
+  )
+  create_layer(keras$layers$AlphaDropout, object, args)
 }

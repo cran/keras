@@ -180,23 +180,50 @@ with_custom_object_scope <- function(objects, expr) {
 
 
 objects_with_py_function_names <- function(objects) {
-  if (!is.null(objects)) {
-    object_names <- names(objects)
-    if (is.null(object_names))
-      stop("objects must be named", call. = FALSE)
-    objects <- lapply(1:length(objects), function(i) {
-      object <- objects[[i]]
-      if (is.function(object))
-        attr(object, "py_function_name") <- object_names[[i]]
-      object
-    })
-    names(objects) <- object_names
-    objects
-  } else {
-    NULL
-  }
-}
+  if(is.null(objects))
+    return(NULL)
 
+  if(!is.list(objects))
+    objects <- list(objects)
+
+  object_names <- rlang::names2(objects)
+
+  # try to infer missing names or raise an error
+  for (i in seq_along(objects)) {
+    name <- object_names[[i]]
+    o <- objects[[i]]
+    # browser()
+    if (name == "") {
+      if (inherits(o, "keras_layer_wrapper"))
+        o <- attr(o, "Layer")
+
+      if (inherits(o, "python.builtin.object"))
+        name <- o$`__name__`
+      else if (inherits(o, "R6ClassGenerator"))
+        name <- o$classname
+      else if (is.character(attr(o, "py_function_name", TRUE)))
+        name <- attr(o, "py_function_name", TRUE)
+      else
+        stop("object name could not be infered; please supply a named list",
+             call. = FALSE)
+
+      object_names[[i]] <- name
+    }
+  }
+
+  # add a `py_function_name` attr for bare R functions, if it's missing
+  objects <- lapply(1:length(objects), function(i) {
+    object <- objects[[i]]
+    if (is.function(object) &&
+        !inherits(object, "python.builtin.object") &&
+        is.null(attr(object, "py_function_name", TRUE)))
+      attr(object, "py_function_name") <- object_names[[i]]
+    object
+  })
+
+  names(objects) <- object_names
+  objects
+}
 
 #' Keras array object
 #'
@@ -458,3 +485,187 @@ is_mac_arm64 <- function() {
   sys_info[["sysname"]] == "Darwin" &&
   sys_info[["machine"]] == "arm64"
 }
+
+
+#' Plot a Keras model
+#'
+#' @param x A Keras model instance
+#' @param to_file File name of the plot image. If `NULL` (the default), the
+#'   model is drawn on the default graphics device. Otherwise, a file is saved.
+#' @param show_shapes whether to display shape information.
+#' @param show_dtype whether to display layer dtypes.
+#' @param show_layer_names whether to display layer names.
+#' @param ... passed on to `keras$utils$plot_model()`. Used for forward and
+#'   backward compatibility.
+#' @param rankdir a string specifying the format of the plot: `'TB'` creates a
+#'   vertical plot; `'LR'` creates a horizontal plot. (argument passed to PyDot)
+#' @param expand_nested Whether to expand nested models into clusters.
+#' @param dpi Dots per inch. Increase this value if the image text appears
+#'   excessively pixelated.
+#' @param layer_range `list` containing two character strings, which is the
+#'   starting layer name and ending layer name (both inclusive) indicating the
+#'   range of layers for which the plot will be generated. It also accepts regex
+#'   patterns instead of exact name. In such case, start predicate will be the
+#'   first element it matches to `layer_range[1]` and the end predicate will be
+#'   the last element it matches to `layer_range[2]`. By default `NULL` which
+#'   considers all layers of model. Note that you must pass range such that the
+#'   resultant subgraph must be complete.
+#' @param show_layer_activations Display layer activations (only for layers that
+#'   have an `activation` property).
+#'
+#' @return Nothing, called for it's side effects.
+#'
+#' @section Raises: ValueError: if `plot_model` is called before the model is
+#'   built, unless a `input_shape = ` argument was supplied to
+#'   `keras_model_sequential()`.
+#'
+#' @section Requirements:
+#'   This function requires pydot and graphviz.
+#'   `pydot` is by default installed by `install_keras()`, but if you installed
+#'   tensorflow by other means, you can install pydot directly with :
+#'   ````
+#'   reticulate::py_install("pydot", pip = TRUE)
+#'   ````
+#'   In a conda environment, you can install graphviz with:
+#'   ```
+#'   reticulate::conda_install(packages = "graphviz")
+#'   # Restart the R session after install.
+#'   ```
+#'   Otherwise you can install graphviz from here:
+#'   <https://graphviz.gitlab.io/download/>
+#'
+#' @export
+plot.keras.engine.training.Model <-
+function(x,
+         show_shapes = FALSE,
+         show_dtype = FALSE,
+         show_layer_names = TRUE,
+         ...,
+         rankdir = "TB",
+         expand_nested = FALSE,
+         dpi = 96,
+         layer_range = NULL,
+         show_layer_activations = FALSE,
+         to_file = NULL) {
+  args <- capture_args(match.call(), ignore = "x")
+  args$model <- x
+  if (is.null(to_file)) {
+    args$to_file <-
+      tempfile(paste0("keras_", x$name), fileext = ".png")
+    on.exit(unlink(args$to_file))
+  }
+
+  tryCatch(
+    do.call(keras$utils$plot_model, args),
+    error = function(e) {
+      message("See ?keras::plot.keras.engine.training.Model for ",
+              " instructions on how to install graphviz and pydot")
+      e$call <- sys.call(1)
+      stop(e)
+    }
+  )
+  if(!is.null(to_file))
+    return(invisible())
+
+  img <- png::readPNG(args$to_file, native = TRUE)
+  graphics::plot.new()
+  graphics::plot.window(xlim = c(0, ncol(img)), ylim = c(0, nrow(img)),
+                        asp = 1, yaxs = "i", xaxs = "i")
+  graphics::rasterImage(img, 0, 0, ncol(img), nrow(img), interpolate = FALSE)
+  invisible()
+}
+
+
+#' zip lists
+#'
+#' This is conceptually similar to `zip()` in Python, or R functions
+#' `purrr::transpose()` and `data.table::transpose()` (albeit, accepting
+#' elements in `...` instead of a single list), with one crucial difference: if
+#' the provided objects are named, then matching is done by names, not
+#' positions.
+#'
+#' All arguments supplied must be of the same length. If positional matching is
+#' required, then all arguments provided must be unnamed. If matching by names,
+#' then all arguments must have the same set of names, but they can be in
+#' different orders.
+#'
+#' @param ... R lists or atomic vectors, optionally named.
+#'
+#' @return A inverted list
+#' @export
+#'
+#' @examples
+#' gradients <- list("grad_for_wt_1", "grad_for_wt_2", "grad_for_wt_3")
+#' weights <- list("weight_1", "weight_2", "weight_3")
+#' str(zip_lists(gradients, weights))
+#' str(zip_lists(gradient = gradients, weight = weights))
+#'
+#' names(gradients) <- names(weights) <- paste0("layer_", 1:3)
+#' str(zip_lists(gradients, weights[c(3, 1, 2)]))
+#'
+#' names(gradients) <- paste0("gradient_", 1:3)
+#' try(zip_lists(gradients, weights)) # error, names don't match
+#' # call unname directly for positional matching
+#' zip_lists(unname(gradients), unname(weights))
+zip_lists <- function(...) {
+  dots <- list(...)
+  if(length(dots) == 1)
+    dots <- dots[[1L]]
+
+  nms1 <- names(dots[[1L]])
+
+  if (is.character(nms1))
+    if (!anyDuplicated(nms1) && !anyNA(nms1) && !all(nzchar(nms1)))
+      stop("All names must be unique. Call `unname()` if you want positional matching")
+
+  for(i in seq_along(dots)[-1L]) {
+    d_nms <- names(dots[[i]])
+    if(identical(nms1, d_nms))
+       next
+    if(setequal(nms1, d_nms)) {
+      dots[[i]] <- dots[[i]][nms1]
+      next
+    }
+    stop("All names of arguments provided to `zip_lists()` must match.",
+         " Call `unname()` on each argument if you want positional matching")
+  }
+
+  ans <- .mapply(list, dots, NULL)
+  names(ans) <- nms1
+  ans
+}
+
+
+drop_nulls <- function(x, i = NULL) {
+  if(is.null(i))
+    return(x[!vapply(x, is.null, FALSE, USE.NAMES = FALSE)])
+
+  drop <- logical(length(x))
+  names(drop) <- names(x)
+  drop[i] <- vapply(x[i], is.null, FALSE, USE.NAMES = FALSE)
+  x[!drop]
+}
+
+
+
+
+as_r_value <- function (x) {
+  if (inherits(x, "python.builtin.object"))
+    py_to_r(x)
+  else x
+}
+
+
+# internal `[` method that ensures functions in this namespace use one-based
+# indexing in case user has a global option set for zero-based indexing.
+`[.tensorflow.tensor` <-
+  getS3method("[", "tensorflow.tensor", envir = asNamespace("tensorflow"))
+formals(`[.tensorflow.tensor`)$style <- "R"
+formals(`[.tensorflow.tensor`)$options <-
+  tensorflow::tf_extract_opts(
+    one_based = TRUE,
+    inclusive_stop = TRUE,
+    disallow_out_of_bounds = TRUE,
+    warn_tensors_passed_asis = FALSE,
+    warn_negatives_pythonic = FALSE
+  )

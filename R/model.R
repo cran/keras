@@ -694,7 +694,7 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #' @export
 fit.keras.engine.training.Model <-
   function(object, x = NULL, y = NULL, batch_size=NULL, epochs=10,
-           verbose=getOption("keras.fit_verbose", default = 1), callbacks=NULL,
+           verbose=getOption("keras.fit_verbose", default = "auto"), callbacks=NULL,
            view_metrics = getOption("keras.view_metrics", default = "auto"),
            validation_split=0.0, validation_data=NULL, shuffle=TRUE,
            class_weight=NULL, sample_weight=NULL, initial_epoch=0,
@@ -715,7 +715,7 @@ fit.keras.engine.training.Model <-
   args <- list(
     batch_size = as_nullable_integer(batch_size),
     epochs = as.integer(epochs),
-    verbose = as.integer(verbose),
+    verbose = as_model_verbose_arg(verbose),
     validation_split = validation_split,
     shuffle = shuffle,
     class_weight = as_class_weight(class_weight),
@@ -789,7 +789,7 @@ fit.keras.engine.training.Model <-
 #'
 #' @export
 evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, batch_size = NULL,
-                                                 verbose=1, sample_weight = NULL, steps = NULL,
+                                                 verbose="auto", sample_weight = NULL, steps = NULL,
                                                  callbacks = NULL, ...) {
 
   # defaults
@@ -799,7 +799,7 @@ evaluate.keras.engine.training.Model <- function(object, x = NULL, y = NULL, bat
   # args
   args <- list(
     batch_size = as_nullable_integer(batch_size),
-    verbose = as.integer(verbose),
+    verbose = as_model_verbose_arg(verbose),
     sample_weight = sample_weight
   )
 
@@ -856,7 +856,9 @@ resolve_callbacks <- function(args, callbacks) {
 #'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or
 #'   `(inputs, targets, sample_weights)`.
 #' @param batch_size Integer. If unspecified, it will default to 32.
-#' @param verbose Verbosity mode, 0 or 1.
+#' @param verbose Verbosity mode, 0, 1, 2, or "auto". "auto" defaults to 1
+#'   for for most cases and defaults to `verbose=2` when used with
+#'   ParameterServerStrategy or with interactive logging disabled.
 #' @param callbacks List of callbacks to apply during prediction.
 #' @param ... Unused
 #'
@@ -867,18 +869,26 @@ resolve_callbacks <- function(args, callbacks) {
 #'
 #' @importFrom stats predict
 #' @export
-predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verbose=0, steps=NULL,
-                                                callbacks = NULL,...) {
+predict.keras.engine.training.Model <-
+function(object,
+         x,
+         batch_size = NULL,
+         verbose = "auto",
+         steps = NULL,
+         callbacks = NULL,
+         ...) {
 
   # defaults
   if (is.null(batch_size) && is.null(steps) &&!is_tensorflow_dataset(x))
     batch_size <- 32L
 
+
   # args
   args <- list(
     batch_size = as_nullable_integer(batch_size),
-    verbose = as.integer(verbose)
+    verbose = as_model_verbose_arg(verbose, 0L)
   )
+
 
   args <- append(args, resolve_input_data(x))
 
@@ -900,6 +910,12 @@ predict.keras.engine.training.Model <- function(object, x, batch_size=NULL, verb
 
   # call predict
   do.call(object$predict, args)
+}
+
+as_model_verbose_arg <- function(x, old_default = 1L) {
+  if(tf_version() < "2.9" && x == "auto")
+    return(old_default)
+  if(x == "auto") x else as.integer(x)
 }
 
 
@@ -1386,7 +1402,8 @@ resolve_tensorflow_dataset <- function(x) {
 #'
 #' @param object Keras model object
 #' @param name String, name of layer.
-#' @param index Integer, index of layer (1-based)
+#' @param index Integer, index of layer (1-based). Also valid are negative
+#'   values, which count from the end of model.
 #'
 #' @return A layer instance.
 #'
@@ -1394,18 +1411,9 @@ resolve_tensorflow_dataset <- function(x) {
 #'
 #' @export
 get_layer <- function(object, name = NULL, index = NULL) {
-
-  # convert to layer index
-  index <- as_layer_index(index)
-
-  # check for 0
-  if (identical(index, -1L))
-    stop("Indexes for get_layer() are 1-based (0 was passed as the index)")
-
-  # call get_layer
   object$get_layer(
     name = name,
-    index = index
+    index = as_layer_index(index)
   )
 }
 
@@ -1432,6 +1440,9 @@ pop_layer <- function(object) {
 #'   defaults to `FALSE`.
 #' @param show_trainable Whether to show if a layer is trainable. If not
 #'   provided, defaults to `FALSE`.
+#' @param compact Whether to remove white-space only lines from the model
+#'   summary. (Default `TRUE`)
+#' @param width the column width to use for printing.
 #' @param ... for `summary()` and `print()`, passed on to `format()`. For
 #'   `format()`, passed on to `model$summary()`.
 #'
@@ -1450,25 +1461,38 @@ summary.keras.engine.training.Model <- function(object, ...) {
 #' @rdname summary.keras.engine.training.Model
 #' @export
 format.keras.engine.training.Model <-
-  function(x,
-           line_length = getOption("width"),
-           positions = NULL,
-           expand_nested = FALSE,
-           show_trainable = FALSE,
-           ...) {
-    if (py_is_null_xptr(x))
-      return("<pointer: 0x0>")
+function(x,
+         line_length = width - (11L * show_trainable),
+         positions = NULL,
+         expand_nested = FALSE,
+         show_trainable = x$built && as.logical(length(x$non_trainable_weights)),
+         ...,
+         compact = TRUE,
+         width = getOption("width")) {
 
-    args <- capture_args(match.call(), ignore = "x")
+  if (py_is_null_xptr(x))
+    return("<pointer: 0x0>")
 
-    # ensure `line_length` in args, even if not passed by user
-    args$line_length <- as_nullable_integer(line_length)
+  args <- capture_args(match.call(), ignore = c("x", "compact", "width"))
 
-    if (x$built)
-      trimws(py_capture_output(do.call(x$summary, args),
-                               type = "stdout"))
-     else
-      "Model: <no summary available, model was not built>"
+  # ensure `line_length` and other args captured, even if not passed by user
+  args$line_length <- as_nullable_integer(line_length)
+  if(tf_version() >= "2.8")
+    args$show_trainable <- show_trainable
+
+  out <- if (x$built)
+    trimws(py_capture_output(do.call(x$summary, args),
+                             type = "stdout"))
+   else
+    "Model: <no summary available, model was not built>"
+
+  if(compact) {
+    # strip empty lines
+    out <- gsub("(\\n\\s*\\n)", "\n", out, perl = TRUE)
+    if(expand_nested)
+      out <- gsub("\\n\\|\\s+\\|\\n", "\n", out)
+  }
+  out
 }
 
 #

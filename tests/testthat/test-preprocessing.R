@@ -135,6 +135,9 @@ test_succeeds("flow images from directory works", {
   if (!have_pillow())
     skip("Pillow required.")
 
+  if(!requireNamespace("jpeg", quietly = TRUE))
+    skip("'jpeg' package required")
+
   dir <- tempfile()
   dir.create(dir)
   dir.create(paste0(dir, "/flow-img"))
@@ -182,6 +185,9 @@ test_succeeds("images_dataset_from_directory", {
 
   if (tensorflow::tf_version() < "2.3")
     skip("requires tf_version() >= 2.3")
+
+  if(!requireNamespace("jpeg", quietly = TRUE))
+    skip("'jpeg' package required")
 
   dir <- tempfile()
   dir.create(dir)
@@ -251,6 +257,10 @@ test_succeeds("timeseries_dataset_from_array", {
   steps <- 100
   # data is integer seq with some noise
   data <- array(1:steps + abs(rnorm(steps, sd = .25)))
+
+  # downcast once to float32 and back to double, so all.equal() doesn't flag diffs from casting
+  data <- reticulate::py_to_r(reticulate::np_array(data, "float32"))
+
   inputs_data <- head(data, -10) # drop last 10
   targets <- tail(data, -10)    # drop first 10
   dataset <- timeseries_dataset_from_array(
