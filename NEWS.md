@@ -1,3 +1,45 @@
+# keras 2.11.0
+
+- Default TensorFlow version installed by `install_keras()` is now 2.11. 
+
+- All optimizers have been updated for keras/tensorflow version 2.11.
+  Arguments to all the optimizers have changed. To access the previous
+  optimizer implementations, use the constructors available at
+  `keras$optimizers$legacy`. For example, use `keras$optimizers$legacy$Adam()`
+  for the previous implementation of `optimizer_adam()`.
+
+- New optimizer `optimizer_frtl()`.
+
+- updates to layers:
+  - `layer_attention()` gains `score_mode` and `dropout` arguments.
+  - `layer_discretization()` gains `output_mode` and `sparse` arguments.
+  - `layer_gaussian_dropout()` and `layer_gaussian_noise()` gain a `seed` argument.
+  - `layer_hashing()` gains `output_mode` and `sparse` arguments.
+  - `layer_integer_lookup()` gains `vocabulary_dtype` and `idf_weights` arguments.
+  - `layer_normalization()` gains an `invert` argument.
+  - `layer_string_lookup()` gains an `idf_weights` argument.
+
+- Fixed issue where `input_shape` supplied to custom layers defined with `new_layer_class()`  
+  would result in an error (#1338)
+
+- New `callback_backup_and_restore()`, for resuming an interrupted `fit()` call.
+
+- The merging family of layers (`layer_add`, `layer_concatenate`, etc.) gain the ability
+  to accept layers in `...`, allowing for easier composition of residual blocks with the pipe `%>%`.
+  e.g. something like this now works:
+  ```r
+  block_1_output <- ...
+  block_2_output <- block_1_output %>% 
+    layer_conv_2d(64, 3, activation = "relu", padding = "same") %>% 
+    layer_add(block_1_output)
+  ```
+  
+- `model$get_config()` method now returns an R object that can be safely serialized 
+  to rds.
+  
+- `keras_array()` now reflects unconverted Python objects. This enables passing
+  objects like `pandas.Series()` to `fit()` and `evaluate()` methods. (#1341)
+
 # keras 2.9.0
 
 - New functions for constructing custom keras subclasses:
@@ -12,7 +54,7 @@
   should be an active binding (i.e., decorated with Python's `@property`).
   `mark_active()` can be used in the `new_*_class` family of class constructors
   as well as `%py_class%`.
-  
+
 -  `r_to_py()` method for R6 classes and `%py_class%` gain support for
   `private` fields and methods. Any R objects stored in `private` will only be
   available to methods, and will not be converted to Python.
@@ -30,7 +72,7 @@
 
 - New L2 unit normilization layer: `layer_unit_normalization()`.
 
-- New `regularizer_orthogonal`, a regularizer that encourages 
+- New `regularizer_orthogonal`, a regularizer that encourages
   orthogonality between the rows (or columns) or a weight matrix.
 
 - New `zip_lists()` function for transposing lists, optionally matching by name.
@@ -88,16 +130,16 @@
 
 - KerasTensor objects (e.g, returned by `layer_input()`) now inherit S3 methods
   for `"tensorflow.tensor"`.
-  
-- `plot.keras_training_history()` no longer issues message 
+
+- `plot.keras_training_history()` no longer issues message
   ``` `geom_smooth()` using formula 'y ~ x' ``` when `method = "ggplot2"`.
-  
-- `print` and related methods for models (`format`, `summary`) now accept 
+
+- `print` and related methods for models (`format`, `summary`) now accept
    a `width` argument.
 
-- `evaluate()`, `fit()`, and `predict()` methods for keras Models now default 
-  to `verbose = "auto"`, with verbosity adjusted appropriately based on calls to 
-  `keras$utils$disable_interactive_logging()`, and contexts like 
+- `evaluate()`, `fit()`, and `predict()` methods for keras Models now default
+  to `verbose = "auto"`, with verbosity adjusted appropriately based on calls to
+  `keras$utils$disable_interactive_logging()`, and contexts like
   `ParameterServerStrategy`.
 
 - `install_keras()` now accepts `version = "release-cpu"` as a valid specification.

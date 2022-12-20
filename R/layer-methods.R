@@ -12,6 +12,8 @@
 #'
 #' @param object Layer or model object
 #' @param config Object with layer or model configuration
+#' @param custom_objects list of custom objects needed to instantiate the layer,
+#'   e.g., custom layers defined by `new_layer_class()` or similar.
 #'
 #' @return `get_config()` returns an object with the configuration,
 #'   `from_config()` returns a re-instantiation of the object.
@@ -38,12 +40,27 @@ get_config <- function(object) {
   config
 }
 
+# model$get_config() returns a nested object of list/dicts, but the contract
+# is that the object is serializable to json, which means that once
+# reticulate conversion rules are redone, the config will be guaranteed to be safe
+# to convert to R and back.
+
+# this py_to_r method is so that model$get_config() can return a pure R object.
+# A keras SharedObjectConfig is a keras dictionary
+#' @export
+py_to_r.keras.utils.generic_utils.SharedObjectConfig <- function(x) {
+  import_builtins()$dict(x)
+}
+
 
 #' @rdname get_config
 #' @export
-from_config <- function(config) {
-  class <- attr(config, "config_class")
-  class$from_config(config)
+from_config <- function(config, custom_objects = NULL) {
+  class <- attr(config, "config_class") %||% keras$Model
+  args <- list(config)
+  if(length(custom_objects))
+    args[[2L]] <- objects_with_py_function_names(custom_objects)
+  do.call(class$from_config, args)
 }
 
 #' Layer/Model weights as R arrays

@@ -7,12 +7,15 @@
 \usage{
 get_config(object)
 
-from_config(config)
+from_config(config, custom_objects = NULL)
 }
 \arguments{
 \item{object}{Layer or model object}
 
 \item{config}{Object with layer or model configuration}
+
+\item{custom_objects}{list of custom objects needed to instantiate the layer,
+e.g., custom layers defined by \code{new_layer_class()} or similar.}
 }
 \value{
 \code{get_config()} returns an object with the configuration,

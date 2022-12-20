@@ -278,6 +278,11 @@ keras_array <- function(x, dtype = NULL) {
     x <- as.list(x)
   }
 
+  # allow passing things like pandas.Series(), for workarounds like
+  # https://github.com/rstudio/keras/issues/1341
+  if(inherits(x, "python.builtin.object"))
+    return(x)
+
   # recurse for lists
   if (is.list(x))
     return(lapply(x, keras_array))
@@ -418,6 +423,14 @@ is_keras_tensor <- function(x) {
 }
 
 
+split_dots_named_unnamed <- function(dots) {
+  nms <- names(dots)
+  if (is.null(nms))
+    return(list(unnamed = dots, named = list()))
+  named <- nzchar(nms)
+  list(unnamed = dots[!named], named = dots[named])
+}
+
 
 assert_all_dots_named <- function(envir = parent.frame(), cl) {
 
@@ -436,6 +449,8 @@ assert_all_dots_named <- function(envir = parent.frame(), cl) {
 
 # TODO: should there be some default modifiers in capture_args() for standard layer args
 # like, input_shape, batch_input_shape, etc.
+
+
 
 capture_args <- function(cl, modifiers = NULL, ignore = NULL,
                          envir = parent.frame(), fn = sys.function(-1)) {
@@ -606,7 +621,7 @@ function(x,
 #' names(gradients) <- paste0("gradient_", 1:3)
 #' try(zip_lists(gradients, weights)) # error, names don't match
 #' # call unname directly for positional matching
-#' zip_lists(unname(gradients), unname(weights))
+#' str(zip_lists(unname(gradients), unname(weights)))
 zip_lists <- function(...) {
   dots <- list(...)
   if(length(dots) == 1)
@@ -669,3 +684,13 @@ formals(`[.tensorflow.tensor`)$options <-
     warn_tensors_passed_asis = FALSE,
     warn_negatives_pythonic = FALSE
   )
+
+
+
+standard_layer_arg_modifiers <- list(
+    input_shape = normalize_shape,
+    batch_input_shape = normalize_shape,
+    batch_size = as_nullable_integer,
+    seed = as_nullable_integer
+  )
+

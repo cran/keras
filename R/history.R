@@ -59,6 +59,8 @@ print.keras_training_history <- function(x, ...) {
 #'   black and white.
 #' @param ... Additional parameters to pass to the [plot()] method.
 #'
+#' @importFrom rlang .data
+#'
 #' @export
 plot.keras_training_history <- function(x, y, metrics = NULL, method = c("auto", "ggplot2", "base"),
                                         smooth = getOption("keras.plot.history.smooth", TRUE),
@@ -95,11 +97,11 @@ plot.keras_training_history <- function(x, y, metrics = NULL, method = c("auto",
 
     if (do_validation) {
       if (theme_bw)
-        p <- ggplot2::ggplot(df, ggplot2::aes_(~epoch, ~value, color = ~data, fill = ~data, linetype = ~data, shape = ~data))
+        p <- ggplot2::ggplot(df, ggplot2::aes(.data$epoch, .data$value, color = .data$data, fill = .data$data, linetype = .data$data, shape = .data$data))
       else
-        p <- ggplot2::ggplot(df, ggplot2::aes_(~epoch, ~value, color = ~data, fill = ~data))
+        p <- ggplot2::ggplot(df, ggplot2::aes(.data$epoch, .data$value, color = .data$data, fill = .data$data))
     } else {
-      p <- ggplot2::ggplot(df, ggplot2::aes_(~epoch, ~value))
+      p <- ggplot2::ggplot(df, ggplot2::aes(.data$epoch, .data$value))
     }
 
     smooth_args <- list(se = FALSE, method = 'loess', na.rm = TRUE,
@@ -145,12 +147,13 @@ plot.keras_training_history <- function(x, y, metrics = NULL, method = c("auto",
       # adjust margins
       top_plot <- i == 1
       bottom_plot <- i == length(metrics)
+
+      mar <- c(1.5, 5, 0.5, 1.5)
       if (top_plot)
-        par(mar = c(1.5, 3, 1.5, 1.5))
-      else if (bottom_plot)
-        par(mar = c(2.5, 3, .5, 1.5))
-      else
-        par(mar = c(1.5, 3, .5, 1.5))
+        mar[3] %<>% `+`(3.5)
+      if (bottom_plot)
+        mar[1] %<>% `+`(3.5)
+      par(mar = mar)
 
       # select data for current panel
       df2 <- df[df$metric == metric, ]
