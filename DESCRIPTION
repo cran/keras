@@ -1,10 +1,10 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.11.0
+Version: 2.11.1
 Authors@R: c(
   person("Tomasz", "Kalinowski", role = c("ctb", "cph", "cre"),
-         email = "tomasz.kalinowski@rstudio.com"),
+         email = "tomasz@posit.co"),
   person("Daniel", "Falbel", role = c("ctb", "cph"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
   person("François", "Chollet", role = c("aut", "cph")),
@@ -34,7 +34,7 @@ Suggests: ggplot2, testthat (>= 2.1.0), knitr, rmarkdown, callr,
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-12-20 14:02:28 UTC; tomasz
+Packaged: 2023-03-20 14:34:56 UTC; tomasz
 Author: Tomasz Kalinowski [ctb, cph, cre],
   Daniel Falbel [ctb, cph],
   JJ Allaire [aut, cph],
@@ -45,6 +45,6 @@ Author: Tomasz Kalinowski [ctb, cph, cre],
   Wouter Van Der Bijl [ctb, cph],
   Martin Studer [ctb, cph],
   Sigrid Keydana [ctb]
-Maintainer: Tomasz Kalinowski <tomasz.kalinowski@rstudio.com>
+Maintainer: Tomasz Kalinowski <tomasz@posit.co>
 Repository: CRAN
-Date/Publication: 2022-12-20 15:40:02 UTC
+Date/Publication: 2023-03-20 16:10:02 UTC

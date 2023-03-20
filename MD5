@@ -1,7 +1,7 @@
-b9c3c18522d56719723fc73837cb3c05 *DESCRIPTION
+a4545614f9454d8473faf52b61e9c01d *DESCRIPTION
 c4aa4877dadce245c4155ed9006e2324 *LICENSE
 a30a3b11bf0891f261453e2da185f5bd *NAMESPACE
-cce027f31fc4f98f19a6cefbcb2668ca *NEWS.md
+da2de9e7bdb2de07ad05b5ead4899c00 *NEWS.md
 0a1fd4b854451f526b50982d5ca0a5ef *R/Layer.R
 3f650c2a9073ce269bac66211e5c73bb *R/activations.R
 106053efd2ed42edd09fc7b5b2f04fcf *R/applications.R
@@ -14,7 +14,7 @@ ae4768fcf47d12a57fac5011b8744299 *R/history.R
 c62d03ae84382a0919b0e36a9ff2f838 *R/initializers.R
 f310300420012dacd08930cae101bbdb *R/install.R
 4b8994d32a8f3f0918cbf41cfa2caf7b *R/layer-attention.R
-83c39e625f2ccf6ea7fdc1a6d0d5772e *R/layer-custom.R
+c3681d3caadeb8c83646b2fc51d3807b *R/layer-custom.R
 6a604046f96f9743dbf42f44cfd5501d *R/layer-methods.R
 70e35a1b27018e0994109e23f58864e5 *R/layer-wrappers.R
 37577a1ad26bad2509d095c3cff2654d *R/layers-activations.R
@@ -50,7 +50,7 @@ e3e30c5862457536c3733d6ef8801d56 *R/reexports.R
 9294fe5cf48908094c90475969767395 *R/timeseries.R
 93d43a1926f72d7cf3739473daa3e121 *R/utils.R
 56597b47f756e4fcf3a8edfbe855eca8 *R/wrapper_custom.R
-455ea1b2df6ede07413715ce8f1e83fe *build/vignette.rds
+d1155ce1d8739ddfc982d8addb3712c3 *build/vignette.rds
 3e3acf5849afd2c6177f760e19d66b24 *inst/doc/applications.R
 a25afd4554ab3f937041d71ae5db33e4 *inst/doc/applications.Rmd
 f872fc82c1e3696a8a8afc310c5495a9 *inst/doc/applications.html
@@ -549,8 +549,6 @@ c5fd30ec26093d43148da4a717790e05 *man/use_implementation.Rd
 ea7db845472cb4f1dd098a3f8065dccc *man/zip_lists.Rd
 30eb331631683ae9b6eec06c756ba500 *tests/testthat.R
 50b5594c0c665e43107cd9646e779b20 *tests/testthat/digit.jpeg
-ddb3ba31885feff975d5ba647203c522 *tests/testthat/digit2.jpeg
-d7a1c718e77a9577b1a0a763c7a6161e *tests/testthat/digit_resized.jpeg
 191dc1a3fd69a2df62c3fc8f4d2d7127 *tests/testthat/helper-skips.R
 98352a381a188d19665f24316d9f14c3 *tests/testthat/helper-utils.R
 b6964333ae43d70908592ffd75aaa0ab *tests/testthat/test-Layer.R
