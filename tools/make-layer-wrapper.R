@@ -2,7 +2,7 @@
 library(tidyverse)
 library(tensorflow)
 library(keras)
-
+use_virtualenv("r-keras")
 stopifnot(interactive())
 inspect <- reticulate::import("inspect")
 
@@ -158,6 +158,12 @@ print.r_py_wrapper2 <- function(x, ...) {
   try(clipr::write_clip(x))
   cat(x)
 }
+
+
+
+new_layer_wrapper(keras$layers$Embedding)
+
+new_layer_wrapper(keras$layers$BatchNormalization)
 
 ## example usage:
 # new_layer_wrapper(keras$layers$TextVectorization)

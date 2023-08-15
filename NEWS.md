@@ -1,6 +1,23 @@
+# keras 2.13.0
+
+- Default TF version installed by `install_keras()` is now 2.13.
+
+- Updated layers:
+  - `layer_batch_normalization()` updated signature, with changes to options for distributed training.
+  - `layer_embedding()` gains a `sparse` argument.
+
+- Fixed deadlock when an R generator was passed to `fit()`, `predict()`, and other endpoints.
+
+- When `fit(verbose = "auto")` is evaluated in the context of a knitr document 
+  (e.g., quarto or rmarkdown document being rendered), verbose will now 
+  default to `2`, showing one line per epoch.
+
 # keras 2.11.1
 
 - Update S3 method formals per new CRAN requirement (`r_to_py.keras_layer_wrapper()`)
+
+- Fixed an issue where `get_file()` would place incorrectly 
+  save files in the current working directory. (#1365)
 
 # keras 2.11.0
 

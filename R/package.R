@@ -107,9 +107,9 @@ keras <- NULL
   # delay load keras
   keras <<- import(implementation_module, delay_load = list(
 
-    priority = 10,
+    # priority = 10, # tensorflow priority == 5
 
-    environment = "r-reticulate",
+    environment = "r-tensorflow",
 
     get_module = function() {
       resolve_implementation_module()
@@ -149,12 +149,15 @@ keras <- NULL
     if (identical(module, "tensorflow.keras"))
       module <- "tensorflow.python.keras"
 
+    # replace "tensorflow.python.keras.*" with "keras.*"
     classes <- sub(paste0("^", module), "keras", classes)
 
+    # All python symbols moved in v2.13 under .src
+    classes <- sub("^keras\\.src\\.", "keras.", classes)
 
     # let KerasTensor inherit all the S3 methods of tf.Tensor, but
     # KerasTensor methods take precedence.
-    if("keras.engine.keras_tensor.KerasTensor" %in% classes)
+    if(any("keras.engine.keras_tensor.KerasTensor" %in% classes))
       classes <- unique(c("keras.engine.keras_tensor.KerasTensor",
                           "tensorflow.tensor",
                           classes))
@@ -276,7 +279,9 @@ check_implementation_version <- function() {
 
 # Current version of Keras
 keras_version <- function() {
-  ver <- keras$`__version__`
-  ver <- regmatches(ver, regexec("^([0-9\\.]+).*$", ver))[[1]][[2]]
+  ver <-
+    as_r_value(py_get_attr(keras, "__version__", TRUE)) %||%
+    tensorflow::tf_config()$version_str
+  ver <- regmatches(ver, regexec("^([0-9\\.]+).*$", ver))[[1L]][[2L]]
   package_version(ver)
 }

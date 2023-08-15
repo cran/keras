@@ -10,8 +10,7 @@ install_keras(
   version = "default",
   tensorflow = version,
   extra_packages = NULL,
-  ...,
-  pip_ignore_installed = TRUE
+  ...
 )
 }
 \arguments{
@@ -26,7 +25,7 @@ See \strong{Finding Conda} and \code{\link[reticulate:conda_binary]{conda_binary
 
 \item{version}{TensorFlow version to install. Valid values include:
 \itemize{
-\item \code{"default"} installs  2.11
+\item \code{"default"} installs  2.13
 \item \code{"release"} installs the latest release version of tensorflow (which may
 be incompatible with the current version of the R package)
 \item A version specification like \code{"2.4"} or \code{"2.4.0"}. Note that if the patch
@@ -45,11 +44,6 @@ TensorFlow.}
 
 \item{...}{other arguments passed to \code{\link[reticulate:conda-tools]{reticulate::conda_install()}} or
 \code{\link[reticulate:virtualenv-tools]{reticulate::virtualenv_install()}}, depending on the \code{method} used.}
-
-\item{pip_ignore_installed}{Whether pip should ignore installed python
-packages and reinstall all already installed python packages. This defaults
-to \code{TRUE}, to ensure that TensorFlow dependencies like NumPy are compatible
-with the prebuilt TensorFlow binaries.}
 }
 \description{
 This function will install Tensorflow and all Keras dependencies. This is a
@@ -58,7 +52,7 @@ difference being that this includes by default additional extra packages that
 keras expects, and the default version of tensorflow installed by
 \code{install_keras()} may at times be different from the default installed
 \code{install_tensorflow()}. The default version of tensorflow installed by
-\code{install_keras()} is "2.11".
+\code{install_keras()} is "2.13".
 }
 \details{
 The default additional packages are:

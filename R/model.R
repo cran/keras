@@ -593,32 +593,12 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
     stop("Using generators that call R functions is not supported in TensorFlow 2.1 ",
          "Please upgrade your TF installation or downgrade to 2.0", call. = FALSE)
 
-  # we need a hack to make sure the generator is evaluated in the main thread.
-  python_path <- system.file("python", package = "keras")
-  tools <- reticulate::import_from_path("kerastools", path = python_path)
-
-  # as_generator will return a tuple with 2 elements.
-  # (1) a python generator that just consumes
-  # a queue.
-  # (2) a function that evaluates the next element of the generator
-  # and adds to the queue. This function should be called in the main
-  # thread.
-  # we add a `on_train_batch_begin` to call this function.
-  o <- tools$model$as_generator(x)
-
-  callback <- list(function(batch, logs) {
-    o[[2]]()
-  })
-  names(callback) <- callback_type
-
-  if (callback_type == "on_test_batch_begin") {
-    callback[[2]] <- callback[[1]]
-    names(callback)[[2]] <- "on_test_begin"
-  }
-
-  callback <- do.call(callback_lambda, callback)
-
-  list(generator = o[[1]], callback = callback)
+  # This used to house a mechanism for adding a keras callback that pumps
+  # the R generator from the main thread (e.g., from 'on_train_batch_begin').
+  # This has since been fixed upstream, by adding a `prefetch` arg to
+  # reticulate::py_iterator()
+  # TODO: remove `resolve_main_thread_generators()` from package
+  list(generator = x, callback = NULL)
 }
 
 #' Train a Keras model
@@ -630,21 +610,21 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #'   multiple inputs). If all inputs in the model are named, you can also pass a
 #'   list mapping input names to data. `x` can be `NULL` (default) if feeding
 #'   from framework-native tensors (e.g. TensorFlow data tensors). You can also
-#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)` or
-#'   `(inputs, targets, sample_weights)`.
-#' @param y  Vector, matrix, or array of target (label) data (or list if the model has
-#'   multiple outputs). If all outputs in the model are named, you can also pass
-#'   a list mapping output names to data. `y` can be `NULL` (default) if feeding
-#'   from framework-native tensors (e.g. TensorFlow data tensors).
+#'   pass a `tfdataset` or a generator returning a list with `(inputs, targets)`
+#'   or `(inputs, targets, sample_weights)`.
+#' @param y  Vector, matrix, or array of target (label) data (or list if the
+#'   model has multiple outputs). If all outputs in the model are named, you can
+#'   also pass a list mapping output names to data. `y` can be `NULL` (default)
+#'   if feeding from framework-native tensors (e.g. TensorFlow data tensors).
 #' @param batch_size Integer or `NULL`. Number of samples per gradient update.
 #'   If unspecified, `batch_size` will default to 32.
-#' @param epochs Number of epochs to train the model.
-#'   Note that in conjunction with `initial_epoch`,
-#'   `epochs` is to be understood as "final epoch". The model is
-#'   not trained for a number of iterations given by `epochs`, but
+#' @param epochs Number of epochs to train the model. Note that in conjunction
+#'   with `initial_epoch`, `epochs` is to be understood as "final epoch". The
+#'   model is not trained for a number of iterations given by `epochs`, but
 #'   merely until the epoch of index `epochs` is reached.
-#' @param verbose  Verbosity mode (0 = silent, 1 = progress bar, 2 = one line per
-#'   epoch).
+#' @param verbose  Verbosity mode (0 = silent, 1 = progress bar, 2 = one line
+#'   per epoch). Defaults to 1 in most contexts, 2 if in knitr render or running
+#'   on a distributed training server.
 #' @param view_metrics View realtime plot of training metrics (by epoch). The
 #'   default (`"auto"`) will display the plot when running within RStudio,
 #'   `metrics` were specified during model [compile()], `epochs > 1` and
@@ -654,21 +634,21 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #' @param validation_split Float between 0 and 1. Fraction of the training data
 #'   to be used as validation data. The model will set apart this fraction of
 #'   the training data, will not train on it, and will evaluate the loss and any
-#'   model metrics on this data at the end of each epoch. The validation data
-#'   is selected from the last samples in the `x` and `y` data provided,
-#'   before shuffling.
+#'   model metrics on this data at the end of each epoch. The validation data is
+#'   selected from the last samples in the `x` and `y` data provided, before
+#'   shuffling.
 #' @param validation_data Data on which to evaluate the loss and any model
 #'   metrics at the end of each epoch. The model will not be trained on this
 #'   data. This could be a list (x_val, y_val) or a list (x_val, y_val,
 #'   val_sample_weights). `validation_data` will override `validation_split`.
-#' @param shuffle shuffle: Logical (whether to shuffle the training data
-#'    before each epoch) or string (for "batch"). "batch" is a special option
-#'    for dealing with the limitations of HDF5 data; it shuffles in batch-sized
-#'    chunks. Has no effect when `steps_per_epoch` is not `NULL`.
+#' @param shuffle shuffle: Logical (whether to shuffle the training data before
+#'   each epoch) or string (for "batch"). "batch" is a special option for
+#'   dealing with the limitations of HDF5 data; it shuffles in batch-sized
+#'   chunks. Has no effect when `steps_per_epoch` is not `NULL`.
 #' @param class_weight Optional named list mapping indices (integers) to a
-#'   weight (float) value, used for weighting the loss function
-#'   (during training only). This can be useful to tell the model to
-#'   "pay more attention" to samples from an under-represented class.
+#'   weight (float) value, used for weighting the loss function (during training
+#'   only). This can be useful to tell the model to "pay more attention" to
+#'   samples from an under-represented class.
 #' @param sample_weight Optional array of the same length as x, containing
 #'   weights to apply to the model's loss for each sample. In the case of
 #'   temporal data, you can pass a 2D array with shape (samples,
@@ -680,21 +660,21 @@ resolve_main_thread_generators <- function(x, callback_type = "on_train_batch_be
 #' @param steps_per_epoch Total number of steps (batches of samples) before
 #'   declaring one epoch finished and starting the next epoch. When training
 #'   with input tensors such as TensorFlow data tensors, the default `NULL` is
-#'   equal to the number of samples in your dataset divided by the batch
-#'   size, or 1 if that cannot be determined.
+#'   equal to the number of samples in your dataset divided by the batch size,
+#'   or 1 if that cannot be determined.
 #' @param  validation_steps Only relevant if `steps_per_epoch` is specified.
 #'   Total number of steps (batches of samples) to validate before stopping.
 #' @param ... Unused
 #'
-#' @return A `history` object that contains all information collected
-#'   during training.
+#' @return A `history` object that contains all information collected during
+#'   training.
 #'
 #' @family model functions
 #'
 #' @export
 fit.keras.engine.training.Model <-
   function(object, x = NULL, y = NULL, batch_size=NULL, epochs=10,
-           verbose=getOption("keras.fit_verbose", default = "auto"), callbacks=NULL,
+           verbose = getOption("keras.fit_verbose", default = "auto"), callbacks=NULL,
            view_metrics = getOption("keras.view_metrics", default = "auto"),
            validation_split=0.0, validation_data=NULL, shuffle=TRUE,
            class_weight=NULL, sample_weight=NULL, initial_epoch=0,
@@ -915,7 +895,12 @@ function(object,
 as_model_verbose_arg <- function(x, old_default = 1L) {
   if(tf_version() < "2.9" && x == "auto")
     return(old_default)
-  if(x == "auto") x else as.integer(x)
+  if(!identical(x, "auto"))
+    return(as.integer(x))
+  # x == auto
+  if(isTRUE(getOption('knitr.in.progress')))
+    return(2L)
+  x # "auto"
 }
 
 
@@ -1289,7 +1274,7 @@ as_generator.tensorflow.python.data.ops.dataset_ops.DatasetV2 <- function(x) {
 as_generator.function <- function(x) {
   python_path <- system.file("python", package = "keras")
   tools <- reticulate::import_from_path("kerastools", path = python_path)
-  iter <- reticulate::py_iterator(function() {
+  reticulate::py_iterator(function() {
     elem <- keras_array(x())
 
     # deals with the case where the generator is used for prediction and only
@@ -1298,8 +1283,8 @@ as_generator.function <- function(x) {
       elem[[2]] <- list()
 
     do.call(reticulate::tuple, elem)
-  })
-  tools$generator$iter_generator(iter)
+  }, prefetch = 1L)
+
 }
 
 as_generator.keras_preprocessing.sequence.TimeseriesGenerator <- function(x) {
@@ -1353,6 +1338,7 @@ is_main_thread_generator.keras_preprocessing.sequence.TimeseriesGenerator <- fun
 
   FALSE
 }
+
 
 is_tensorflow_dataset <- function(x) {
   inherits(x, "tensorflow.python.data.ops.dataset_ops.DatasetV2") ||

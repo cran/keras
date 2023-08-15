@@ -354,57 +354,57 @@ layer.</p>
 data structure you’ll work with is the <code>Layer</code>. A layer
 encapsulates both a state (the layer’s “weights”) and a transformation
 from inputs to outputs (a “call”, the layer’s forward pass).</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    w_init <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">random_normal_initializer</span>()</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">initial_value =</span> <span class="fu">w_init</span>(<span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                             <span class="at">dtype =</span> tf<span class="sc">$</span>float32)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    b_init <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">zeros_initializer</span>()</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">initial_value =</span> <span class="fu">b_init</span>(<span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                             <span class="at">dtype =</span> tf<span class="sc">$</span>float32)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="at">shape =</span> <span class="fu">list</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">4</span>, <span class="at">input_dim =</span> <span class="dv">2</span>)</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">layer</span>(x)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>y</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tensorflow)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>    w_init <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">random_normal_initializer</span>()</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>      <span class="at">initial_value =</span> <span class="fu">w_init</span>(<span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>                             <span class="at">dtype =</span> tf<span class="sc">$</span>float32)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>      )</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>    b_init <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">zeros_initializer</span>()</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>      <span class="at">initial_value =</span> <span class="fu">b_init</span>(<span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>                             <span class="at">dtype =</span> tf<span class="sc">$</span>float32)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>    )</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>  },</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>  }</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>)</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="at">shape =</span> <span class="fu">list</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">4</span>, <span class="at">input_dim =</span> <span class="dv">2</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">layer</span>(x)</span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>y</span></code></pre></div>
 <p>Note that the weights w and b are automatically tracked by the layer
 upon being set as layer attributes.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_weights</span>(layer)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">get_weights</span>(layer)</span></code></pre></div>
 <p>Note you also have access to a quicker shortcut for adding weight to
 a layer: the <code>add_weight</code> method:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    )</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    )</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  },</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  }</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>)</span></code></pre></div>
 <p>It’s important to call
 <strong><code>super()$__init__()</code></strong> in the
 <code>initialize</code> method.</p>
@@ -415,29 +415,29 @@ various functions available from Keras backends.</p>
 layer as well. Such weights are meant not to be taken into account
 during backpropagation, when you are training the layer.</p>
 <p>Here’s how to add and use a non-trainable weight:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>layer_compute_sum <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;ComputeSum&quot;</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(input_dim) {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>total <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">initial_value =</span> tf<span class="sc">$</span><span class="fu">zeros</span>(<span class="fu">shape</span>(input_dim)),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">FALSE</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>total<span class="sc">$</span><span class="fu">assign_add</span>(tf<span class="sc">$</span><span class="fu">reduce_sum</span>(inputs, <span class="at">axis =</span> 0L))</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>total</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="fu">shape</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>mysum <span class="ot">&lt;-</span> <span class="fu">layer_compute_sum</span>(<span class="at">input_dim =</span> <span class="dv">2</span>)</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mysum</span>(x))</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mysum</span>(x))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>layer_compute_sum <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;ComputeSum&quot;</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(input_dim) {</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    self<span class="sc">$</span>total <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">Variable</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>      <span class="at">initial_value =</span> tf<span class="sc">$</span><span class="fu">zeros</span>(<span class="fu">shape</span>(input_dim)),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    )</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  },</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    self<span class="sc">$</span>total<span class="sc">$</span><span class="fu">assign_add</span>(tf<span class="sc">$</span><span class="fu">reduce_sum</span>(inputs, <span class="at">axis =</span> <span class="dv">0</span><span class="dt">L</span>))</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>    self<span class="sc">$</span>total</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  }</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>)</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="fu">shape</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>mysum <span class="ot">&lt;-</span> <span class="fu">layer_compute_sum</span>(<span class="at">input_dim =</span> <span class="dv">2</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mysum</span>(x))</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mysum</span>(x))</span></code></pre></div>
 <p>It’s part of <code>layer$weights</code> but it gets categorized as a
 non-trainable weight:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_weights</span>(mysum)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mysum<span class="sc">$</span>non_trainable_weights</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">get_weights</span>(mysum)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mysum<span class="sc">$</span>non_trainable_weights</span></code></pre></div>
 </div>
 <div id="best-practice-deferring-weight-creation-until-the-shape-of-the-inputs-is-known" class="section level2">
 <h2>Best practice: deferring weight creation until the shape of the
@@ -445,58 +445,58 @@ inputs is known</h2>
 <p>In Linear example above, our Linear layer took an input_dim argument
 that was used to compute the shape of the weights w and b in
 <code>initialize</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, input_dim) {</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_dim, units),</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    )</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(units),</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>    )</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  },</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  }</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>)</span></code></pre></div>
 <p>In many cases, you may not know in advance the size of your inputs,
 and you would like to lazily create weights when that value becomes
 known, some time after instantiating the layer.</p>
 <p>In the Keras API, we recommend creating layer weights in the
 <code>build(inputs_shape)</code> method of your layer. Like this:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units) {</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>units <span class="ot">&lt;-</span> units</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">build =</span> <span class="cf">function</span>(input_shape) {</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_shape[<span class="dv">2</span>], self<span class="sc">$</span>units),</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(self<span class="sc">$</span>units),</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units) {</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    self<span class="sc">$</span>units <span class="ot">&lt;-</span> units</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  },</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">build =</span> <span class="cf">function</span>(input_shape) {</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_shape[<span class="dv">2</span>], self<span class="sc">$</span>units),</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>    )</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(self<span class="sc">$</span>units),</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>    )</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  },</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  }</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>)</span></code></pre></div>
 <p>The <code>call</code> method of your layer will automatically run
 build the first time it is called. You now have a layer that’s lazy and
 easy to use:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="at">shape =</span> <span class="fu">list</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">layer</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> tf<span class="sc">$</span><span class="fu">ones</span>(<span class="at">shape =</span> <span class="fu">list</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">layer</span>(x)</span></code></pre></div>
 </div>
 <div id="layers-are-recursively-composable" class="section level2">
 <h2>Layers are recursively composable</h2>
@@ -505,31 +505,31 @@ outer layer will start tracking the weights of the inner layer.</p>
 <p>We recommend creating such sublayers in the <code>initialize</code>
 method (since the sublayers will typically have a build method, they
 will be built when the outer layer gets built).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Let&#39;s assume we are reusing the Linear class</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># with a `build` method that we defined above.</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>layer_mlp_block <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;MLPBlock&quot;</span>,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>linear_1 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>linear_2 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>linear_3 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">1</span>)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    inputs <span class="sc">%&gt;%</span> </span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_1</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_2</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>      tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">relu</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_3</span>()</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>mlp <span class="ot">&lt;-</span> <span class="fu">layer_mlp_block</span>()</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">mlp</span>(tf<span class="sc">$</span><span class="fu">ones</span>(<span class="fu">shape</span>(<span class="dv">3</span>, <span class="dv">64</span>)))  <span class="co"># The first call to the `mlp` will create the weights</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(mlp<span class="sc">$</span>weights)</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(mlp<span class="sc">$</span>trainable_weights)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Let&#39;s assume we are reusing the Linear class</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># with a `build` method that we defined above.</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>layer_mlp_block <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;MLPBlock&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>    self<span class="sc">$</span>linear_1 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>    self<span class="sc">$</span>linear_2 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">32</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>    self<span class="sc">$</span>linear_3 <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">1</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  },</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>    inputs <span class="sc">%&gt;%</span> </span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_1</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>      tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">relu</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_2</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>      tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">relu</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">linear_3</span>()</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  }</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>)</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>mlp <span class="ot">&lt;-</span> <span class="fu">layer_mlp_block</span>()</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">mlp</span>(tf<span class="sc">$</span><span class="fu">ones</span>(<span class="fu">shape</span>(<span class="dv">3</span>, <span class="dv">64</span>)))  <span class="co"># The first call to the `mlp` will create the weights</span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="fu">length</span>(mlp<span class="sc">$</span>weights)</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="fu">length</span>(mlp<span class="sc">$</span>trainable_weights)</span></code></pre></div>
 </div>
 <div id="layers-recursively-collect-losses-created-during-the-forward-pass" class="section level2">
 <h2>Layers recursively collect losses created during the forward
@@ -537,43 +537,43 @@ pass</h2>
 <p>When writing the <code>call</code> method of a layer, you can create
 loss tensors that you will want to use later, when writing your training
 loop. This is doable by calling <code>self$add_loss(value)</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A layer that creates an activity regularization loss</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>layer_activity_reg <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;ActivityRegularizationLayer&quot;</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">rate =</span> <span class="fl">1e-2</span>) {</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>rate <span class="ot">&lt;-</span> rate</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs) {</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span><span class="fu">add_loss</span>(self<span class="sc">$</span>rate <span class="sc">*</span> tf<span class="sc">$</span><span class="fu">reduce_sum</span>(inputs))</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    inputs</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># A layer that creates an activity regularization loss</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>layer_activity_reg <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;ActivityRegularizationLayer&quot;</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">rate =</span> <span class="fl">1e-2</span>) {</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>    self<span class="sc">$</span>rate <span class="ot">&lt;-</span> rate</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  },</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs) {</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>    self<span class="sc">$</span><span class="fu">add_loss</span>(self<span class="sc">$</span>rate <span class="sc">*</span> tf<span class="sc">$</span><span class="fu">reduce_sum</span>(inputs))</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>    inputs</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  }</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>)</span></code></pre></div>
 <p>These losses (including those created by any inner layer) can be
 retrieved via <code>layer$losses</code>. This property is reset at the
 start of every <code>call</code> to the top-level layer, so that
 <code>layer$losses</code> always contains the loss values created during
 the last forward pass.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>layer_outer <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;OuterLayer&quot;</span>,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dense <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">units =</span> <span class="dv">32</span>, </span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">1e-3</span>)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs) {</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span><span class="fu">dense</span>(inputs)</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_outer</span>()</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">layer</span>(tf<span class="sc">$</span><span class="fu">zeros</span>(<span class="fu">shape</span>(<span class="dv">1</span>,<span class="dv">1</span>)))</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># This is `1e-3 * sum(layer.dense.kernel ** 2)`,</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># created by the `kernel_regularizer` above.</span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>layer<span class="sc">$</span>losses</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>layer_outer <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;OuterLayer&quot;</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>() {</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>()</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    self<span class="sc">$</span>dense <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>      <span class="at">units =</span> <span class="dv">32</span>, </span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>      <span class="at">kernel_regularizer =</span> <span class="fu">regularizer_l2</span>(<span class="fl">1e-3</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    )</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  },</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs) {</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    self<span class="sc">$</span><span class="fu">dense</span>(inputs)</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  }</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>)</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_outer</span>()</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">layer</span>(tf<span class="sc">$</span><span class="fu">zeros</span>(<span class="fu">shape</span>(<span class="dv">1</span>,<span class="dv">1</span>)))</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co"># This is `1e-3 * sum(layer.dense.kernel ** 2)`,</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co"># created by the `kernel_regularizer` above.</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>layer<span class="sc">$</span>losses</span></code></pre></div>
 </div>
 <div id="you-can-optionally-enable-serialization-on-your-layers" class="section level2">
 <h2>You can optionally enable serialization on your layers</h2>
@@ -585,42 +585,42 @@ takes some keyword arguments, in particular a <code>name</code> and a
 <code>dtype</code>. It’s good practice to pass these arguments to the
 parent class in <code>initialize</code> and to include them in the layer
 config:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, ...) {</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>(...)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>units <span class="ot">&lt;-</span> units</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">build =</span> <span class="cf">function</span>(input_shape) {</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_shape[<span class="dv">2</span>], self<span class="sc">$</span>units),</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(self<span class="sc">$</span>units),</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">get_config =</span> <span class="cf">function</span>() {</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">list</span>(</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">units =</span> self<span class="sc">$</span>units</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">64</span>)</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>config <span class="ot">&lt;-</span> <span class="fu">get_config</span>(layer)</span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>new_layer <span class="ot">&lt;-</span> <span class="fu">from_config</span>(config)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>layer_linear <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">classname =</span> <span class="st">&quot;Linear&quot;</span>, </span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(units, ...) {</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>(...)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>    self<span class="sc">$</span>units <span class="ot">&lt;-</span> units</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  },</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">build =</span> <span class="cf">function</span>(input_shape) {</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>    self<span class="sc">$</span>w <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(input_shape[<span class="dv">2</span>], self<span class="sc">$</span>units),</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;random_normal&quot;</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>    )</span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>    self<span class="sc">$</span>b <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">add_weight</span>(</span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">shape</span>(self<span class="sc">$</span>units),</span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>      <span class="at">initializer =</span> <span class="st">&quot;zeros&quot;</span>,</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>      <span class="at">trainable =</span> <span class="cn">TRUE</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>    )</span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  },</span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, ...) {</span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>    tf<span class="sc">$</span><span class="fu">matmul</span>(inputs, self<span class="sc">$</span>w) <span class="sc">+</span> self<span class="sc">$</span>b</span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>  },</span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>  <span class="at">get_config =</span> <span class="cf">function</span>() {</span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>      <span class="at">units =</span> self<span class="sc">$</span>units</span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a>    )</span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>  }</span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>)</span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a>layer <span class="ot">&lt;-</span> <span class="fu">layer_linear</span>(<span class="at">units =</span> <span class="dv">64</span>)</span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a>config <span class="ot">&lt;-</span> <span class="fu">get_config</span>(layer)</span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a>new_layer <span class="ot">&lt;-</span> <span class="fu">from_config</span>(config)</span></code></pre></div>
 <p>If you need more flexibility when deserializing the layer from its
 config, you can also override the <code>from_config</code> class method.
 This is the base implementation of <code>from_config</code>:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> from_config(cls, config):</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> cls(<span class="op">**</span>config)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="kw">def</span> from_config(cls, config):</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="cf">return</span> cls(<span class="op">**</span>config)</span></code></pre></div>
 </div>
 <div id="privileged-training-argument-in-the-call-method" class="section level2">
 <h2>Privileged training argument in the call method</h2>
@@ -631,19 +631,19 @@ expose a training (boolean) argument in the call method.</p>
 <p>By exposing this argument in call, you enable the built-in training
 and evaluation loops (e.g. fit) to correctly use the layer in training
 and inference.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>layer_custom_dropout <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">classname =</span>  <span class="st">&quot;CustomDropout&quot;</span>,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(rate, ...) {</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>(...)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>rate <span class="ot">&lt;-</span> rate</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  },</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, <span class="at">training =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(inputs) <span class="sc">&amp;&amp;</span> training) {</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>      inputs <span class="ot">&lt;-</span> tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">dropout</span>(inputs, <span class="at">rate =</span> self<span class="sc">$</span>rate)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    inputs</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>layer_custom_dropout <span class="ot">&lt;-</span> <span class="fu">Layer</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">classname =</span>  <span class="st">&quot;CustomDropout&quot;</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">initialize =</span> <span class="cf">function</span>(rate, ...) {</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    <span class="fu">super</span>()<span class="sc">$</span><span class="st">`</span><span class="at">__init__</span><span class="st">`</span>(...)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>    self<span class="sc">$</span>rate <span class="ot">&lt;-</span> rate</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  },</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="at">call =</span> <span class="cf">function</span>(inputs, <span class="at">training =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(inputs) <span class="sc">&amp;&amp;</span> training) {</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>      inputs <span class="ot">&lt;-</span> tf<span class="sc">$</span>nn<span class="sc">$</span><span class="fu">dropout</span>(inputs, <span class="at">rate =</span> self<span class="sc">$</span>rate)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>    }</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>    inputs</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>  }</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 
 

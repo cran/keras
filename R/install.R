@@ -24,19 +24,11 @@ install_keras <- function(method = c("auto", "virtualenv", "conda"),
                           version = "default",
                           tensorflow = version,
                           extra_packages = NULL,
-                          ...,
-                          pip_ignore_installed = TRUE) {
+                          ...
+                          # # envname = "r-keras",
+                          # # new_env = identical(envname, "r-keras")
+                          ) {
   method <- match.arg(method)
-
-  if(is_mac_arm64()) {
-    return(tensorflow::install_tensorflow(
-      method = method,
-      conda = conda,
-      version = version,
-      extra_packages = c(default_extra_packages(),
-                         extra_packages),
-      ...))
-  }
 
   pkgs <- default_extra_packages(tensorflow)
   if(!is.null(extra_packages)) # user supplied package version constraints take precedence
@@ -53,12 +45,13 @@ install_keras <- function(method = c("auto", "virtualenv", "conda"),
     conda = conda,
     version = tensorflow,
     extra_packages = pkgs,
-    pip_ignore_installed = pip_ignore_installed,
+    # envname = envname,
+    # new_env = new_env,
     ...
   )
 }
 
-default_version <- numeric_version("2.11")
+default_version <- numeric_version("2.13")
 
 default_extra_packages <- function(tensorflow_version = "default") {
   pkgs <- c(

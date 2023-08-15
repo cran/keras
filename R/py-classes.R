@@ -11,8 +11,8 @@ r_to_py.R6ClassGenerator <- function(x, convert = FALSE) {
   methods <- x$public_methods
   methods$clone <- NULL
 
-  methods <- as_py_methods(methods, mask_env, convert)
-  active <- as_py_methods(x$active, mask_env, convert)
+  methods <- as_py_methods(methods, mask_env, convert, x$classname)
+  active <- as_py_methods(x$active, mask_env, convert, x$classname)
 
   # having convert=FALSE here means py callables are not wrapped in R functions
   # https://github.com/rstudio/reticulate/issues/1024
@@ -107,22 +107,10 @@ new_get_private <- function(r6_class, shared_mask_env) {
   }
 
   function(self) {
-    key <- py_id2(self)
+    key <- py_id(self)
     .subset2(privates, key) %||% new_instance_private(self, key)
   }
 }
-
-
-py_id2 <- local({
-  # temporary workaround py_id() overflowing and returning -1L in R 4.2 on windows
-  .id <- function(x) {
-    .id <- py_eval("lambda x: str(id(x))")
-    assign(".id", .id, envir = environment(sys.function()))
-    .id(x)
-  }
-  function(x) .id(x)
-})
-
 
 
 resolve_py_type_inherits <- function(inherit, convert=FALSE) {
@@ -178,7 +166,7 @@ resolve_py_type_inherits <- function(inherit, convert=FALSE) {
 }
 
 
-as_py_methods <- function(x, env, convert) {
+as_py_methods <- function(x, env, convert, class_name) {
   out <- list()
 
   if ("initialize" %in% names(x) && "__init__" %in% names(x))
@@ -189,23 +177,26 @@ as_py_methods <- function(x, env, convert) {
 
   for (name in names(x)) {
     fn <- x[[name]]
+    label <- sprintf("%s$%s", class_name, name)
     name <- switch(name,
                    initialize = "__init__",
                    finalize = "__del__",
                    name)
-    out[[name]]  <- as_py_method(fn, name, env, convert)
+    out[[name]]  <- as_py_method(fn, name, env, convert, label)
   }
   out
 }
 
 #' @importFrom reticulate py_func py_clear_last_error
-as_py_method <- function(fn, name, env, convert) {
+as_py_method <- function(fn, name, env, convert, label) {
 
     # if user did conversion, they're responsible for ensuring it is right.
     if (inherits(fn, "python.builtin.object")) {
       #assign("convert", convert, as.environment(fn))
       return(fn)
     }
+
+    srcref <- attr(fn, "srcref")
 
     if (!is.function(fn))
       stop("Cannot coerce non-function to a python class method")
@@ -216,7 +207,8 @@ as_py_method <- function(fn, name, env, convert) {
       formals(fn) <- c(alist(self =), formals(fn))
 
     doc <- NULL
-    if (body(fn)[[1]] == quote(`{`) &&
+    if (is.call(body(fn)) &&
+        body(fn)[[1]] == quote(`{`) &&
         length(body(fn)) > 1 &&
         typeof(body(fn)[[2]]) == "character") {
       doc <- glue::trim(body(fn)[[2]])
@@ -233,7 +225,6 @@ as_py_method <- function(fn, name, env, convert) {
 
     if (!"private" %in% names(formals(fn)) &&
         "private" %in% all.names(body(fn))) {
-      # any benefit to using delayedAssign here?
       body(fn) <- substitute({
         private <- attr(env, "get_private", TRUE)(self)
         body
@@ -255,6 +246,7 @@ as_py_method <- function(fn, name, env, convert) {
                        error = function(e) NULL)
 
     attr(fn, "py_function_name") <- name
+    attr(fn, "pillar") <- list(label = label) # for print method of rlang::trace_back()
 
     # https://github.com/rstudio/reticulate/issues/1024
     fn <- py_to_r(r_to_py(fn, convert))
@@ -265,6 +257,10 @@ as_py_method <- function(fn, name, env, convert) {
 
     if(!is.null(doc))
       fn$`__doc__` <- doc
+
+    attr(fn, "srcref") <- srcref
+    # TODO, maybe also copy over "wholeSrcref". See `removeSource()` as a starting point.
+    # This is used to generate clickable links in rlang traceback printouts.
 
     fn
 }
@@ -315,7 +311,7 @@ r_formals_to_py__signature__ <- function(fn) {
 # *) `super` can be accessed in both R6 style using `$`, and python-style as a callable
 # *) `super()` can resolve `self` properly when called from a nested scope
 # *) method calls respect user-supplied `convert` values for all args
-#
+
 
 # @seealso <https://tensorflow.rstudio.com/articles/new-guides/python_subclasses.html>
 
@@ -386,6 +382,17 @@ r_formals_to_py__signature__ <- function(fn) {
 #'
 #'   call_private_method <- function()
 #'     private$a_private_method()
+#'
+#'   # equivalent of @property decorator in python
+#'   an_active_property %<-active% function(x = NULL) {
+#'     if(!is.null(x)) {
+#'       cat("`an_active_property` was assigned", x, "\n")
+#'       return(x)
+#'     } else {
+#'       cat("`an_active_property` was accessed\n")
+#'       return(42)
+#'     }
+#'   }
 #' }
 #'
 #' inst1 <- MyClass(1)
@@ -394,6 +401,8 @@ r_formals_to_py__signature__ <- function(fn) {
 #' inst2$get_private_field()
 #' inst1$call_private_method()
 #' inst2$call_private_method()
+#' inst1$an_active_property
+#' inst1$an_active_property <- 11
 #' }
 `%py_class%` <- function(spec, body) {
   spec <- substitute(spec)
@@ -476,7 +485,6 @@ r_formals_to_py__signature__ <- function(fn) {
     py_class <- r_to_py.R6ClassGenerator(r6_class, convert)
 
   attr(py_class, "r6_class") <- r6_class
-  class(py_class) <- c("py_converted_R6_class_generator", class(py_class))
 
   assign(classname, py_class, envir = parent_env)
   invisible(py_class)
@@ -557,6 +565,22 @@ print.py_R6ClassGenerator <- function(x, ...) {
   print(r6_class)
 }
 
+#' @export
+`$.py_R6ClassGenerator` <- function(x, name) {
+  if (identical(name, "new"))
+    return(x)
+  NextMethod()
+}
+
+#' @exportS3Method pillar::type_sum
+type_sum.py_R6ClassGenerator <- function(x) {
+  cl <- class(x)[[1L]]
+  if(startsWith(cl, "R6type."))
+    cl <- substr(cl, 8L, 2147483647L)
+  cl
+}
+
+
 #' Make an Active Binding
 #'
 #' @param sym symbol to bind
@@ -601,3 +625,47 @@ maybe_delayed_r_to_py_R6ClassGenerator <-
     else
       delayed_r_to_py_R6ClassGenerator(x, convert)
   }
+
+
+
+new_py_class <-
+  function(classname,
+           members = list(),
+           inherit = NULL,
+           parent_env = parent.frame(),
+           convert = TRUE,
+           inherit_expr = substitute(inherit)) {
+
+    force(inherit_expr)
+    active <- NULL
+    for(nm in names(members)) {
+      if(is_marked_active(members[[nm]])) {
+        active[[nm]] <- members[[nm]]
+        members[[nm]] <- NULL
+      }
+    }
+    # R6Class calls substitute() on inherit
+    r6_class <- eval(as.call(list(
+      quote(R6::R6Class),
+      classname = classname,
+      public = members,
+      active = active,
+      inherit = inherit_expr,
+      cloneable = FALSE,
+      parent_env = parent_env
+    )))
+    maybe_delayed_r_to_py_R6ClassGenerator(r6_class, convert, parent_env)
+  }
+
+#' @rdname new-classes
+#' @export
+mark_active <- function(x) {
+  if(!is.function(x))
+    stop("Only R functions can be marked active")
+  attr(x, "marked_active") <- TRUE
+  x
+}
+
+is_marked_active <- function(x)
+  identical(attr(x, "marked_active", TRUE), TRUE)
+

@@ -361,34 +361,34 @@ custom model.</p>
 <p>This example demonstrates the implementation of a simple custom model
 that implements a multi-layer-perceptron with optional dropout and batch
 normalization:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>keras_model_simple_mlp <span class="ot">&lt;-</span> <span class="cf">function</span>(num_classes, </span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">use_bn =</span> <span class="cn">FALSE</span>, <span class="at">use_dp =</span> <span class="cn">FALSE</span>, </span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">name =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># define and return a custom model</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">keras_model_custom</span>(<span class="at">name =</span> name, <span class="cf">function</span>(self) {</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create layers we&#39;ll need for the call (this code executes once)</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dense1 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">32</span>, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>dense2 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> num_classes, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (use_dp)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>dp <span class="ot">&lt;-</span> <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (use_bn)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>bn <span class="ot">&lt;-</span> <span class="fu">layer_batch_normalization</span>(<span class="at">axis =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># implement call (this code executes during training &amp; inference)</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(inputs, <span class="at">mask =</span> <span class="cn">NULL</span>, <span class="at">training =</span> <span class="cn">FALSE</span>) {</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dense1</span>(inputs)</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (use_dp)</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dp</span>(x)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (use_bn)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">bn</span>(x)</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">dense2</span>(x)</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>keras_model_simple_mlp <span class="ot">&lt;-</span> <span class="cf">function</span>(num_classes, </span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>                                   <span class="at">use_bn =</span> <span class="cn">FALSE</span>, <span class="at">use_dp =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>                                   <span class="at">name =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  </span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="co"># define and return a custom model</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="fu">keras_model_custom</span>(<span class="at">name =</span> name, <span class="cf">function</span>(self) {</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    </span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>    <span class="co"># create layers we&#39;ll need for the call (this code executes once)</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>    self<span class="sc">$</span>dense1 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">32</span>, <span class="at">activation =</span> <span class="st">&quot;relu&quot;</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    self<span class="sc">$</span>dense2 <span class="ot">&lt;-</span> <span class="fu">layer_dense</span>(<span class="at">units =</span> num_classes, <span class="at">activation =</span> <span class="st">&quot;softmax&quot;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>    <span class="cf">if</span> (use_dp)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>      self<span class="sc">$</span>dp <span class="ot">&lt;-</span> <span class="fu">layer_dropout</span>(<span class="at">rate =</span> <span class="fl">0.5</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="cf">if</span> (use_bn)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>      self<span class="sc">$</span>bn <span class="ot">&lt;-</span> <span class="fu">layer_batch_normalization</span>(<span class="at">axis =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>    </span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>    <span class="co"># implement call (this code executes during training &amp; inference)</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>    <span class="cf">function</span>(inputs, <span class="at">mask =</span> <span class="cn">NULL</span>, <span class="at">training =</span> <span class="cn">FALSE</span>) {</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>      x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dense1</span>(inputs)</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>      <span class="cf">if</span> (use_dp)</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">dp</span>(x)</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>      <span class="cf">if</span> (use_bn)</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>        x <span class="ot">&lt;-</span> self<span class="sc">$</span><span class="fu">bn</span>(x)</span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">dense2</span>(x)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>    }</span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>  })</span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>}</span></code></pre></div>
 <p>Note that we include a <code>name</code> parameter so that users can
 optionally provide a human readable name for the model.</p>
 <p>Note also that when we create layers to be used in our forward pass
@@ -403,27 +403,27 @@ the Keras model you need (or even add fields to the model) by using
 <h2>Using a Custom Model</h2>
 <p>To use a custom model, just call your model’s high-level wrapper
 function. For example:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create the model </span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model_simple_mlp</span>(<span class="at">num_classes =</span> <span class="dv">10</span>, <span class="at">use_dp =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># compile graph</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="fu">optimizer_rmsprop</span>(),</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">c</span>(<span class="st">&#39;accuracy&#39;</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate dummy data</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(<span class="dv">1000</span><span class="sc">*</span><span class="dv">100</span>), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">100</span>)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">1000</span>, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">9</span>)), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">1</span>)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert labels to categorical one-hot encoding</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>one_hot_labels <span class="ot">&lt;-</span> <span class="fu">to_categorical</span>(labels, <span class="at">num_classes =</span> <span class="dv">10</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Train the model</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit</span>(data, one_hot_labels, <span class="at">epochs=</span><span class="dv">10</span>, <span class="at">batch_size=</span><span class="dv">32</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># create the model </span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model_simple_mlp</span>(<span class="at">num_classes =</span> <span class="dv">10</span>, <span class="at">use_dp =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># compile graph</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="fu">optimizer_rmsprop</span>(),</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">metrics =</span> <span class="fu">c</span>(<span class="st">&#39;accuracy&#39;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Generate dummy data</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(<span class="dv">1000</span><span class="sc">*</span><span class="dv">100</span>), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">100</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">round</span>(<span class="fu">runif</span>(<span class="dv">1000</span>, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">9</span>)), <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">1</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># Convert labels to categorical one-hot encoding</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>one_hot_labels <span class="ot">&lt;-</span> <span class="fu">to_categorical</span>(labels, <span class="at">num_classes =</span> <span class="dv">10</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># Train the model</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit</span>(data, one_hot_labels, <span class="at">epochs=</span><span class="dv">10</span>, <span class="at">batch_size=</span><span class="dv">32</span>)</span></code></pre></div>
 </div>
 
 

@@ -381,22 +381,22 @@ available for TensorFlow, due to its reliance on
 <h2>Usage Examples</h2>
 <div id="classify-imagenet-classes-with-resnet50" class="section level3">
 <h3>Classify ImageNet classes with ResNet50</h3>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># instantiate the model</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_resnet50</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># load the image</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ensure we have a 4d tensor with single element in the batch dimension,</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># the preprocess the input for prediction using resnet50</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># make predictions then decode and print them</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">imagenet_decode_predictions</span>(preds, <span class="at">top =</span> <span class="dv">3</span>)[[<span class="dv">1</span>]]</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># instantiate the model</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_resnet50</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># load the image</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co"># ensure we have a 4d tensor with single element in the batch dimension,</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># the preprocess the input for prediction using resnet50</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># make predictions then decode and print them</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>preds <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="fu">imagenet_decode_predictions</span>(preds, <span class="at">top =</span> <span class="dv">3</span>)[[<span class="dv">1</span>]]</span></code></pre></div>
 <pre><code>  class_name class_description      score
 1  n02504013   Indian_elephant 0.90117526
 2  n01871265            tusker 0.08774310
@@ -404,89 +404,89 @@ available for TensorFlow, due to its reliance on
 </div>
 <div id="extract-features-with-vgg16" class="section level3">
 <h3>Extract features with VGG16</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_vgg16</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>, <span class="at">include_top =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>features <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_vgg16</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>, <span class="at">include_top =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>features <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span></code></pre></div>
 </div>
 <div id="extract-features-from-an-arbitrary-intermediate-layer-with-vgg19" class="section level3">
 <h3>Extract features from an arbitrary intermediate layer with
 VGG19</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>base_model <span class="ot">&lt;-</span> <span class="fu">application_vgg19</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> base_model<span class="sc">$</span>input, </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">outputs =</span> <span class="fu">get_layer</span>(base_model, <span class="st">&#39;block4_pool&#39;</span>)<span class="sc">$</span>output)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>block4_pool_features <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>base_model <span class="ot">&lt;-</span> <span class="fu">application_vgg19</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> base_model<span class="sc">$</span>input, </span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>                     <span class="at">outputs =</span> <span class="fu">get_layer</span>(base_model, <span class="st">&#39;block4_pool&#39;</span>)<span class="sc">$</span>output)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>img_path <span class="ot">&lt;-</span> <span class="st">&quot;elephant.jpg&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>img <span class="ot">&lt;-</span> <span class="fu">image_load</span>(img_path, <span class="at">target_size =</span> <span class="fu">c</span>(<span class="dv">224</span>,<span class="dv">224</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">image_to_array</span>(img)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">array_reshape</span>(x, <span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">dim</span>(x)))</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">imagenet_preprocess_input</span>(x)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>block4_pool_features <span class="ot">&lt;-</span> model <span class="sc">%&gt;%</span> <span class="fu">predict</span>(x)</span></code></pre></div>
 </div>
 <div id="fine-tune-inceptionv3-on-a-new-set-of-classes" class="section level3">
 <h3>Fine-tune InceptionV3 on a new set of classes</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create the base pre-trained model</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>base_model <span class="ot">&lt;-</span> <span class="fu">application_inception_v3</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>, <span class="at">include_top =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># add our custom layers</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> base_model<span class="sc">$</span>output <span class="sc">%&gt;%</span> </span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_global_average_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">1024</span>, <span class="at">activation =</span> <span class="st">&#39;relu&#39;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">200</span>, <span class="at">activation =</span> <span class="st">&#39;softmax&#39;</span>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># this is the model we will train</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> base_model<span class="sc">$</span>input, <span class="at">outputs =</span> predictions)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># first: train only the top layers (which were randomly initialized)</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># i.e. freeze all convolutional InceptionV3 layers</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="fu">freeze_weights</span>(base_model)</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co"># compile the model (should be done *after* setting layers to non-trainable)</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(<span class="at">optimizer =</span> <span class="st">&#39;rmsprop&#39;</span>, <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"># train the model on the new data for a few epochs</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit_generator</span>(...)</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co"># at this point, the top layers are well trained and we can start fine-tuning</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co"># convolutional layers from inception V3. We will freeze the bottom N layers</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co"># and train the remaining top layers.</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co"># let&#39;s visualize layer names and layer indices to see how many layers</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="co"># we should freeze:</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>layers <span class="ot">&lt;-</span> base_model<span class="sc">$</span>layers</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(layers))</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(i, layers[[i]]<span class="sc">$</span>name, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co"># we chose to train the top 2 inception blocks, i.e. we will freeze</span></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co"># the first 172 layers and unfreeze the rest:</span></span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="fu">freeze_weights</span>(base_model, <span class="at">from =</span> <span class="dv">1</span>, <span class="at">to =</span> <span class="dv">172</span>)</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="fu">unfreeze_weights</span>(base_model, <span class="at">from =</span> <span class="dv">173</span>)</span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="co"># we need to recompile the model for these modifications to take effect</span></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="co"># we use SGD with a low learning rate</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="fu">optimizer_sgd</span>(<span class="at">lr =</span> <span class="fl">0.0001</span>, <span class="at">momentum =</span> <span class="fl">0.9</span>), </span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="co"># we train our model again (this time fine-tuning the top 2 inception blocks</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="co"># alongside the top Dense layers</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit_generator</span>(...)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># create the base pre-trained model</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>base_model <span class="ot">&lt;-</span> <span class="fu">application_inception_v3</span>(<span class="at">weights =</span> <span class="st">&#39;imagenet&#39;</span>, <span class="at">include_top =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co"># add our custom layers</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> base_model<span class="sc">$</span>output <span class="sc">%&gt;%</span> </span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="fu">layer_global_average_pooling_2d</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">1024</span>, <span class="at">activation =</span> <span class="st">&#39;relu&#39;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="at">units =</span> <span class="dv">200</span>, <span class="at">activation =</span> <span class="st">&#39;softmax&#39;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co"># this is the model we will train</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model</span>(<span class="at">inputs =</span> base_model<span class="sc">$</span>input, <span class="at">outputs =</span> predictions)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co"># first: train only the top layers (which were randomly initialized)</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co"># i.e. freeze all convolutional InceptionV3 layers</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="fu">freeze_weights</span>(base_model)</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co"># compile the model (should be done *after* setting layers to non-trainable)</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(<span class="at">optimizer =</span> <span class="st">&#39;rmsprop&#39;</span>, <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co"># train the model on the new data for a few epochs</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit_generator</span>(...)</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co"># at this point, the top layers are well trained and we can start fine-tuning</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co"># convolutional layers from inception V3. We will freeze the bottom N layers</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co"># and train the remaining top layers.</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co"># let&#39;s visualize layer names and layer indices to see how many layers</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co"># we should freeze:</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a>layers <span class="ot">&lt;-</span> base_model<span class="sc">$</span>layers</span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(layers))</span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a>  <span class="fu">cat</span>(i, layers[[i]]<span class="sc">$</span>name, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co"># we chose to train the top 2 inception blocks, i.e. we will freeze</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co"># the first 172 layers and unfreeze the rest:</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="fu">freeze_weights</span>(base_model, <span class="at">from =</span> <span class="dv">1</span>, <span class="at">to =</span> <span class="dv">172</span>)</span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="fu">unfreeze_weights</span>(base_model, <span class="at">from =</span> <span class="dv">173</span>)</span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co"># we need to recompile the model for these modifications to take effect</span></span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co"># we use SGD with a low learning rate</span></span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">compile</span>(</span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="fu">optimizer_sgd</span>(<span class="at">lr =</span> <span class="fl">0.0001</span>, <span class="at">momentum =</span> <span class="fl">0.9</span>), </span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>  <span class="at">loss =</span> <span class="st">&#39;categorical_crossentropy&#39;</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>)</span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co"># we train our model again (this time fine-tuning the top 2 inception blocks</span></span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a><span class="co"># alongside the top Dense layers</span></span>
+<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>model <span class="sc">%&gt;%</span> <span class="fu">fit_generator</span>(...)</span></code></pre></div>
 </div>
 <div id="build-inceptionv3-over-a-custom-input-tensor" class="section level3">
 <h3>Build InceptionV3 over a custom input tensor</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this could also be the output a different Keras model or layer</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>input_tensor <span class="ot">&lt;-</span> <span class="fu">layer_input</span>(<span class="at">shape =</span> <span class="fu">c</span>(<span class="dv">224</span>, <span class="dv">224</span>, <span class="dv">3</span>))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_inception_V3</span>(<span class="at">input_tensor =</span> input_tensor, </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">weights=</span><span class="st">&#39;imagenet&#39;</span>, </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">include_top =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># this could also be the output a different Keras model or layer</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>input_tensor <span class="ot">&lt;-</span> <span class="fu">layer_input</span>(<span class="at">shape =</span> <span class="fu">c</span>(<span class="dv">224</span>, <span class="dv">224</span>, <span class="dv">3</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">application_inception_V3</span>(<span class="at">input_tensor =</span> input_tensor, </span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                                  <span class="at">weights=</span><span class="st">&#39;imagenet&#39;</span>, </span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                                  <span class="at">include_top =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
 <div id="additional-examples" class="section level3">
 <h3>Additional examples</h3>
