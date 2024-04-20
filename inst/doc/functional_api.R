@@ -74,7 +74,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    loss_weights = c(1.0, 0.2)
 #  )
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  model %>% fit(
 #    x = list(headline_data, additional_data),
 #    y = list(labels, labels),
@@ -82,7 +82,7 @@ knitr::opts_chunk$set(comment = NA, eval = FALSE)
 #    batch_size = 32
 #  )
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  model %>% compile(
 #    optimizer = 'rmsprop',
 #    loss = list(main_output = 'binary_crossentropy', aux_output = 'binary_crossentropy'),

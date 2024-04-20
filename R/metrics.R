@@ -243,7 +243,7 @@ py_metric_wrapper <- function(py_fn, py_cls, formals=NULL, modifiers=NULL,
 #' @param thresholds (Optional) A list of floating point values to use as the
 #'   thresholds for discretizing the curve. If set, the `num_thresholds`
 #'   parameter is ignored. Values should be in `[0, 1]`. Endpoint thresholds equal
-#'   to {-epsilon, 1+epsilon} for a small positive epsilon value will be
+#'   to `{-epsilon, 1+epsilon}` for a small positive epsilon value will be
 #'   automatically included with these to correctly handle predictions equal to
 #'   exactly 0 or 1.
 #'
@@ -1104,7 +1104,7 @@ metric_mean_relative_error <- py_metric_wrapper(
 #' @family metrics
 #' @export
 metric_mean_squared_error <- py_metric_wrapper(
-  mean_absolute_percentage_error, MeanAbsolutePercentageError
+  mean_squared_error, MeanSquaredError
 )
 
 

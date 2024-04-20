@@ -220,7 +220,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # evaluate
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 32)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_embedding(input_dim = max_features, output_dim - 256) %>%
@@ -236,7 +236,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  model %>% fit(x_train, y_train, batch_size = 16, epochs = 10)
 #  score <- model %>% evaluate(x_test, y_test, batch_size = 16)
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  model <- keras_model_sequential()
 #  model %>%
 #    layer_conv_1d(filters = 64, kernel_size = 3, activation = 'relu',

@@ -2,7 +2,7 @@
 library(keras)
 knitr::opts_chunk$set(eval = FALSE)
 
-## ---- eval= FALSE-------------------------------------------------------------
+## ----eval= FALSE--------------------------------------------------------------
 #  # Replicates `model` on 8 GPUs.
 #  # This assumes that your machine has 8 available GPUs.
 #  parallel_model <- multi_gpu_model(model, gpus=8)
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(eval = FALSE)
 #  # Since the batch size is 256, each GPU will process 32 samples.
 #  parallel_model %>% fit(x, y, epochs = 20, batch_size = 256)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  # Model where a shared LSTM is used to encode two different sequences in parallel
 #  input_a <- layer_input(shape = c(140, 256))
 #  input_b <- layer_input(shape = c(140, 256))

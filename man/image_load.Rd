@@ -17,7 +17,7 @@ image_load(
 
 \item{grayscale}{DEPRECATED use \code{color_mode="grayscale"}}
 
-\item{color_mode}{One of {\code{"grayscale"}, \code{"rgb"}, \code{"rgba"}}.
+\item{color_mode}{One of \verb{\{"grayscale", "rgb", "rgba"\}}.
 Default: \code{"rgb"}. The desired image format.}
 
 \item{target_size}{Either \code{NULL} (default to original size) or integer vector
@@ -39,8 +39,8 @@ Loads an image into PIL format.
 \seealso{
 Other image preprocessing: 
 \code{\link{fit_image_data_generator}()},
-\code{\link{flow_images_from_dataframe}()},
 \code{\link{flow_images_from_data}()},
+\code{\link{flow_images_from_dataframe}()},
 \code{\link{flow_images_from_directory}()},
 \code{\link{image_to_array}()}
 }

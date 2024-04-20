@@ -37,7 +37,7 @@ increasing intervals and right summation for decreasing intervals;
 \item{thresholds}{(Optional) A list of floating point values to use as the
 thresholds for discretizing the curve. If set, the \code{num_thresholds}
 parameter is ignored. Values should be in \verb{[0, 1]}. Endpoint thresholds equal
-to {-epsilon, 1+epsilon} for a small positive epsilon value will be
+to \verb{\{-epsilon, 1+epsilon\}} for a small positive epsilon value will be
 automatically included with these to correctly handle predictions equal to
 exactly 0 or 1.}
 
@@ -131,6 +131,7 @@ Other metrics:
 \code{\link{metric_hinge}()},
 \code{\link{metric_kullback_leibler_divergence}()},
 \code{\link{metric_logcosh_error}()},
+\code{\link{metric_mean}()},
 \code{\link{metric_mean_absolute_error}()},
 \code{\link{metric_mean_absolute_percentage_error}()},
 \code{\link{metric_mean_iou}()},
@@ -139,12 +140,11 @@ Other metrics:
 \code{\link{metric_mean_squared_logarithmic_error}()},
 \code{\link{metric_mean_tensor}()},
 \code{\link{metric_mean_wrapper}()},
-\code{\link{metric_mean}()},
 \code{\link{metric_poisson}()},
-\code{\link{metric_precision_at_recall}()},
 \code{\link{metric_precision}()},
-\code{\link{metric_recall_at_precision}()},
+\code{\link{metric_precision_at_recall}()},
 \code{\link{metric_recall}()},
+\code{\link{metric_recall_at_precision}()},
 \code{\link{metric_root_mean_squared_error}()},
 \code{\link{metric_sensitivity_at_specificity}()},
 \code{\link{metric_sparse_categorical_accuracy}()},

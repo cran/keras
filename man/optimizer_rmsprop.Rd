@@ -103,14 +103,14 @@ gradients, and uses that average to estimate the variance.
 }
 \seealso{
 \itemize{
-\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/experimental/RMSprop}
+\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/RMSprop}
 }
 
 Other optimizers: 
 \code{\link{optimizer_adadelta}()},
 \code{\link{optimizer_adagrad}()},
-\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_adam}()},
+\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_ftrl}()},
 \code{\link{optimizer_nadam}()},
 \code{\link{optimizer_sgd}()}

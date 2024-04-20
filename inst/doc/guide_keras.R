@@ -83,12 +83,12 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    validation_data = list(val_data, val_labels)
 #  )
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  model %>% evaluate(test_data, test_labels, batch_size = 32)
 #  
 #  model %>% evaluate(test_dataset, steps = 30)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  model %>% predict(test_data, batch_size = 32)
 #  
 #  model %>% predict(test_dataset, steps = 30)
@@ -172,7 +172,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #    layer_dense(units = 32, input_shape = c(32,32)) %>%
 #    layer_custom(output_dim = 32)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  my_model <- function(input_dim, output_dim, name = NULL) {
 #  
 #    # define and return a custom model

@@ -142,14 +142,14 @@ is replaced with a gradient with shrinkage.
 }
 \seealso{
 \itemize{
-\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/experimental/Ftrl}
+\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/Ftrl}
 }
 
 Other optimizers: 
 \code{\link{optimizer_adadelta}()},
 \code{\link{optimizer_adagrad}()},
-\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_adam}()},
+\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_nadam}()},
 \code{\link{optimizer_rmsprop}()},
 \code{\link{optimizer_sgd}()}

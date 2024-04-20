@@ -98,13 +98,13 @@ learning rate can be set, as in most other Keras optimizers.
 }
 \seealso{
 \itemize{
-\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/experimental/Adadelta}
+\item \url{https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/Adadelta}
 }
 
 Other optimizers: 
 \code{\link{optimizer_adagrad}()},
-\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_adam}()},
+\code{\link{optimizer_adamax}()},
 \code{\link{optimizer_ftrl}()},
 \code{\link{optimizer_nadam}()},
 \code{\link{optimizer_rmsprop}()},

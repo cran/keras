@@ -3,7 +3,6 @@
 \docType{package}
 \name{keras-package}
 \alias{keras-package}
-\alias{_PACKAGE}
 \title{R interface to Keras}
 \description{
 Keras is a high-level neural networks API, developed with a focus on enabling
@@ -31,6 +30,7 @@ See the package website at \url{https://tensorflow.rstudio.com} for complete doc
 Useful links:
 \itemize{
   \item \url{https://tensorflow.rstudio.com/}
+  \item \url{https://github.com/rstudio/keras/tree/r2}
   \item Report bugs at \url{https://github.com/rstudio/keras/issues}
 }
 
