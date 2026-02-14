@@ -1,7 +1,7 @@
 Package: keras
 Type: Package
 Title: R Interface to 'Keras'
-Version: 2.16.0
+Version: 2.16.1
 Authors@R: c(
   person("Tomasz", "Kalinowski", role = c("ctb", "cph", "cre"),
          email = "tomasz@posit.co"),
@@ -32,10 +32,10 @@ Imports: generics (>= 0.0.1), reticulate (>= 1.31), tensorflow (>=
         methods, R6, rlang
 Suggests: ggplot2, testthat (>= 2.1.0), knitr, rmarkdown, callr,
         tfdatasets, withr, png, jpeg
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-08-18 18:00:49 UTC; tomasz
+Packaged: 2026-02-13 18:30:34 UTC; tomasz
 Author: Tomasz Kalinowski [ctb, cph, cre],
   Daniel Falbel [ctb, cph],
   JJ Allaire [aut, cph],
@@ -48,4 +48,4 @@ Author: Tomasz Kalinowski [ctb, cph, cre],
   Sigrid Keydana [ctb]
 Maintainer: Tomasz Kalinowski <tomasz@posit.co>
 Repository: CRAN
-Date/Publication: 2025-08-18 19:10:02 UTC
+Date/Publication: 2026-02-14 06:10:03 UTC

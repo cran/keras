@@ -48,9 +48,8 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
-html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -567,8 +566,10 @@ safely serialized. To load a model, you’ll need to have access to the
 code that created it (the code of the model subclass). Alternatively,
 you could be serializing this code as bytecode (e.g. via pickling), but
 that’s unsafe and generally not portable.</p>
-<p>For more information about these differences, see the article <a href="https://medium.com/tensorflow/what-are-symbolic-and-imperative-apis-in-tensorflow-2-0-dfccecb01021">“What
-are Symbolic and Imperative APIs in TensorFlow 2.0?”</a>.</p>
+<p>For more information about these differences, see the TensorFlow
+guides on <a href="https://www.tensorflow.org/guide/keras/functional_api">the
+Functional API</a> and <a href="https://www.tensorflow.org/guide/keras/making_new_layers_and_models_via_subclassing">making
+new layers and models via subclassing</a>.</p>
 <p>Let’s consider the following subclassed model, which follows the same
 structure as the model from the first section:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>keras_model_simple_mlp <span class="ot">&lt;-</span> <span class="cf">function</span>(num_classes, </span>
